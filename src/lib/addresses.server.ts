@@ -58,7 +58,7 @@ export type ResolveResult =
   | {
       status: "ok";
       code: string;
-      redirected_from?: string;
+      redirected_from?: string | undefined;
       purpose: Purpose;
       label: string | null;
       site: { id: string; display_name: string; node_type: string; latitude: number | null; longitude: number | null; governorate: string | null; city: string | null; district: string | null; neighborhood: string | null; street: string | null; landmark: string | null; public_notes: string | null };
@@ -110,7 +110,8 @@ async function ancestorChain(supa: PublicClient, nodeId: string): Promise<NodeRo
   const chain: NodeRow[] = [];
   let current: string | null = nodeId;
   for (let i = 0; i < 8 && current; i += 1) {
-    const { data } = await supa.from("location_nodes").select("*").eq("id", current).maybeSingle();
+    const result = await supa.from("location_nodes").select("*").eq("id", current).maybeSingle();
+    const data: NodeRow | null = result.data as NodeRow | null;
     if (!data) break;
     chain.unshift(data as NodeRow);
     current = data.parent_id;
