@@ -10,14 +10,22 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as MyAddressesRouteImport } from './routes/my-addresses'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as TTokenRouteImport } from './routes/t.$token'
+import { Route as ApiPublicResolveRouteImport } from './routes/api.public.resolve'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -40,43 +48,90 @@ const SearchRoute = SearchRouteImport.update({
   path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TTokenRoute = TTokenRouteImport.update({
+  id: '/t/$token',
+  path: '/t/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicResolveRoute = ApiPublicResolveRouteImport.update({
+  id: '/api/public/resolve',
+  path: '/api/public/resolve',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/create': typeof CreateRoute
   '/my-addresses': typeof MyAddressesRoute
   '/search': typeof SearchRoute
+  '/t/$token': typeof TTokenRoute
+  '/api/public/resolve': typeof ApiPublicResolveRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/create': typeof CreateRoute
   '/my-addresses': typeof MyAddressesRoute
   '/search': typeof SearchRoute
+  '/t/$token': typeof TTokenRoute
+  '/api/public/resolve': typeof ApiPublicResolveRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/create': typeof CreateRoute
   '/my-addresses': typeof MyAddressesRoute
   '/search': typeof SearchRoute
+  '/t/$token': typeof TTokenRoute
+  '/api/public/resolve': typeof ApiPublicResolveRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/create' | '/my-addresses' | '/search'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/create'
+    | '/my-addresses'
+    | '/search'
+    | '/t/$token'
+    | '/api/public/resolve'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/create' | '/my-addresses' | '/search'
-  id: '__root__' | '/' | '/auth' | '/create' | '/my-addresses' | '/search'
+  to:
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/create'
+    | '/my-addresses'
+    | '/search'
+    | '/t/$token'
+    | '/api/public/resolve'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/create'
+    | '/my-addresses'
+    | '/search'
+    | '/t/$token'
+    | '/api/public/resolve'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   AuthRoute: typeof AuthRoute
   CreateRoute: typeof CreateRoute
   MyAddressesRoute: typeof MyAddressesRoute
   SearchRoute: typeof SearchRoute
+  TTokenRoute: typeof TTokenRoute
+  ApiPublicResolveRoute: typeof ApiPublicResolveRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -86,6 +141,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -116,15 +178,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/t/$token': {
+      id: '/t/$token'
+      path: '/t/$token'
+      fullPath: '/t/$token'
+      preLoaderRoute: typeof TTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/resolve': {
+      id: '/api/public/resolve'
+      path: '/api/public/resolve'
+      fullPath: '/api/public/resolve'
+      preLoaderRoute: typeof ApiPublicResolveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   AuthRoute: AuthRoute,
   CreateRoute: CreateRoute,
   MyAddressesRoute: MyAddressesRoute,
   SearchRoute: SearchRoute,
+  TTokenRoute: TTokenRoute,
+  ApiPublicResolveRoute: ApiPublicResolveRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
