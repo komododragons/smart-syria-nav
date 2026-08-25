@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CreateRouteImport } from './routes/create'
+import { Route as MyAddressesRouteImport } from './routes/my-addresses'
 import { Route as SearchRouteImport } from './routes/search'
 
 const IndexRoute = IndexRouteImport.update({
@@ -23,6 +25,16 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CreateRoute = CreateRouteImport.update({
+  id: '/create',
+  path: '/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MyAddressesRoute = MyAddressesRouteImport.update({
+  id: '/my-addresses',
+  path: '/my-addresses',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
@@ -32,30 +44,38 @@ const SearchRoute = SearchRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/create': typeof CreateRoute
+  '/my-addresses': typeof MyAddressesRoute
   '/search': typeof SearchRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/create': typeof CreateRoute
+  '/my-addresses': typeof MyAddressesRoute
   '/search': typeof SearchRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/create': typeof CreateRoute
+  '/my-addresses': typeof MyAddressesRoute
   '/search': typeof SearchRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/search'
+  fullPaths: '/' | '/auth' | '/create' | '/my-addresses' | '/search'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/search'
-  id: '__root__' | '/' | '/auth' | '/search'
+  to: '/' | '/auth' | '/create' | '/my-addresses' | '/search'
+  id: '__root__' | '/' | '/auth' | '/create' | '/my-addresses' | '/search'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
+  CreateRoute: typeof CreateRoute
+  MyAddressesRoute: typeof MyAddressesRoute
   SearchRoute: typeof SearchRoute
 }
 
@@ -75,6 +95,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/create': {
+      id: '/create'
+      path: '/create'
+      fullPath: '/create'
+      preLoaderRoute: typeof CreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/my-addresses': {
+      id: '/my-addresses'
+      path: '/my-addresses'
+      fullPath: '/my-addresses'
+      preLoaderRoute: typeof MyAddressesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/search': {
       id: '/search'
       path: '/search'
@@ -88,6 +122,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
+  CreateRoute: CreateRoute,
+  MyAddressesRoute: MyAddressesRoute,
   SearchRoute: SearchRoute,
 }
 export const routeTree = rootRouteImport
