@@ -446,11 +446,23 @@ export const resolveTemporaryToken = createServerFn({ method: "POST" })
     let currentId: string | null = smart.node_id;
     let site: { display_name: string; latitude: number | null; longitude: number | null; neighborhood: string | null; city: string | null } | null = null;
     for (let i = 0; i < 8 && currentId; i += 1) {
-      const { data: node } = await supabaseAdmin
+      const nodeResult = await supabaseAdmin
         .from("location_nodes")
         .select("id, parent_id, node_type, display_name, unit_label, floor_label, latitude, longitude, neighborhood, city")
         .eq("id", currentId)
         .maybeSingle();
+      const node = nodeResult.data as {
+        id: string;
+        parent_id: string | null;
+        node_type: string;
+        display_name: string;
+        unit_label: string | null;
+        floor_label: string | null;
+        latitude: number | null;
+        longitude: number | null;
+        neighborhood: string | null;
+        city: string | null;
+      } | null;
       if (!node) break;
       chain.unshift({
         node_type: node.node_type,
