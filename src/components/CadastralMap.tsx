@@ -31,9 +31,71 @@ const TONE_CLASS: Record<MapPin["tone"], string> = {
  * access-point pins projected around a centre point; no map SDK is coupled to
  * the data model, so tiles/satellite can be layered later.
  */
+type Tile = { key: string; url: string; left: number; top: number; size: number };
+
+/** Web-mercator tile layout for the current centre/span, sized to the plate in px. */
+function buildTiles(
+  center: { latitude: number; longitude: number },
+  spanMeters: number,
+  width: number,
+  height: number,
+): Tile[] {
+  if (!width || !height) return [];
+  const metersPerPixel = spanMeters / width;
+  const groundRes = (156543.03392 * Math.cos((center.latitude * Math.PI) / 180)) / 1;
+  let zoom = Math.round(Math.log2(groundRes / metersPerPixel));
+  zoom = Math.min(19, Math.max(2, zoom));
+  const scale = 2 ** zoom;
+  const tileSize = 256 * (groundRes / scale / metersPerPixel);
+
+  const xCenter = ((center.longitude + 180) / 360) * scale;
+  const latRad = (center.latitude * Math.PI) / 180;
+  const yCenter =
+    ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * scale;
+
+  const tiles: Tile[] = [];
+  const xFrom = Math.floor(xCenter - width / 2 / tileSize);
+  const xTo = Math.floor(xCenter + width / 2 / tileSize);
+  const yFrom = Math.floor(yCenter - height / 2 / tileSize);
+  const yTo = Math.floor(yCenter + height / 2 / tileSize);
+
+  for (let x = xFrom; x <= xTo; x++) {
+    for (let y = yFrom; y <= yTo; y++) {
+      if (y < 0 || y >= scale) continue;
+      const wrappedX = ((x % scale) + scale) % scale;
+      tiles.push({
+        key: `${zoom}/${x}/${y}`,
+        url: `https://tile.openstreetmap.org/${zoom}/${wrappedX}/${y}.png`,
+        left: (x - xCenter) * tileSize + width / 2,
+        top: (y - yCenter) * tileSize + height / 2,
+        size: tileSize,
+      });
+    }
+  }
+  return tiles;
+}
+
 export function CadastralMap({ center, pins, spanMeters = 420, onPick, onLocate, className }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState<string | null>(null);
+  const [size, setSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() => {
+      setSize({ width: el.clientWidth, height: el.clientHeight });
+    });
+    observer.observe(el);
+    setSize({ width: el.clientWidth, height: el.clientHeight });
+    return () => observer.disconnect();
+  }, []);
+
+  const tiles = useMemo(
+    () => buildTiles(center, spanMeters, size.width, size.height),
+    [center.latitude, center.longitude, spanMeters, size.width, size.height],
+  );
+
 
   const project = useMemo(() => {
     const metersPerLat = 111_320;
