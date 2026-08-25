@@ -133,7 +133,23 @@ export function CadastralMap({ center, pins, spanMeters = 420, onPick, onLocate,
         aria-label={onPick ? "اختر موقعاً على الخريطة" : "خريطة المواقع"}
         className={`cadastral-grid relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-border ${onPick ? "cursor-crosshair" : ""}`}
       >
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
+        <div className="pointer-events-none absolute inset-0 opacity-90">
+          {tiles.map((tile) => (
+            <img
+              key={tile.key}
+              src={tile.url}
+              alt=""
+              loading="lazy"
+              draggable={false}
+              className="absolute select-none"
+              style={{ left: tile.left, top: tile.top, width: tile.size, height: tile.size }}
+            />
+          ))}
+        </div>
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/50 via-transparent to-transparent" />
+        <span className="pointer-events-none absolute bottom-1 end-1 rounded bg-surface/80 px-1 font-mono text-[8px] text-muted-foreground">
+          © OpenStreetMap
+        </span>
         <span className="pointer-events-none absolute top-3 start-3 font-mono text-[10px] tracking-widest text-muted-foreground">
           {center.latitude.toFixed(4)}°N
         </span>
