@@ -1,0 +1,176 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMutation } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { useEffect, useState } from "react";
+import { Building2, Landmark, Search as SearchIcon, Store } from "lucide-react";
+
+import { AppHeader } from "@/components/AppHeader";
+import { searchNetwork } from "@/lib/addresses.functions";
+import { NODE_TYPE_LABELS, VERIFICATION_LEVELS } from "@/lib/smart-address";
+
+export const Route = createFileRoute("/search")({
+  head: () => ({
+    meta: [
+      { title: "البحث في شبكة العنوان الذكي" },
+      {
+        name: "description",
+        content:
+          "ابحث عن الأعمال والمواقع والمعالم في سوريا بالعربية أو الإنجليزية، واحصل على العنوان الذكي والمدخل الصحيح لكل غرض.",
+      },
+      { property: "og:title", content: "البحث في الشبكة — العنوان الذكي السوري" },
+      {
+        property: "og:description",
+        content: "بحث موحّد يفهم الأسماء الشائعة والمعالم، مع احترام خصوصية العناوين السكنية.",
+      },
+    ],
+  }),
+  component: SearchPage,
+});
+
+function SearchPage() {
+  const search = useServerFn(searchNetwork);
+  const [query, setQuery] = useState("");
+  const mutation = useMutation({
+    mutationFn: (value: string) => search({ data: { query: value } }),
+  });
+
+  useEffect(() => {
+    if (query.trim().length < 2) return;
+    const timer = setTimeout(() => mutation.mutate(query), 300);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
+
+  const data = mutation.data;
+
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <AppHeader />
+      <div className="border-b border-border bg-surface/70 px-4 py-4">
+        <div className="relative mx-auto max-w-3xl">
+          <SearchIcon className="pointer-events-none absolute inset-y-0 start-3 my-auto size-4 text-muted-foreground" />
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="مثال: صيدلية، المزة، مستودع، SY-DAM"
+            className="w-full rounded-lg border border-border bg-background py-3 pe-4 ps-9 text-sm focus:border-primary focus:outline-none"
+          />
+        </div>
+      </div>
+
+      <main className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-6">
+        {query.trim().length < 2 ? (
+          <p className="py-12 text-center text-sm text-muted-foreground">
+            البحث يفهم الأسماء العربية الشائعة والمعالم والاختصارات. العناوين السكنية غير مُدرجة في النتائج.
+          </p>
+        ) : null}
+
+        {data?.code ? (
+          <Link
+            to="/"
+            className="animate-entrance rounded-2xl border border-primary/40 bg-primary/5 p-4"
+          >
+            <span className="text-[10px] font-bold uppercase tracking-widest text-primary">
+              عنوان ذكي مطابق
+            </span>
+            <p className="font-mono text-lg" dir="ltr">
+              {data.code.code}
+            </p>
+            <p className="text-xs text-muted-foreground">{data.code.label ?? "حلّل هذا الرمز"}</p>
+          </Link>
+        ) : null}
+
+        {data?.businesses.length ? (
+          <section className="animate-entrance">
+            <h2 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              <Store className="size-3.5" /> أعمال ومنشآت
+            </h2>
+            <div className="space-y-2">
+              {data.businesses.map((biz) => {
+                const node = Array.isArray(biz.location_nodes)
+                  ? biz.location_nodes[0]
+                  : biz.location_nodes;
+                const smart = Array.isArray(biz.smart_addresses)
+                  ? biz.smart_addresses[0]
+                  : biz.smart_addresses;
+                return (
+                  <div
+                    key={biz.id}
+                    className="rounded-xl border border-border bg-surface p-4 shadow-sm"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-bold leading-tight">{biz.name_ar}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {[biz.category, node?.neighborhood, node?.city].filter(Boolean).join(" · ")}
+                        </p>
+                      </div>
+                      {smart?.code ? (
+                        <span className="shrink-0 rounded-md bg-foreground px-2 py-1 font-mono text-[11px] text-background" dir="ltr">
+                          {smart.code}
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
+                      {biz.opening_hours ? <span>{biz.opening_hours}</span> : null}
+                      {biz.phone ? (
+                        <span dir="ltr" className="font-mono">
+                          {biz.phone}
+                        </span>
+                      ) : null}
+                      <span>{VERIFICATION_LEVELS[biz.verification_level]?.ar ?? "غير موثق"}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
+
+        {data?.places.length ? (
+          <section className="animate-entrance">
+            <h2 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              <Building2 className="size-3.5" /> مواقع ومبانٍ عامة
+            </h2>
+            <div className="space-y-2">
+              {data.places.map((place) => (
+                <div
+                  key={place.id}
+                  className="flex items-start justify-between gap-3 rounded-xl border border-border bg-surface p-4"
+                >
+                  <div>
+                    <p className="font-bold leading-tight">{place.display_name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {[
+                        NODE_TYPE_LABELS[place.node_type] ?? place.node_type,
+                        place.neighborhood,
+                        place.city,
+                        place.governorate,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </p>
+                    {place.landmark ? (
+                      <p className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground">
+                        <Landmark className="size-3" /> {place.landmark}
+                      </p>
+                    ) : null}
+                  </div>
+                  <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
+                    {place.confidence_score}%
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {data && !data.businesses.length && !data.places.length && !data.code ? (
+          <p className="py-12 text-center text-sm text-muted-foreground">
+            لا نتائج. جرّب اسم الحي أو معلماً قريباً.
+          </p>
+        ) : null}
+      </main>
+    </div>
+  );
+}
