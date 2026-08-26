@@ -56,7 +56,7 @@ export function NavigationMap({ markers, path, finalLeg, center, onPick, classNa
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [{ default: maplibregl }] = await Promise.all([
+      const [maplibregl] = await Promise.all([
         import("maplibre-gl"),
         import("maplibre-gl/dist/maplibre-gl.css"),
       ]);
@@ -154,7 +154,7 @@ export function NavigationMap({ markers, path, finalLeg, center, onPick, classNa
     if (!map) return;
     let cancelled = false;
     (async () => {
-      const { default: maplibregl } = await import("maplibre-gl");
+      const maplibregl = await import("maplibre-gl");
       if (cancelled || !mapRef.current) return;
       markerRefs.current.forEach((m) => m.remove());
       markerRefs.current = markers.map((marker) => {
