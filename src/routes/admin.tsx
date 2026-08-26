@@ -44,8 +44,12 @@ function AdminPage() {
   const overview = useServerFn(adminOverview);
   const review = useServerFn(reviewCorrection);
   const reviewClaimFn = useServerFn(reviewClaim);
+  const detectFn = useServerFn(detectDuplicates);
+  const listDupFn = useServerFn(listDuplicates);
+  const reviewDupFn = useServerFn(reviewDuplicate);
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [scanning, setScanning] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setAuthed(Boolean(data.session)));
@@ -56,6 +60,39 @@ function AdminPage() {
     queryFn: () => overview({ data: undefined as never }),
     enabled: authed === true,
   });
+
+  const dupQuery = useQuery({
+    queryKey: ["admin-duplicates"],
+    queryFn: () => listDupFn({ data: undefined as never }),
+    enabled: authed === true && query.data?.authorized === true,
+  });
+
+  const handleScan = async () => {
+    setScanning(true);
+    try {
+      const result = await detectFn({ data: undefined as never });
+      toast.success(`فُحص ${result.scanned} عقدة — ${result.inserted} تكرار جديد`);
+      await queryClient.invalidateQueries({ queryKey: ["admin-duplicates"] });
+    } catch {
+      toast.error("تعذر فحص التكرارات");
+    } finally {
+      setScanning(false);
+    }
+  };
+
+  const handleDupReview = async (id: string, action: "merge" | "dismiss", keep: "a" | "b") => {
+    setBusyId(id);
+    try {
+      await reviewDupFn({ data: { id, action, keep } });
+      toast.success(action === "merge" ? "تم الدمج ونقل البيانات" : "تم رفض التكرار");
+      await queryClient.invalidateQueries({ queryKey: ["admin-duplicates"] });
+      await queryClient.invalidateQueries({ queryKey: ["admin-overview"] });
+    } catch {
+      toast.error("تعذر تنفيذ الإجراء");
+    } finally {
+      setBusyId(null);
+    }
+  };
 
   const handleReview = async (id: string, status: "reviewed" | "dismissed") => {
     setBusyId(id);
