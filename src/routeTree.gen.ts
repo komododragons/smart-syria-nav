@@ -19,6 +19,7 @@ import { Route as MyAddressesRouteImport } from './routes/my-addresses'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
+import { Route as AdminNavigationRouteImport } from './routes/admin.navigation'
 import { Route as BusinessIdRouteImport } from './routes/business.$id'
 import { Route as NavigationCodeRouteImport } from './routes/navigation.$code'
 import { Route as TTokenRouteImport } from './routes/t.$token'
@@ -74,6 +75,11 @@ const AdminAuditRoute = AdminAuditRouteImport.update({
   path: '/audit',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminNavigationRoute = AdminNavigationRouteImport.update({
+  id: '/navigation',
+  path: '/navigation',
+  getParentRoute: () => AdminRoute,
+} as any)
 const BusinessIdRoute = BusinessIdRouteImport.update({
   id: '/business/$id',
   path: '/business/$id',
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/verify': typeof VerifyRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/navigation': typeof AdminNavigationRoute
   '/business/$id': typeof BusinessIdRoute
   '/navigation/$code': typeof NavigationCodeRoute
   '/t/$token': typeof TTokenRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/verify': typeof VerifyRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/navigation': typeof AdminNavigationRoute
   '/business/$id': typeof BusinessIdRoute
   '/navigation/$code': typeof NavigationCodeRoute
   '/t/$token': typeof TTokenRoute
@@ -139,6 +147,7 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/verify': typeof VerifyRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/navigation': typeof AdminNavigationRoute
   '/business/$id': typeof BusinessIdRoute
   '/navigation/$code': typeof NavigationCodeRoute
   '/t/$token': typeof TTokenRoute
@@ -157,6 +166,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/verify'
     | '/admin/audit'
+    | '/admin/navigation'
     | '/business/$id'
     | '/navigation/$code'
     | '/t/$token'
@@ -173,6 +183,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/verify'
     | '/admin/audit'
+    | '/admin/navigation'
     | '/business/$id'
     | '/navigation/$code'
     | '/t/$token'
@@ -189,6 +200,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/verify'
     | '/admin/audit'
+    | '/admin/navigation'
     | '/business/$id'
     | '/navigation/$code'
     | '/t/$token'
@@ -283,6 +295,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAuditRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/navigation': {
+      id: '/admin/navigation'
+      path: '/navigation'
+      fullPath: '/admin/navigation'
+      preLoaderRoute: typeof AdminNavigationRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/business/$id': {
       id: '/business/$id'
       path: '/business/$id'
@@ -316,10 +335,12 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminAuditRoute: typeof AdminAuditRoute
+  AdminNavigationRoute: typeof AdminNavigationRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAuditRoute: AdminAuditRoute,
+  AdminNavigationRoute: AdminNavigationRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
