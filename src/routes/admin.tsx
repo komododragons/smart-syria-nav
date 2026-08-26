@@ -279,6 +279,86 @@ function AdminPage() {
             </section>
 
             <section className="rounded-2xl border border-border bg-surface p-4">
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                  تكرارات مرشحة للدمج
+                </h2>
+                <button
+                  type="button"
+                  disabled={scanning}
+                  onClick={() => void handleScan()}
+                  className="flex items-center gap-1.5 rounded-lg bg-foreground px-3 py-1.5 text-[11px] font-bold text-background disabled:opacity-50"
+                >
+                  <ScanSearch className="size-3.5" /> {scanning ? "جارٍ الفحص…" : "فحص الآن"}
+                </button>
+              </div>
+              {dupQuery.data && !dupQuery.data.authorized ? (
+                <p className="mt-3 text-sm text-muted-foreground">مراجعة التكرارات للمشرفين فقط.</p>
+              ) : dupQuery.data?.candidates.length ? (
+                <div className="mt-3 space-y-2">
+                  {dupQuery.data.candidates.map((cand) => {
+                    const a = dupQuery.data?.authorized ? dupQuery.data.nodes[cand.node_a] : undefined;
+                    const b = dupQuery.data?.authorized ? dupQuery.data.nodes[cand.node_b] : undefined;
+                    return (
+                      <div key={cand.id} className="rounded-lg border border-border bg-background p-3">
+                        <div className="flex items-center justify-between gap-2 text-xs">
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate font-bold">أ: {a?.display_name ?? cand.node_a}</p>
+                            <p className="text-[10px] text-muted-foreground">
+                              {a ? `${NODE_TYPE_LABELS[a.node_type] ?? a.node_type} · ${[a.neighborhood, a.city].filter(Boolean).join(" — ")}` : ""}
+                            </p>
+                          </div>
+                          <span className="shrink-0 font-mono text-[10px] text-primary" dir="ltr">
+                            {cand.distance_meters != null ? `${Math.round(cand.distance_meters)}m` : ""}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate font-bold">ب: {b?.display_name ?? cand.node_b}</p>
+                            <p className="text-[10px] text-muted-foreground">
+                              {b ? `${NODE_TYPE_LABELS[b.node_type] ?? b.node_type} · ${[b.neighborhood, b.city].filter(Boolean).join(" — ")}` : ""}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="mt-2 flex flex-wrap justify-end gap-1.5">
+                          <button
+                            type="button"
+                            disabled={busyId === cand.id}
+                            onClick={() => void handleDupReview(cand.id, "merge", "a")}
+                            className="flex items-center gap-1 rounded-md bg-allow px-2.5 py-1 text-[11px] font-bold text-primary-foreground disabled:opacity-50"
+                          >
+                            <GitMerge className="size-3" /> دمج بإبقاء أ
+                          </button>
+                          <button
+                            type="button"
+                            disabled={busyId === cand.id}
+                            onClick={() => void handleDupReview(cand.id, "merge", "b")}
+                            className="flex items-center gap-1 rounded-md bg-allow px-2.5 py-1 text-[11px] font-bold text-primary-foreground disabled:opacity-50"
+                          >
+                            <GitMerge className="size-3" /> دمج بإبقاء ب
+                          </button>
+                          <button
+                            type="button"
+                            disabled={busyId === cand.id}
+                            onClick={() => void handleDupReview(cand.id, "dismiss", "a")}
+                            className="rounded-md border border-border px-2.5 py-1 text-[11px] font-bold text-muted-foreground disabled:opacity-50"
+                          >
+                            ليسا مكررين
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="mt-3 text-sm text-muted-foreground">
+                  لا تكرارات معلّقة. شغّل «فحص الآن» لمسح العقد العامة ضمن نطاق 30 متراً.
+                </p>
+              )}
+              <p className="mt-3 text-[11px] text-muted-foreground">
+                الدمج ينقل المداخل والأعمال والعناوين الذكية إلى العقدة المحتفَظ بها ويُنشئ تحويلات للرموز المتقاعدة.
+              </p>
+            </section>
+
+            <section className="rounded-2xl border border-border bg-surface p-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                   تقييمات الوصول الأخيرة
