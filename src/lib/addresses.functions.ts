@@ -519,6 +519,8 @@ export const reportCorrection = createServerFn({ method: "POST" })
         smart_code: z.string().max(32).optional(),
         issue_type: z.string().min(2).max(60),
         details: z.string().max(600).optional(),
+        node_id: z.string().uuid().nullable().optional(),
+        access_point_id: z.string().uuid().nullable().optional(),
       })
       .parse(input),
   )
@@ -527,6 +529,8 @@ export const reportCorrection = createServerFn({ method: "POST" })
       smart_code: data.smart_code ?? null,
       issue_type: data.issue_type,
       details: data.details ?? null,
+      node_id: data.node_id ?? null,
+      access_point_id: data.access_point_id ?? null,
       reporter_id: context.userId,
     });
     if (error) throw new Error(error.message);
@@ -542,6 +546,7 @@ export const submitVisitFeedback = createServerFn({ method: "POST" })
         purpose: purposeSchema,
         access_point_id: z.string().uuid().nullable().default(null),
         successful: z.boolean(),
+        notes: z.string().max(400).optional(),
       })
       .parse(input),
   )
@@ -551,8 +556,30 @@ export const submitVisitFeedback = createServerFn({ method: "POST" })
       purpose: data.purpose,
       access_point_id: data.access_point_id,
       successful: data.successful,
+      notes: data.notes ?? null,
       reporter_id: context.userId,
     });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const reviewCorrection = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        status: z.enum(["reviewed", "dismissed"]),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    // RLS restricts this update to moderators/admins.
+    const { error } = await context.supabase
+      .from("correction_reports")
+      .update({ status: data.status, reviewed_by: context.userId })
+      .eq("id", data.id)
+      .eq("status", "pending");
     if (error) throw new Error(error.message);
     return { ok: true };
   });
