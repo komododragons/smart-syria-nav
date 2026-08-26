@@ -425,7 +425,7 @@ export const updateMyAddress = createServerFn({ method: "POST" })
       const { error: apErr } = await context.supabase
         .from("access_points")
         .update({
-          display_name: data.entrance_name ?? undefined,
+          ...(data.entrance_name ? { display_name: data.entrance_name } : {}),
           instructions_ar: data.entrance_instructions ?? null,
         })
         .eq("id", data.access_point_id);
