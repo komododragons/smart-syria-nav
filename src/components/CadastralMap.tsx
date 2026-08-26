@@ -222,10 +222,13 @@ export function CadastralMap({ center, pins, spanMeters = 420, onPick, onLocate,
       <div
         ref={ref}
         onClick={handleClick}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
         role={onPick ? "button" : undefined}
         tabIndex={onPick ? 0 : undefined}
         aria-label={onPick ? "اختر موقعاً على الخريطة" : "خريطة المواقع"}
-        className={`cadastral-grid relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-border ${onPick ? "cursor-crosshair" : ""}`}
+        style={{ touchAction: "none" }}
+        className={`cadastral-grid relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-border ${onPick ? "cursor-crosshair" : "cursor-grab"}`}
       >
         <div className="pointer-events-none absolute inset-0 opacity-90">
           {tiles.map((tile) => (
@@ -245,14 +248,62 @@ export function CadastralMap({ center, pins, spanMeters = 420, onPick, onLocate,
           © OpenStreetMap
         </span>
         <span className="pointer-events-none absolute top-3 start-3 font-mono text-[10px] tracking-widest text-muted-foreground">
-          {center.latitude.toFixed(4)}°N
+          {view.latitude.toFixed(4)}°N
         </span>
         <span className="pointer-events-none absolute bottom-3 start-3 font-mono text-[10px] tracking-widest text-muted-foreground">
-          {center.longitude.toFixed(4)}°E
+          {view.longitude.toFixed(4)}°E
         </span>
         <span className="pointer-events-none absolute top-3 end-3 font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
-          {spanMeters} m
+          {view.span >= 1000 ? `${Math.round(view.span / 1000)} km` : `${Math.round(view.span)} m`}
         </span>
+
+        <div className="absolute bottom-3 start-1/2 flex -translate-x-1/2 gap-1">
+          <button
+            type="button"
+            aria-label="تصغير"
+            onClick={(e) => {
+              e.stopPropagation();
+              zoomBy(2);
+            }}
+            className="grid size-8 place-items-center rounded-lg border border-border bg-surface/95 text-base font-bold text-foreground"
+          >
+            −
+          </button>
+          <button
+            type="button"
+            aria-label="تكبير"
+            onClick={(e) => {
+              e.stopPropagation();
+              zoomBy(0.5);
+            }}
+            className="grid size-8 place-items-center rounded-lg border border-border bg-surface/95 text-base font-bold text-foreground"
+          >
+            +
+          </button>
+          <button
+            type="button"
+            aria-label="كل سوريا"
+            onClick={(e) => {
+              e.stopPropagation();
+              setView({ latitude: 34.8, longitude: 38.5, span: 700_000 });
+            }}
+            className="grid h-8 place-items-center rounded-lg border border-border bg-surface/95 px-2 text-[11px] font-bold text-foreground"
+          >
+            سوريا
+          </button>
+          <button
+            type="button"
+            aria-label="إعادة الضبط"
+            onClick={(e) => {
+              e.stopPropagation();
+              setView({ ...center, span: spanMeters });
+            }}
+            className="grid h-8 place-items-center rounded-lg border border-border bg-surface/95 px-2 text-[11px] font-bold text-foreground"
+          >
+            ⤾
+          </button>
+        </div>
+
 
         {pins
           .filter((p) => p.latitude != null && p.longitude != null)
