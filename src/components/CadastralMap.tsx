@@ -7,6 +7,8 @@ export type MapPin = {
   longitude: number | null;
   label: string;
   tone: "site" | "recommended" | "alternative" | "prohibited" | "draft";
+  /** Smart code, when the pin resolves to one. Makes the pin selectable. */
+  code?: string | null;
 };
 
 type Props = {
@@ -15,9 +17,11 @@ type Props = {
   spanMeters?: number;
   fill?: boolean;
   onPick?: (coords: { latitude: number; longitude: number }) => void;
+  onSelectPin?: (pin: MapPin) => void;
   onLocate?: () => void;
   className?: string;
 };
+
 
 const TONE_CLASS: Record<MapPin["tone"], string> = {
   site: "bg-foreground",
@@ -86,6 +90,8 @@ export function CadastralMap({
   spanMeters = 420,
   fill = false,
   onPick,
+  onSelectPin,
+
   onLocate,
   className,
 }: Props) {
@@ -328,16 +334,35 @@ export function CadastralMap({
             const { left, top } = project(pin.latitude as number, pin.longitude as number);
             const clampedLeft = Math.min(96, Math.max(4, left));
             const clampedTop = Math.min(94, Math.max(6, top));
+            const selectable = Boolean(onSelectPin);
             return (
               <div
                 key={pin.id}
-                className="animate-entrance absolute -translate-x-1/2 -translate-y-1/2"
+                role={selectable ? "button" : undefined}
+                tabIndex={selectable ? 0 : undefined}
+                aria-label={selectable ? `فتح ${pin.label}` : undefined}
+                className={`animate-entrance absolute -translate-x-1/2 -translate-y-1/2 ${selectable ? "cursor-pointer" : "pointer-events-none"}`}
                 style={{ left: `${clampedLeft}%`, top: `${clampedTop}%` }}
                 onMouseEnter={() => setHover(pin.id)}
                 onMouseLeave={() => setHover(null)}
+                onPointerDown={(event) => {
+                  if (selectable) event.stopPropagation();
+                }}
+                onClick={(event) => {
+                  if (!selectable) return;
+                  event.stopPropagation();
+                  onSelectPin?.(pin);
+                }}
+                onKeyDown={(event) => {
+                  if (!selectable) return;
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onSelectPin?.(pin);
+                  }
+                }}
               >
                 <div
-                  className={`grid size-5 place-items-center rounded-full ring-2 ring-surface ${TONE_CLASS[pin.tone]} ${pin.tone === "recommended" ? "shadow-plate" : ""}`}
+                  className={`grid size-5 place-items-center rounded-full ring-2 ring-surface transition-transform ${hover === pin.id && selectable ? "scale-125" : ""} ${TONE_CLASS[pin.tone]} ${pin.tone === "recommended" ? "shadow-plate" : ""}`}
                 >
                   <span className="size-1.5 rounded-full bg-surface" />
                 </div>
@@ -348,6 +373,7 @@ export function CadastralMap({
                 </span>
               </div>
             );
+
           })}
 
         {onPick ? (
