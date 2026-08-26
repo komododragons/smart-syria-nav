@@ -50,6 +50,20 @@ export function AppHeader() {
           {signedIn ? (
             <>
               <Link
+                to="/verify"
+                className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
+                aria-label="التوثيق الميداني"
+              >
+                <BadgeCheck className="size-4" />
+              </Link>
+              <Link
+                to="/developers"
+                className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
+                aria-label="واجهة المطورين"
+              >
+                <Code2 className="size-4" />
+              </Link>
+              <Link
                 to="/my-addresses"
                 className="rounded-lg border border-border px-3 py-2 text-xs font-bold text-foreground"
               >
