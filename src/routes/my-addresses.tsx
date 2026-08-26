@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Copy, EyeOff, Globe, Pencil, Star, Timer, Trash2 } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
+import { CadastralMap } from "@/components/CadastralMap";
 import { QrCard } from "@/components/QrCard";
 import { supabase } from "@/integrations/supabase/client";
 import { createTemporaryAddress, listMyAddresses, updateMyAddress } from "@/lib/addresses.functions";
@@ -384,6 +385,38 @@ function MyAddressesPage() {
                         className="rounded-lg border border-border bg-surface px-3 py-2 font-mono text-sm"
                       />
                     </label>
+                    <div className="sm:col-span-2">
+                      <p className="mb-1.5 text-xs font-medium">
+                        حدّد من الخريطة — انقر أو اسحب لاختيار الموقع تلقائياً
+                      </p>
+                      <CadastralMap
+                        center={{
+                          latitude: Number(editForm.latitude) || node.latitude || 33.5138,
+                          longitude: Number(editForm.longitude) || node.longitude || 36.2765,
+                        }}
+                        spanMeters={420}
+                        pins={
+                          Number(editForm.latitude) && Number(editForm.longitude)
+                            ? [
+                                {
+                                  id: `edit-${row.id}`,
+                                  latitude: Number(editForm.latitude),
+                                  longitude: Number(editForm.longitude),
+                                  label: editForm.display_name || "الموقع المحدد",
+                                  tone: "recommended",
+                                },
+                              ]
+                            : []
+                        }
+                        onPick={({ latitude, longitude }) =>
+                          setEditForm((f) => ({
+                            ...f,
+                            latitude: latitude.toFixed(6),
+                            longitude: longitude.toFixed(6),
+                          }))
+                        }
+                      />
+                    </div>
                     <label className="flex flex-col gap-1 text-xs font-medium sm:col-span-2">
                       ملاحظات عامة
                       <textarea
