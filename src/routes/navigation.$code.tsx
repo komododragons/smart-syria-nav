@@ -55,6 +55,12 @@ import {
 } from "@/lib/navigation/types";
 
 export const Route = createFileRoute("/navigation/$code")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    token: typeof search.token === "string" ? search.token : undefined,
+    mode: TRAVEL_MODES.some((m) => m.value === search.mode)
+      ? (search.mode as TravelMode)
+      : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "الاتجاهات إلى عنوان ذكي | الشبكة السورية" },
@@ -105,7 +111,7 @@ function pushRecent(entry: RecentOrigin) {
 function NavigationWorkspace() {
   const { code } = Route.useParams();
   const navigate = useNavigate();
-  const search = Route.useSearch() as { token?: string; mode?: TravelMode };
+  const search = Route.useSearch();
 
   const [signedIn, setSignedIn] = useState(false);
   useEffect(() => {
