@@ -88,7 +88,7 @@ function BusinessPage() {
   });
 
   const data = query.data;
-  const ok = data?.status === "ok" ? data : null;
+  const ok = data?.status === "ok" && data.business ? data : null;
 
   const pins: CadMapPin[] = ok
     ? [
