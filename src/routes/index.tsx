@@ -300,6 +300,27 @@ function ResolverPage() {
           </div>
 
           <div className="flex flex-col gap-4 p-5">
+            <section className="animate-entrance rounded-xl bg-foreground p-4 text-background">
+              <h2 className="text-[10px] font-bold uppercase tracking-widest text-primary">إجراءات</h2>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Link
+                  to="/search"
+                  className="flex items-center gap-1.5 rounded-lg border border-background/20 bg-background/5 px-3 py-2 text-sm font-bold"
+                >
+                  <Search className="size-4" /> بحث عن أعمال ومواقع
+                </Link>
+                <Link
+                  to="/create"
+                  className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-bold text-primary-foreground"
+                >
+                  <Timer className="size-4" /> إنشاء عنوان ذكي
+                </Link>
+              </div>
+              <p className="mt-3 flex items-start gap-2 text-[11px] opacity-70">
+                <CircleCheck className="mt-0.5 size-3.5 shrink-0" />
+                التصحيحات تمر بمراجعة ولا تستبدل المعلومات الموثقة تلقائياً.
+              </p>
+            </section>
             {mutation.isPending ? (
               <p className="py-12 text-center text-sm text-muted-foreground">جارٍ التحليل…</p>
             ) : null}
@@ -573,28 +594,6 @@ function ResolverPage() {
                     </div>
                   </section>
                 ) : null}
-
-                <section className="animate-entrance rounded-xl bg-foreground p-4 text-background">
-                  <h2 className="text-[10px] font-bold uppercase tracking-widest text-primary">إجراءات</h2>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <Link
-                      to="/search"
-                      className="flex items-center gap-1.5 rounded-lg border border-background/20 bg-background/5 px-3 py-2 text-sm font-bold"
-                    >
-                      <Search className="size-4" /> بحث عن أعمال ومواقع
-                    </Link>
-                    <Link
-                      to="/create"
-                      className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-bold text-primary-foreground"
-                    >
-                      <Timer className="size-4" /> إنشاء عنوان ذكي
-                    </Link>
-                  </div>
-                  <p className="mt-3 flex items-start gap-2 text-[11px] opacity-70">
-                    <CircleCheck className="mt-0.5 size-3.5 shrink-0" />
-                    التصحيحات تمر بمراجعة ولا تستبدل المعلومات الموثقة تلقائياً.
-                  </p>
-                </section>
 
                 <AddressFeedback
                   key={`${ok.code}-${purpose}`}
