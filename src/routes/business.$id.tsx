@@ -19,6 +19,7 @@ import {
 
 import { AppHeader } from "@/components/AppHeader";
 import { QrCard } from "@/components/QrCard";
+import { DirectionsButton } from "@/components/DirectionsButton";
 import { CadastralMap, type MapPin as CadMapPin } from "@/components/CadastralMap";
 import { supabase } from "@/integrations/supabase/client";
 import { claimBusiness, getBusinessProfile } from "@/lib/addresses.functions";
@@ -239,13 +240,19 @@ function BusinessPage() {
                       <Icon className="size-4 text-primary" />
                       {label}: {ap!.display_name}
                     </h2>
+                    {ok.smart_code ? (
+                      <DirectionsButton
+                        code={ok.smart_code}
+                        mode={label === "مدخل التوصيل" ? "delivery" : "driving"}
+                      />
+                    ) : null}
                     <a
                       href={osmDirectionsUrl(ap!.latitude ?? center.latitude, ap!.longitude ?? center.longitude)}
                       target="_blank"
                       rel="noreferrer"
                       className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-[11px] font-bold"
                     >
-                      <Navigation className="size-3" /> الاتجاهات
+                      <Navigation className="size-3" /> خرائط خارجية
                     </a>
                   </div>
                   <p className="mt-1 font-mono text-[11px] text-muted-foreground" dir="ltr">

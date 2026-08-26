@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Building2, Landmark, Search as SearchIcon, Store } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
+import { DirectionsButton } from "@/components/DirectionsButton";
 import { searchNetwork } from "@/lib/addresses.functions";
 import { NODE_TYPE_LABELS, VERIFICATION_LEVELS } from "@/lib/smart-address";
 
@@ -78,6 +79,9 @@ function SearchPage() {
               {data.code.code}
             </p>
             <p className="text-xs text-muted-foreground">{data.code.label ?? "حلّل هذا الرمز"}</p>
+            <span className="mt-2 inline-block">
+              <DirectionsButton code={data.code.code} variant="chip" />
+            </span>
           </Link>
         ) : null}
 
@@ -114,7 +118,8 @@ function SearchPage() {
                         </span>
                       ) : null}
                     </div>
-                    <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+                      {smart?.code ? <DirectionsButton code={smart.code} variant="chip" /> : null}
                       {biz.opening_hours ? <span>{biz.opening_hours}</span> : null}
                       {biz.phone ? (
                         <span dir="ltr" className="font-mono">

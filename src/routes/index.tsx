@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
+import { DirectionsButton } from "@/components/DirectionsButton";
 import { AddressFeedback } from "@/components/AddressFeedback";
 import { QrCard } from "@/components/QrCard";
 import { CadastralMap, type MapPin } from "@/components/CadastralMap";
@@ -487,14 +488,19 @@ function ResolverPage() {
                     ) : null}
 
                     <div className="mt-4 flex flex-wrap gap-2">
+                      <DirectionsButton
+                        code={ok.code}
+                        variant="solid"
+                        className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2.5 text-sm font-bold text-primary-foreground"
+                      />
                       <a
                         href={osmDirectionsUrl(ok.recommended.latitude, ok.recommended.longitude)}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2.5 text-sm font-bold text-primary-foreground"
+                        className="flex items-center justify-center gap-1.5 rounded-lg border border-border px-3 py-2.5 text-sm font-bold"
                       >
                         <Navigation className="size-4" />
-                        الاتجاهات
+                        خرائط خارجية
                       </a>
                       <button
                         type="button"

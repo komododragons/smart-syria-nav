@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Copy, EyeOff, Globe, Pencil, Star, Timer, Trash2 } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
+import { DirectionsButton } from "@/components/DirectionsButton";
 import { CadastralMap } from "@/components/CadastralMap";
 import { QrCard } from "@/components/QrCard";
 import { supabase } from "@/integrations/supabase/client";
@@ -224,6 +225,9 @@ function MyAddressesPage() {
                   <p className="font-mono text-lg" dir="ltr">
                     {row.code}
                   </p>
+                  <span className="mb-1 inline-block">
+                    <DirectionsButton code={row.code} variant="chip" />
+                  </span>
                   <p className="text-sm font-bold">{row.label ?? node?.display_name}</p>
                   <p className="text-xs text-muted-foreground">
                     {[
