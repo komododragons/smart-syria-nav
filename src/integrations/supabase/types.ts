@@ -1004,6 +1004,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      record_verification: {
+        Args: {
+          _access_point_id: string
+          _level: string
+          _method: string
+          _node_id: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       app_role:

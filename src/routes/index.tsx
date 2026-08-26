@@ -12,7 +12,9 @@ import {
   Navigation,
   QrCode,
   Search,
+  Star,
   Timer,
+  WifiOff,
 } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
@@ -20,7 +22,9 @@ import { AddressFeedback } from "@/components/AddressFeedback";
 import { QrCard } from "@/components/QrCard";
 import { CadastralMap, type MapPin } from "@/components/CadastralMap";
 import { HierarchySpine, type SpineLevel } from "@/components/HierarchySpine";
+import { supabase } from "@/integrations/supabase/client";
 import { resolveAddress } from "@/lib/addresses.functions";
+import { listFavorites, toggleFavorite } from "@/lib/network.functions";
 import {
   ACCESSIBILITY_LABELS,
   PURPOSE_LABELS,
@@ -60,6 +64,16 @@ const DEMO_CODES = [
   { code: "SY-RDA-82KF", ar: "مستودع — عدرا" },
 ];
 
+/** Minimal offline snapshot of the last successful resolution per code. */
+type OfflineSnapshot = {
+  code: string;
+  purpose: string;
+  site: string;
+  area: string;
+  entrance: { name: string; instructions: string | null; latitude: number | null; longitude: number | null } | null;
+  cached_at: number;
+};
+
 function ResolverPage() {
   const resolve = useServerFn(resolveAddress);
   const searchParams = Route.useSearch();
@@ -67,11 +81,69 @@ function ResolverPage() {
   const [purpose, setPurpose] = useState<Purpose>("parcel_delivery");
   const [wheelchair, setWheelchair] = useState(false);
   const [showQr, setShowQr] = useState(false);
+  const toggleFavFn = useServerFn(toggleFavorite);
+  const listFavFn = useServerFn(listFavorites);
+  const [signedIn, setSignedIn] = useState(false);
+  const [favoriteCodes, setFavoriteCodes] = useState<Set<string>>(new Set());
+  const [offlineCache, setOfflineCache] = useState<OfflineSnapshot | null>(null);
 
   const mutation = useMutation({
     mutationFn: (vars: { code: string; purpose: Purpose; wheelchair: boolean }) =>
       resolve({ data: { code: vars.code, purpose: vars.purpose, wheelchair: vars.wheelchair } }),
+    onSuccess: (data) => {
+      setOfflineCache(null);
+      if (data.status === "ok") {
+        try {
+          localStorage.setItem(
+            `san-cache:${data.code}`,
+            JSON.stringify({
+              code: data.code,
+              purpose: data.purpose,
+              site: data.site.display_name,
+              area: [data.site.neighborhood, data.site.city].filter(Boolean).join(" — "),
+              entrance: data.recommended
+                ? {
+                    name: data.recommended.display_name,
+                    instructions: data.recommended.instructions,
+                    latitude: data.recommended.latitude,
+                    longitude: data.recommended.longitude,
+                  }
+                : null,
+              cached_at: Date.now(),
+            } satisfies OfflineSnapshot),
+          );
+        } catch {
+          // storage unavailable — offline fallback just won't exist
+        }
+      }
+    },
+    onError: (_error, vars) => {
+      try {
+        const raw = localStorage.getItem(`san-cache:${normalizeCode(vars.code)}`);
+        if (raw) setOfflineCache(JSON.parse(raw) as OfflineSnapshot);
+      } catch {
+        // no cached snapshot for this code
+      }
+    },
   });
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      const authed = Boolean(data.session);
+      setSignedIn(authed);
+      if (authed) {
+        listFavFn({ data: undefined as never })
+          .then((rows) => {
+            const codes = rows
+              .map((row) => row.smart_addresses?.code)
+              .filter((value): value is string => Boolean(value));
+            setFavoriteCodes(new Set(codes));
+          })
+          .catch(() => undefined);
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     mutation.mutate({ code, purpose, wheelchair });
@@ -231,6 +303,43 @@ function ResolverPage() {
           </section>
         ) : null}
 
+        {mutation.isError && !offlineCache ? (
+          <section className="animate-entrance rounded-2xl border border-border bg-surface p-6 text-center">
+            <p className="font-bold">تعذر الاتصال بالخادم</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              تحقق من الاتصال بالإنترنت ثم أعد المحاولة. الأكواد التي حللتها سابقاً تعمل دون اتصال.
+            </p>
+          </section>
+        ) : null}
+
+        {mutation.isError && offlineCache ? (
+          <section className="animate-entrance rounded-2xl border border-primary/40 bg-surface p-5">
+            <div className="flex items-center gap-2 text-xs font-bold text-primary">
+              <WifiOff className="size-4" />
+              وضع عدم الاتصال — بيانات محفوظة من {new Date(offlineCache.cached_at).toLocaleDateString("ar-SY")}
+            </div>
+            <p className="mt-3 text-sm font-bold">{offlineCache.site}</p>
+            <p className="text-xs text-muted-foreground">{offlineCache.area}</p>
+            {offlineCache.entrance ? (
+              <div className="mt-3 rounded-lg border border-border bg-background p-3 text-sm">
+                <p className="font-bold">المدخل: {offlineCache.entrance.name}</p>
+                {offlineCache.entrance.instructions ? (
+                  <p className="mt-1 text-muted-foreground">{offlineCache.entrance.instructions}</p>
+                ) : null}
+                {offlineCache.entrance.latitude != null ? (
+                  <p className="mt-1 font-mono text-[11px] text-primary" dir="ltr">
+                    {formatCoords(offlineCache.entrance.latitude, offlineCache.entrance.longitude)}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+            <p className="mt-3 rounded-lg bg-background p-2 font-mono text-[11px] leading-relaxed text-muted-foreground">
+              نص جاهز للرسائل: «{offlineCache.code} — {offlineCache.site}
+              {offlineCache.entrance ? `، المدخل: ${offlineCache.entrance.name}` : ""}»
+            </p>
+          </section>
+        ) : null}
+
         {ok ? (
           <>
             <section className="animate-entrance">
@@ -349,6 +458,37 @@ function ResolverPage() {
                     <QrCode className="size-4" />
                     رمز QR
                   </button>
+                  {signedIn ? (
+                    <button
+                      type="button"
+                      aria-label={favoriteCodes.has(ok.code) ? "إزالة من المفضلة" : "حفظ في المفضلة"}
+                      onClick={async () => {
+                        try {
+                          const res = await toggleFavFn({ data: { code: ok.code, label: ok.site.display_name } });
+                          setFavoriteCodes((prev) => {
+                            const next = new Set(prev);
+                            if (res.saved) next.add(ok.code);
+                            else next.delete(ok.code);
+                            return next;
+                          });
+                          toast.success(res.saved ? "حُفظ في المفضلة" : "أُزيل من المفضلة");
+                        } catch {
+                          toast.error("تعذر تحديث المفضلة");
+                        }
+                      }}
+                      className={`flex items-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-bold ${
+                        favoriteCodes.has(ok.code)
+                          ? "border-primary/40 bg-primary/10 text-primary"
+                          : "border-border"
+                      }`}
+                    >
+                      <Star
+                        className="size-4"
+                        fill={favoriteCodes.has(ok.code) ? "currentColor" : "none"}
+                      />
+                      {favoriteCodes.has(ok.code) ? "محفوظ" : "حفظ"}
+                    </button>
+                  ) : null}
                 </div>
 
                 {showQr ? (
