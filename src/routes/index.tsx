@@ -14,7 +14,6 @@ import {
   Search,
   Timer,
 } from "lucide-react";
-import { QRCodeSVG } from "qrcode.react";
 
 import { AppHeader } from "@/components/AppHeader";
 import { AddressFeedback } from "@/components/AddressFeedback";
