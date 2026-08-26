@@ -123,7 +123,7 @@ function SearchPage() {
                       ) : null}
                       <span>{VERIFICATION_LEVELS[biz.verification_level]?.ar ?? "غير موثق"}</span>
                     </div>
-                  </div>
+                  </Link>
                 );
               })}
             </div>
