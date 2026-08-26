@@ -73,6 +73,12 @@ function AdminPage() {
     enabled: authed === true && query.data?.authorized === true,
   });
 
+  const verifyQueueQuery = useQuery({
+    queryKey: ["admin-verify-queue"],
+    queryFn: () => queueFn({ data: undefined as never }),
+    enabled: authed === true && query.data?.authorized === true,
+  });
+
   const handleScan = async () => {
     setScanning(true);
     try {
