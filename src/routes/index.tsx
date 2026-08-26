@@ -674,6 +674,8 @@ function ResolverPage() {
             fill
             center={mapCenter}
             pins={allPins}
+            onSelectPin={handleSelectPin}
+
             className="h-[45vh] md:h-full"
           />
           {ok ? (
