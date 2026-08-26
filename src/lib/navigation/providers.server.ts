@@ -80,7 +80,16 @@ export interface RoutingProvider {
   checkServiceHealth(): Promise<{ healthy: boolean; latency_ms: number; status_code: number | null; message: string | null }>;
 }
 
-const ORS_BASE = "https://api.openrouteservice.org";
+/**
+ * HeiGIT unified API. api.openrouteservice.org was shut off on 2026-08-24 in
+ * favour of api.heigit.org — the path now carries the service name as a prefix.
+ *   directions  -> /openrouteservice/v2/directions
+ *   snap        -> /openrouteservice/v2/snap
+ *   optimization-> /vroom/v0
+ *   health      -> /openrouteservice/v2/health
+ * The same HeiGIT API key authorises all services.
+ */
+const HEIGIT_BASE = "https://api.heigit.org";
 
 const ORS_PROFILE: Record<TravelMode, string> = {
   driving: "driving-car",
