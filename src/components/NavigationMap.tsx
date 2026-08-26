@@ -32,12 +32,12 @@ export const MARKER_STYLE: Record<NavMarkerKind, { color: string; glyph: string;
 type Props = {
   markers: NavMarker[];
   /** Decoded route path as [lat, lng] pairs. */
-  path?: [number, number][];
+  path?: [number, number][] | undefined;
   /** Dashed final walking leg, [lat, lng] pairs. */
-  finalLeg?: [number, number][];
+  finalLeg?: [number, number][] | undefined;
   center: Coordinates;
-  onPick?: (point: Coordinates) => void;
-  className?: string;
+  onPick?: ((point: Coordinates) => void) | undefined;
+  className?: string | undefined;
 };
 
 /**

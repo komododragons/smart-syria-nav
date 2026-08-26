@@ -914,7 +914,9 @@ function CoordinateEntry({ onSubmit }: { onSubmit: (point: Coordinates) => void 
       <button
         type="button"
         onClick={() => {
-          const [lat, lng] = value.split(",").map((part) => Number(part.trim()));
+          const parts = value.split(",").map((part) => Number(part.trim()));
+          const lat = parts[0] ?? NaN;
+          const lng = parts[1] ?? NaN;
           if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
             toast.error("صيغة الإحداثيات غير صحيحة");
             return;
