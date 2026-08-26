@@ -137,9 +137,29 @@ function AdminPage() {
                       {item.details ? (
                         <p className="mt-1 text-xs text-muted-foreground">{item.details}</p>
                       ) : null}
-                      <p className="mt-1 text-[10px] text-muted-foreground">
-                        {new Date(item.created_at).toLocaleString("ar-SY")}
-                      </p>
+                      <div className="mt-2 flex items-center justify-between gap-2">
+                        <p className="text-[10px] text-muted-foreground">
+                          {new Date(item.created_at).toLocaleString("ar-SY")}
+                        </p>
+                        <div className="flex gap-1.5">
+                          <button
+                            type="button"
+                            disabled={busyId === item.id}
+                            onClick={() => handleReview(item.id, "reviewed")}
+                            className="rounded-md bg-allow px-2.5 py-1 text-[11px] font-bold text-white disabled:opacity-50"
+                          >
+                            تمت المراجعة
+                          </button>
+                          <button
+                            type="button"
+                            disabled={busyId === item.id}
+                            onClick={() => handleReview(item.id, "dismissed")}
+                            className="rounded-md border border-border px-2.5 py-1 text-[11px] font-bold text-muted-foreground disabled:opacity-50"
+                          >
+                            رفض
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
