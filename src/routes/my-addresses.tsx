@@ -41,6 +41,21 @@ function MyAddressesPage() {
   const [hours, setHours] = useState(24);
   const [oneUse, setOneUse] = useState(true);
   const [issued, setIssued] = useState<{ token: string; expires_at: string } | null>(null);
+  const updateFn = useServerFn(updateMyAddress);
+  const [editFor, setEditFor] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({
+    label: "",
+    is_public: false,
+    display_name: "",
+    neighborhood: "",
+    street: "",
+    landmark: "",
+    public_notes: "",
+    latitude: "",
+    longitude: "",
+    entrance_name: "",
+    entrance_instructions: "",
+  });
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setAuthed(Boolean(data.session)));
