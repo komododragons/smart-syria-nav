@@ -3,12 +3,17 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { GitMerge, ScanSearch, ScrollText, ThumbsDown, ThumbsUp } from "lucide-react";
+import { BadgeCheck, GitMerge, ScanSearch, ScrollText, ThumbsDown, ThumbsUp } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { adminOverview, reviewClaim, reviewCorrection } from "@/lib/addresses.functions";
-import { detectDuplicates, listDuplicates, reviewDuplicate } from "@/lib/network.functions";
+import {
+  detectDuplicates,
+  listDuplicates,
+  reviewDuplicate,
+  verifierQueue,
+} from "@/lib/network.functions";
 import { CORRECTION_TYPES, NODE_TYPE_LABELS, PURPOSE_LABELS } from "@/lib/smart-address";
 
 export const Route = createFileRoute("/admin")({
@@ -47,6 +52,7 @@ function AdminPage() {
   const detectFn = useServerFn(detectDuplicates);
   const listDupFn = useServerFn(listDuplicates);
   const reviewDupFn = useServerFn(reviewDuplicate);
+  const queueFn = useServerFn(verifierQueue);
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
