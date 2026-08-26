@@ -146,7 +146,7 @@ function AdminPage() {
                             type="button"
                             disabled={busyId === item.id}
                             onClick={() => handleReview(item.id, "reviewed")}
-                            className="rounded-md bg-allow px-2.5 py-1 text-[11px] font-bold text-white disabled:opacity-50"
+                            className="rounded-md bg-allow px-2.5 py-1 text-[11px] font-bold text-primary-foreground disabled:opacity-50"
                           >
                             تمت المراجعة
                           </button>

@@ -108,7 +108,7 @@ export function AddressFeedback({ smartCode, purpose, nodeId, accessPointId }: P
               onClick={() => pickVisit(true)}
               className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-sm font-bold transition-colors ${
                 successful === true
-                  ? "bg-allow text-white"
+                  ? "bg-allow text-primary-foreground"
                   : "border border-border bg-background"
               }`}
             >
@@ -120,7 +120,7 @@ export function AddressFeedback({ smartCode, purpose, nodeId, accessPointId }: P
               onClick={() => pickVisit(false)}
               className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-sm font-bold transition-colors ${
                 successful === false
-                  ? "bg-prohibit text-white"
+                  ? "bg-prohibit text-primary-foreground"
                   : "border border-border bg-background"
               }`}
             >
