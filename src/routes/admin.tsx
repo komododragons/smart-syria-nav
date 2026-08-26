@@ -142,7 +142,15 @@ function AdminPage() {
     <div className="min-h-screen bg-background text-foreground">
       <AppHeader />
       <main className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-6">
-        <h1 className="text-lg font-bold">لوحة إدارة الشبكة</h1>
+        <div className="flex items-center justify-between gap-2">
+          <h1 className="text-lg font-bold">لوحة إدارة الشبكة</h1>
+          <Link
+            to="/admin/audit"
+            className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-bold text-foreground"
+          >
+            <ScrollText className="size-3.5" /> سجل التدقيق
+          </Link>
+        </div>
 
         {query.isPending ? (
           <p className="py-10 text-center text-sm text-muted-foreground">جارٍ التحميل…</p>
