@@ -90,6 +90,8 @@ export function CadastralMap({
   spanMeters = 420,
   fill = false,
   onPick,
+  onSelectPin,
+
   onLocate,
   className,
 }: Props) {
