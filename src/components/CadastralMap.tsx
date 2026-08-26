@@ -7,6 +7,8 @@ export type MapPin = {
   longitude: number | null;
   label: string;
   tone: "site" | "recommended" | "alternative" | "prohibited" | "draft";
+  /** Smart code, when the pin resolves to one. Makes the pin selectable. */
+  code?: string | null;
 };
 
 type Props = {
@@ -15,9 +17,11 @@ type Props = {
   spanMeters?: number;
   fill?: boolean;
   onPick?: (coords: { latitude: number; longitude: number }) => void;
+  onSelectPin?: (pin: MapPin) => void;
   onLocate?: () => void;
   className?: string;
 };
+
 
 const TONE_CLASS: Record<MapPin["tone"], string> = {
   site: "bg-foreground",
