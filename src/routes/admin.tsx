@@ -157,6 +157,12 @@ function AdminPage() {
         <div className="flex items-center justify-between gap-2">
           <h1 className="text-lg font-bold">لوحة إدارة الشبكة</h1>
           <Link
+            to="/admin/navigation"
+            className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-bold text-foreground"
+          >
+            <Activity className="size-3.5" /> لوحة التوجيه
+          </Link>
+          <Link
             to="/admin/audit"
             className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-bold text-foreground"
           >
