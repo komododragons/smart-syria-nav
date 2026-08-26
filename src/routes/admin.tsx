@@ -1,12 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { ThumbsDown, ThumbsUp } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
 import { supabase } from "@/integrations/supabase/client";
-import { adminOverview } from "@/lib/addresses.functions";
-import { CORRECTION_TYPES } from "@/lib/smart-address";
+import { adminOverview, reviewCorrection } from "@/lib/addresses.functions";
+import { CORRECTION_TYPES, PURPOSE_LABELS } from "@/lib/smart-address";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -37,8 +39,11 @@ const METRIC_LABELS: Record<string, string> = {
 
 function AdminPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const overview = useServerFn(adminOverview);
+  const review = useServerFn(reviewCorrection);
   const [authed, setAuthed] = useState<boolean | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setAuthed(Boolean(data.session)));
@@ -49,6 +54,19 @@ function AdminPage() {
     queryFn: () => overview({ data: undefined as never }),
     enabled: authed === true,
   });
+
+  const handleReview = async (id: string, status: "reviewed" | "dismissed") => {
+    setBusyId(id);
+    try {
+      await review({ data: { id, status } });
+      toast.success(status === "reviewed" ? "تمت مراجعة التقرير" : "تم رفض التقرير");
+      await queryClient.invalidateQueries({ queryKey: ["admin-overview"] });
+    } catch {
+      toast.error("تعذّر تحديث التقرير — تحتاج صلاحية مشرف أو مراجع");
+    } finally {
+      setBusyId(null);
+    }
+  };
 
   if (authed === false) {
     return (
