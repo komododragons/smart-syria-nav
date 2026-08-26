@@ -640,10 +640,23 @@ export const adminOverview = createServerFn({ method: "POST" })
       .order("created_at", { ascending: false })
       .limit(20);
 
+    const { data: recentFeedback } = await supa
+      .from("visit_feedback")
+      .select("id, smart_code, purpose, successful, notes, created_at")
+      .order("created_at", { ascending: false })
+      .limit(15);
+
+    const { count: successfulVisits } = await supa
+      .from("visit_feedback")
+      .select("*", { count: "exact", head: true })
+      .eq("successful", true);
+
     return {
       authorized: true as const,
       is_admin: Boolean(isAdmin),
       metrics: { nodes, accessPoints, codes, businesses, temporary, corrections, duplicates, visits },
       pending: pending ?? [],
+      feedback: recentFeedback ?? [],
+      successRate: visits > 0 ? Math.round(((successfulVisits ?? 0) / visits) * 100) : null,
     };
   });
