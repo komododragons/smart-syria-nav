@@ -80,7 +80,16 @@ export interface RoutingProvider {
   checkServiceHealth(): Promise<{ healthy: boolean; latency_ms: number; status_code: number | null; message: string | null }>;
 }
 
-const ORS_BASE = "https://api.openrouteservice.org";
+/**
+ * HeiGIT unified API. api.openrouteservice.org was shut off on 2026-08-24 in
+ * favour of api.heigit.org — the path now carries the service name as a prefix.
+ *   directions  -> /openrouteservice/v2/directions
+ *   snap        -> /openrouteservice/v2/snap
+ *   optimization-> /vroom/v0
+ *   health      -> /openrouteservice/v2/health
+ * The same HeiGIT API key authorises all services.
+ */
+const HEIGIT_BASE = "https://api.heigit.org";
 
 const ORS_PROFILE: Record<TravelMode, string> = {
   driving: "driving-car",
@@ -96,7 +105,7 @@ async function orsFetch(path: string, init: RequestInit & { timeoutMs?: number }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), init.timeoutMs ?? 12_000);
   try {
-    return await fetch(`${ORS_BASE}${path}`, {
+    return await fetch(`${HEIGIT_BASE}${path}`, {
       ...init,
       signal: controller.signal,
       headers: {
@@ -189,7 +198,7 @@ export const openRouteServiceProvider: RoutingProvider = {
       body["alternative_routes"] = { target_count: 2, share_factor: 0.6, weight_factor: 1.6 };
     }
 
-    const res = await orsFetch(`/v2/directions/${ORS_PROFILE[mode]}`, {
+    const res = await orsFetch(`/openrouteservice/v2/directions/${ORS_PROFILE[mode]}`, {
       method: "POST",
       body: JSON.stringify(body),
     });
@@ -224,7 +233,7 @@ export const openRouteServiceProvider: RoutingProvider = {
   },
 
   async snapAccessPoint(point, mode) {
-    const res = await orsFetch(`/v2/snap/${ORS_PROFILE[mode]}/json`, {
+    const res = await orsFetch(`/openrouteservice/v2/snap/${ORS_PROFILE[mode]}/json`, {
       method: "POST",
       body: JSON.stringify({ locations: [[point.longitude, point.latitude]], radius: 350 }),
     });
@@ -258,7 +267,7 @@ export const openRouteServiceProvider: RoutingProvider = {
       return job;
     });
 
-    const res = await orsFetch("/optimization", {
+    const res = await orsFetch("/vroom/v0", {
       method: "POST",
       timeoutMs: 25_000,
       body: JSON.stringify({ jobs, vehicles: [vehicle] }),
@@ -297,7 +306,7 @@ export const openRouteServiceProvider: RoutingProvider = {
   async checkServiceHealth() {
     const started = Date.now();
     try {
-      const res = await orsFetch("/v2/health", { method: "GET", timeoutMs: 6000 });
+      const res = await orsFetch("/openrouteservice/v2/health", { method: "GET", timeoutMs: 6000 });
       return {
         healthy: res.ok,
         latency_ms: Date.now() - started,
