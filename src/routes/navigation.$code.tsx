@@ -56,9 +56,9 @@ import {
 
 export const Route = createFileRoute("/navigation/$code")({
   validateSearch: (search: Record<string, unknown>) => ({
-    token: typeof search.token === "string" ? search.token : undefined,
-    mode: TRAVEL_MODES.some((m) => m.value === search.mode)
-      ? (search.mode as TravelMode)
+    token: typeof search["token"] === "string" ? (search["token"] as string) : undefined,
+    mode: TRAVEL_MODES.some((m) => m.value === search["mode"])
+      ? (search["mode"] as TravelMode)
       : undefined,
   }),
   head: () => ({

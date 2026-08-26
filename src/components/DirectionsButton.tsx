@@ -33,7 +33,7 @@ export function DirectionsButton({
     <Link
       to="/navigation/$code"
       params={{ code }}
-      search={{ ...(mode ? { mode } : {}), ...(token ? { token } : {}) }}
+      search={{ mode: mode ?? undefined, token: token ?? undefined }}
       onClick={(event) => event.stopPropagation()}
       className={className ?? VARIANTS[variant]}
     >
