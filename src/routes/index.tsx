@@ -35,8 +35,8 @@ import {
 } from "@/lib/smart-address";
 
 export const Route = createFileRoute("/")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    code: typeof search.code === "string" ? search.code : undefined,
+  validateSearch: (search: Record<string, unknown>): { code?: string } => ({
+    code: typeof search["code"] === "string" ? search["code"] : undefined,
   }),
   head: () => ({
     meta: [
