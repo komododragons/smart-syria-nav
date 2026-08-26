@@ -12,12 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CourierRouteImport } from './routes/courier'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as DevelopersRouteImport } from './routes/developers'
 import { Route as MyAddressesRouteImport } from './routes/my-addresses'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
+import { Route as AdminNavigationRouteImport } from './routes/admin.navigation'
 import { Route as BusinessIdRouteImport } from './routes/business.$id'
 import { Route as NavigationCodeRouteImport } from './routes/navigation.$code'
 import { Route as TTokenRouteImport } from './routes/t.$token'
@@ -36,6 +38,11 @@ const AdminRoute = AdminRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CourierRoute = CourierRouteImport.update({
+  id: '/courier',
+  path: '/courier',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CreateRoute = CreateRouteImport.update({
@@ -68,6 +75,11 @@ const AdminAuditRoute = AdminAuditRouteImport.update({
   path: '/audit',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminNavigationRoute = AdminNavigationRouteImport.update({
+  id: '/navigation',
+  path: '/navigation',
+  getParentRoute: () => AdminRoute,
+} as any)
 const BusinessIdRoute = BusinessIdRouteImport.update({
   id: '/business/$id',
   path: '/business/$id',
@@ -93,12 +105,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/courier': typeof CourierRoute
   '/create': typeof CreateRoute
   '/developers': typeof DevelopersRoute
   '/my-addresses': typeof MyAddressesRoute
   '/search': typeof SearchRoute
   '/verify': typeof VerifyRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/navigation': typeof AdminNavigationRoute
   '/business/$id': typeof BusinessIdRoute
   '/navigation/$code': typeof NavigationCodeRoute
   '/t/$token': typeof TTokenRoute
@@ -108,12 +122,14 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/courier': typeof CourierRoute
   '/create': typeof CreateRoute
   '/developers': typeof DevelopersRoute
   '/my-addresses': typeof MyAddressesRoute
   '/search': typeof SearchRoute
   '/verify': typeof VerifyRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/navigation': typeof AdminNavigationRoute
   '/business/$id': typeof BusinessIdRoute
   '/navigation/$code': typeof NavigationCodeRoute
   '/t/$token': typeof TTokenRoute
@@ -124,12 +140,14 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/courier': typeof CourierRoute
   '/create': typeof CreateRoute
   '/developers': typeof DevelopersRoute
   '/my-addresses': typeof MyAddressesRoute
   '/search': typeof SearchRoute
   '/verify': typeof VerifyRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/navigation': typeof AdminNavigationRoute
   '/business/$id': typeof BusinessIdRoute
   '/navigation/$code': typeof NavigationCodeRoute
   '/t/$token': typeof TTokenRoute
@@ -141,12 +159,14 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/courier'
     | '/create'
     | '/developers'
     | '/my-addresses'
     | '/search'
     | '/verify'
     | '/admin/audit'
+    | '/admin/navigation'
     | '/business/$id'
     | '/navigation/$code'
     | '/t/$token'
@@ -156,12 +176,14 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/courier'
     | '/create'
     | '/developers'
     | '/my-addresses'
     | '/search'
     | '/verify'
     | '/admin/audit'
+    | '/admin/navigation'
     | '/business/$id'
     | '/navigation/$code'
     | '/t/$token'
@@ -171,12 +193,14 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/courier'
     | '/create'
     | '/developers'
     | '/my-addresses'
     | '/search'
     | '/verify'
     | '/admin/audit'
+    | '/admin/navigation'
     | '/business/$id'
     | '/navigation/$code'
     | '/t/$token'
@@ -187,6 +211,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
+  CourierRoute: typeof CourierRoute
   CreateRoute: typeof CreateRoute
   DevelopersRoute: typeof DevelopersRoute
   MyAddressesRoute: typeof MyAddressesRoute
@@ -219,6 +244,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/courier': {
+      id: '/courier'
+      path: '/courier'
+      fullPath: '/courier'
+      preLoaderRoute: typeof CourierRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/create': {
@@ -263,6 +295,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAuditRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/navigation': {
+      id: '/admin/navigation'
+      path: '/navigation'
+      fullPath: '/admin/navigation'
+      preLoaderRoute: typeof AdminNavigationRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/business/$id': {
       id: '/business/$id'
       path: '/business/$id'
@@ -296,10 +335,12 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminAuditRoute: typeof AdminAuditRoute
+  AdminNavigationRoute: typeof AdminNavigationRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAuditRoute: AdminAuditRoute,
+  AdminNavigationRoute: AdminNavigationRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
@@ -308,6 +349,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
+  CourierRoute: CourierRoute,
   CreateRoute: CreateRoute,
   DevelopersRoute: DevelopersRoute,
   MyAddressesRoute: MyAddressesRoute,

@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { BadgeCheck, GitMerge, ScanSearch, ScrollText, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Activity, BadgeCheck, GitMerge, ScanSearch, ScrollText, ThumbsDown, ThumbsUp } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
 import { supabase } from "@/integrations/supabase/client";
@@ -156,6 +156,12 @@ function AdminPage() {
       <main className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-6">
         <div className="flex items-center justify-between gap-2">
           <h1 className="text-lg font-bold">لوحة إدارة الشبكة</h1>
+          <Link
+            to="/admin/navigation"
+            className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-bold text-foreground"
+          >
+            <Activity className="size-3.5" /> لوحة التوجيه
+          </Link>
           <Link
             to="/admin/audit"
             className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-bold text-foreground"

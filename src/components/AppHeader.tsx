@@ -1,6 +1,6 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { BadgeCheck, Code2, LogOut, MapPinPlus, Search, ShieldCheck } from "lucide-react";
+import { BadgeCheck, Code2, LogOut, MapPinPlus, Search, ShieldCheck, Truck } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 
@@ -55,6 +55,13 @@ export function AppHeader() {
                 aria-label="التوثيق الميداني"
               >
                 <BadgeCheck className="size-4" />
+              </Link>
+              <Link
+                to="/courier"
+                className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
+                aria-label="مسارات التوصيل"
+              >
+                <Truck className="size-4" />
               </Link>
               <Link
                 to="/developers"
