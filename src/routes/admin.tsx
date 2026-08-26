@@ -7,7 +7,7 @@ import { ThumbsDown, ThumbsUp } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
 import { supabase } from "@/integrations/supabase/client";
-import { adminOverview, reviewCorrection } from "@/lib/addresses.functions";
+import { adminOverview, reviewClaim, reviewCorrection } from "@/lib/addresses.functions";
 import { CORRECTION_TYPES, PURPOSE_LABELS } from "@/lib/smart-address";
 
 export const Route = createFileRoute("/admin")({

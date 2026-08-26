@@ -4,9 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Copy, EyeOff, Globe, Timer } from "lucide-react";
-import { QRCodeSVG } from "qrcode.react";
 
 import { AppHeader } from "@/components/AppHeader";
+import { QrCard } from "@/components/QrCard";
 import { supabase } from "@/integrations/supabase/client";
 import { createTemporaryAddress, listMyAddresses } from "@/lib/addresses.functions";
 import { NODE_TYPE_LABELS, PURPOSE_LABELS, QUICK_PURPOSES, VERIFICATION_LEVELS } from "@/lib/smart-address";
@@ -218,25 +218,17 @@ function MyAddressesPage() {
                   </button>
 
                   {issued ? (
-                    <div className="mt-3 flex flex-col items-center gap-2 rounded-lg border border-border p-3">
-                      <QRCodeSVG
-                        value={
-                          typeof window === "undefined"
-                            ? `https://smartaddress.sy/t/${issued.token}`
-                            : `${window.location.origin}/t/${issued.token}`
-                        }
-                        size={120}
-                        bgColor="transparent"
-                        fgColor="currentColor"
-                        className="text-foreground"
-                      />
-                      <span className="font-mono text-sm" dir="ltr">
-                        {issued.token}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground">
-                        ينتهي: {new Date(issued.expires_at).toLocaleString("ar-SY")}
-                      </span>
-                    </div>
+                    <QrCard
+                      url={
+                        typeof window === "undefined"
+                          ? `https://smartaddress.sy/t/${issued.token}`
+                          : `${window.location.origin}/t/${issued.token}`
+                      }
+                      code={issued.token}
+                      title={row.label ?? node?.display_name ?? "عنوان مؤقت"}
+                      subtitle={`${PURPOSE_LABELS[purpose] ?? purpose} · ينتهي ${new Date(issued.expires_at).toLocaleString("ar-SY")}`}
+                      onClose={() => setIssued(null)}
+                    />
                   ) : null}
                 </div>
               ) : null}
