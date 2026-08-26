@@ -3,12 +3,17 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { GitMerge, ScanSearch, ScrollText, ThumbsDown, ThumbsUp } from "lucide-react";
+import { BadgeCheck, GitMerge, ScanSearch, ScrollText, ThumbsDown, ThumbsUp } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { adminOverview, reviewClaim, reviewCorrection } from "@/lib/addresses.functions";
-import { detectDuplicates, listDuplicates, reviewDuplicate } from "@/lib/network.functions";
+import {
+  detectDuplicates,
+  listDuplicates,
+  reviewDuplicate,
+  verifierQueue,
+} from "@/lib/network.functions";
 import { CORRECTION_TYPES, NODE_TYPE_LABELS, PURPOSE_LABELS } from "@/lib/smart-address";
 
 export const Route = createFileRoute("/admin")({
@@ -47,6 +52,7 @@ function AdminPage() {
   const detectFn = useServerFn(detectDuplicates);
   const listDupFn = useServerFn(listDuplicates);
   const reviewDupFn = useServerFn(reviewDuplicate);
+  const queueFn = useServerFn(verifierQueue);
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
@@ -64,6 +70,12 @@ function AdminPage() {
   const dupQuery = useQuery({
     queryKey: ["admin-duplicates"],
     queryFn: () => listDupFn({ data: undefined as never }),
+    enabled: authed === true && query.data?.authorized === true,
+  });
+
+  const verifyQueueQuery = useQuery({
+    queryKey: ["admin-verify-queue"],
+    queryFn: () => queueFn({ data: undefined as never }),
     enabled: authed === true && query.data?.authorized === true,
   });
 
@@ -171,6 +183,59 @@ function AdminPage() {
                   <p className="text-[11px] text-muted-foreground">{METRIC_LABELS[key] ?? key}</p>
                 </div>
               ))}
+            </section>
+
+            <section className="rounded-2xl border border-border bg-surface p-4">
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                  مواقع بانتظار التوثيق (
+                  {(verifyQueueQuery.data?.authorized
+                    ? verifyQueueQuery.data.nodes.length + verifyQueueQuery.data.access_points.length
+                    : 0)}
+                  )
+                </h2>
+                <Link
+                  to="/verify"
+                  className="flex items-center gap-1.5 rounded-lg bg-allow px-3 py-1.5 text-[11px] font-bold text-primary-foreground"
+                >
+                  <BadgeCheck className="size-3.5" /> فتح صفحة التوثيق
+                </Link>
+              </div>
+              <div className="mt-3 space-y-2">
+                {verifyQueueQuery.data?.authorized &&
+                verifyQueueQuery.data.nodes.length === 0 &&
+                verifyQueueQuery.data.access_points.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">لا عناصر بانتظار التوثيق.</p>
+                ) : null}
+                {verifyQueueQuery.data?.authorized
+                  ? verifyQueueQuery.data.nodes.slice(0, 8).map((node) => (
+                      <div
+                        key={node.id}
+                        className="flex items-center justify-between gap-2 rounded-lg border border-border bg-background p-3"
+                      >
+                        <p className="text-sm font-bold">{node.display_name}</p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {NODE_TYPE_LABELS[node.node_type] ?? node.node_type} ·{" "}
+                          {[node.neighborhood, node.city].filter(Boolean).join(" — ")} · ثقة{" "}
+                          {node.confidence_score}%
+                        </p>
+                      </div>
+                    ))
+                  : null}
+                {verifyQueueQuery.data?.authorized
+                  ? verifyQueueQuery.data.access_points.slice(0, 8).map((ap) => (
+                      <div
+                        key={ap.id}
+                        className="flex items-center justify-between gap-2 rounded-lg border border-border bg-background p-3"
+                      >
+                        <p className="text-sm font-bold">{ap.display_name}</p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {ap.location_nodes?.display_name ?? ""} · ثقة {ap.confidence_score}%
+                        </p>
+                      </div>
+                    ))
+                  : null}
+              </div>
             </section>
 
             <section className="rounded-2xl border border-border bg-surface p-4">

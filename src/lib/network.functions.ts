@@ -102,15 +102,63 @@ export const submitVerification = createServerFn({ method: "POST" })
     ]);
     if (!allowed) throw new Error("Forbidden");
 
+    if (!data.node_id && !data.access_point_id) throw new Error("target required");
+
+    // Writes go through the admin client (record_verification RPC relies on
+    // auth.uid(), which is NULL under the service role). Role was verified above.
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: id, error } = await supabaseAdmin.rpc("record_verification", {
-      // The SQL function accepts NULL targets; the generated types mark them required.
-      _node_id: data.node_id as string,
-      _access_point_id: data.access_point_id as string,
-      _level: data.level,
-      _method: data.method,
-    });
+
+    const { data: inserted, error } = await supabaseAdmin
+      .from("verifications")
+      .insert({
+        node_id: data.node_id,
+        access_point_id: data.access_point_id,
+        level: data.level,
+        method: data.method,
+        actor_id: context.userId,
+      })
+      .select("id")
+      .single();
     if (error) throw new Error(error.message);
+    const id = inserted.id;
+
+    if (data.access_point_id) {
+      const { data: ap } = await supabaseAdmin
+        .from("access_points")
+        .select("confidence_score")
+        .eq("id", data.access_point_id)
+        .single();
+      await supabaseAdmin
+        .from("access_points")
+        .update({
+          verification_level: data.level,
+          confidence_score: Math.min(100, (ap?.confidence_score ?? 0) + 10),
+        })
+        .eq("id", data.access_point_id);
+      await supabaseAdmin.from("confidence_events").insert({
+        access_point_id: data.access_point_id,
+        factor: "field_verification",
+        delta: 10,
+      });
+    } else if (data.node_id) {
+      const { data: node } = await supabaseAdmin
+        .from("location_nodes")
+        .select("confidence_score")
+        .eq("id", data.node_id)
+        .single();
+      await supabaseAdmin
+        .from("location_nodes")
+        .update({
+          verification_level: data.level,
+          confidence_score: Math.min(100, (node?.confidence_score ?? 0) + 10),
+        })
+        .eq("id", data.node_id);
+      await supabaseAdmin.from("confidence_events").insert({
+        node_id: data.node_id,
+        factor: "field_verification",
+        delta: 10,
+      });
+    }
 
     await supabaseAdmin.from("audit_logs").insert({
       actor_id: context.userId,
