@@ -75,10 +75,19 @@ function buildTiles(
   return tiles;
 }
 
+const MIN_SPAN = 60;
+const MAX_SPAN = 900_000; // كامل سوريا وأكثر
+
 export function CadastralMap({ center, pins, spanMeters = 420, onPick, onLocate, className }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState<string | null>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
+  const [view, setView] = useState({ ...center, span: spanMeters });
+  const dragRef = useRef<{ x: number; y: number; moved: boolean } | null>(null);
+
+  useEffect(() => {
+    setView({ ...center, span: spanMeters });
+  }, [center.latitude, center.longitude, spanMeters]);
 
   useEffect(() => {
     const el = ref.current;
@@ -91,47 +100,135 @@ export function CadastralMap({ center, pins, spanMeters = 420, onPick, onLocate,
     return () => observer.disconnect();
   }, []);
 
-  const tiles = useMemo(
-    () => buildTiles(center, spanMeters, size.width, size.height),
-    [center.latitude, center.longitude, spanMeters, size.width, size.height],
+  const viewCenter = useMemo(
+    () => ({ latitude: view.latitude, longitude: view.longitude }),
+    [view.latitude, view.longitude],
   );
 
+  const tiles = useMemo(
+    () => buildTiles(viewCenter, view.span, size.width, size.height),
+    [viewCenter, view.span, size.width, size.height],
+  );
+
+  /** Zoom around a pixel anchor inside the plate (defaults to centre). */
+  const zoomBy = (factor: number, anchor?: { x: number; y: number }) => {
+    const el = ref.current;
+    if (!el) return;
+    const w = el.clientWidth || 1;
+    const h = el.clientHeight || 1;
+    setView((v) => {
+      const next = Math.min(MAX_SPAN, Math.max(MIN_SPAN, v.span * factor));
+      if (next === v.span) return v;
+      const ax = anchor ? anchor.x : w / 2;
+      const ay = anchor ? anchor.y : h / 2;
+      const mLat = 111_320;
+      const mLng = 111_320 * Math.cos((v.latitude * Math.PI) / 180);
+      const fx = ax / w - 0.5;
+      const fy = ay / h - 0.5;
+      const spanYOld = (v.span * h) / w;
+      const spanYNew = (next * h) / w;
+      // geo point under the anchor must stay put
+      const dLng = ((fx * v.span) / mLng) - ((fx * next) / mLng);
+      const dLat = (-(fy * spanYOld) / mLat) - (-(fy * spanYNew) / mLat);
+      return {
+        latitude: v.latitude + dLat,
+        longitude: v.longitude + dLng,
+        span: next,
+      };
+    });
+  };
+
+  const zoomRef = useRef(zoomBy);
+  zoomRef.current = zoomBy;
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1);
+      const rect = el.getBoundingClientRect();
+      zoomRef.current(Math.exp(dy * 0.0015), {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      });
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, []);
 
   const project = useMemo(() => {
     const metersPerLat = 111_320;
-    const metersPerLng = 111_320 * Math.cos((center.latitude * Math.PI) / 180);
+    const metersPerLng = 111_320 * Math.cos((view.latitude * Math.PI) / 180);
     return (lat: number, lng: number) => {
-      const dx = (lng - center.longitude) * metersPerLng;
-      const dy = (lat - center.latitude) * metersPerLat;
+      const dx = (lng - view.longitude) * metersPerLng;
+      const dy = (lat - view.latitude) * metersPerLat;
+      const el = ref.current;
+      const ratio = el && el.clientHeight ? el.clientWidth / el.clientHeight : 4 / 3;
       return {
-        left: 50 + (dx / spanMeters) * 100,
-        top: 50 - (dy / spanMeters) * 100,
+        left: 50 + (dx / view.span) * 100,
+        top: 50 - ((dy / view.span) * 100) * ratio,
       };
     };
-  }, [center.latitude, center.longitude, spanMeters]);
+  }, [view.latitude, view.longitude, view.span]);
+
+  function handlePointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    dragRef.current = { x: event.clientX, y: event.clientY, moved: false };
+  }
+
+  function handlePointerMove(event: React.PointerEvent<HTMLDivElement>) {
+    const drag = dragRef.current;
+    const el = ref.current;
+    if (!drag || !el || event.buttons === 0) return;
+    const dx = event.clientX - drag.x;
+    const dy = event.clientY - drag.y;
+    if (Math.abs(dx) > 2 || Math.abs(dy) > 2) drag.moved = true;
+    drag.x = event.clientX;
+    drag.y = event.clientY;
+    const w = el.clientWidth || 1;
+    const h = el.clientHeight || 1;
+    setView((v) => {
+      const mLat = 111_320;
+      const mLng = 111_320 * Math.cos((v.latitude * Math.PI) / 180);
+      const spanY = (v.span * h) / w;
+      return {
+        ...v,
+        longitude: v.longitude - ((dx / w) * v.span) / mLng,
+        latitude: v.latitude + ((dy / h) * spanY) / mLat,
+      };
+    });
+  }
 
   function handleClick(event: React.MouseEvent<HTMLDivElement>) {
+    const drag = dragRef.current;
+    dragRef.current = null;
+    if (drag?.moved) return;
     if (!onPick || !ref.current) return;
     const rect = ref.current.getBoundingClientRect();
     const px = (event.clientX - rect.left) / rect.width;
     const py = (event.clientY - rect.top) / rect.height;
     const metersPerLat = 111_320;
-    const metersPerLng = 111_320 * Math.cos((center.latitude * Math.PI) / 180);
+    const metersPerLng = 111_320 * Math.cos((view.latitude * Math.PI) / 180);
+    const spanY = (view.span * rect.height) / rect.width;
     onPick({
-      latitude: center.latitude - ((py - 0.5) * spanMeters) / metersPerLat,
-      longitude: center.longitude + ((px - 0.5) * spanMeters) / metersPerLng,
+      latitude: view.latitude - ((py - 0.5) * spanY) / metersPerLat,
+      longitude: view.longitude + ((px - 0.5) * view.span) / metersPerLng,
     });
   }
+
 
   return (
     <div className={className}>
       <div
         ref={ref}
         onClick={handleClick}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
         role={onPick ? "button" : undefined}
         tabIndex={onPick ? 0 : undefined}
         aria-label={onPick ? "اختر موقعاً على الخريطة" : "خريطة المواقع"}
-        className={`cadastral-grid relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-border ${onPick ? "cursor-crosshair" : ""}`}
+        style={{ touchAction: "none" }}
+        className={`cadastral-grid relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-border ${onPick ? "cursor-crosshair" : "cursor-grab"}`}
       >
         <div className="pointer-events-none absolute inset-0 opacity-90">
           {tiles.map((tile) => (
@@ -151,14 +248,62 @@ export function CadastralMap({ center, pins, spanMeters = 420, onPick, onLocate,
           © OpenStreetMap
         </span>
         <span className="pointer-events-none absolute top-3 start-3 font-mono text-[10px] tracking-widest text-muted-foreground">
-          {center.latitude.toFixed(4)}°N
+          {view.latitude.toFixed(4)}°N
         </span>
         <span className="pointer-events-none absolute bottom-3 start-3 font-mono text-[10px] tracking-widest text-muted-foreground">
-          {center.longitude.toFixed(4)}°E
+          {view.longitude.toFixed(4)}°E
         </span>
         <span className="pointer-events-none absolute top-3 end-3 font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
-          {spanMeters} m
+          {view.span >= 1000 ? `${Math.round(view.span / 1000)} km` : `${Math.round(view.span)} m`}
         </span>
+
+        <div className="absolute bottom-3 start-1/2 flex -translate-x-1/2 gap-1">
+          <button
+            type="button"
+            aria-label="تصغير"
+            onClick={(e) => {
+              e.stopPropagation();
+              zoomBy(2);
+            }}
+            className="grid size-8 place-items-center rounded-lg border border-border bg-surface/95 text-base font-bold text-foreground"
+          >
+            −
+          </button>
+          <button
+            type="button"
+            aria-label="تكبير"
+            onClick={(e) => {
+              e.stopPropagation();
+              zoomBy(0.5);
+            }}
+            className="grid size-8 place-items-center rounded-lg border border-border bg-surface/95 text-base font-bold text-foreground"
+          >
+            +
+          </button>
+          <button
+            type="button"
+            aria-label="كل سوريا"
+            onClick={(e) => {
+              e.stopPropagation();
+              setView({ latitude: 34.8, longitude: 38.5, span: 700_000 });
+            }}
+            className="grid h-8 place-items-center rounded-lg border border-border bg-surface/95 px-2 text-[11px] font-bold text-foreground"
+          >
+            سوريا
+          </button>
+          <button
+            type="button"
+            aria-label="إعادة الضبط"
+            onClick={(e) => {
+              e.stopPropagation();
+              setView({ ...center, span: spanMeters });
+            }}
+            className="grid h-8 place-items-center rounded-lg border border-border bg-surface/95 px-2 text-[11px] font-bold text-foreground"
+          >
+            ⤾
+          </button>
+        </div>
+
 
         {pins
           .filter((p) => p.latitude != null && p.longitude != null)
