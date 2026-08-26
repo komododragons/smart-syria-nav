@@ -9,7 +9,6 @@ import {
   CircleCheck,
   Clock,
   Copy,
-  Flag,
   Navigation,
   QrCode,
   Search,
@@ -449,28 +448,20 @@ function ResolverPage() {
                 >
                   <Timer className="size-4" /> إنشاء عنوان ذكي
                 </Link>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    try {
-                      await report({
-                        data: { smart_code: ok.code, issue_type: CORRECTION_TYPES[1]!.value },
-                      });
-                      toast.success("تم إرسال التصحيح للمراجعة — لن يُعدّل المعلومات الموثقة تلقائياً");
-                    } catch {
-                      toast.error("يلزم تسجيل الدخول لإرسال تصحيح");
-                    }
-                  }}
-                  className="flex items-center gap-1.5 rounded-lg border border-background/20 bg-background/5 px-3 py-2 text-sm font-bold"
-                >
-                  <Flag className="size-4" /> الإبلاغ عن مدخل خاطئ
-                </button>
               </div>
               <p className="mt-4 flex items-start gap-2 text-[11px] opacity-70">
                 <CircleCheck className="mt-0.5 size-3.5 shrink-0" />
                 التصحيحات تمر بمراجعة ولا تستبدل المعلومات الموثقة تلقائياً.
               </p>
             </section>
+
+            <AddressFeedback
+              key={`${ok.code}-${purpose}`}
+              smartCode={ok.code}
+              purpose={purpose}
+              nodeId={ok.site.id}
+              accessPointId={ok.recommended?.id ?? null}
+            />
           </>
         ) : null}
 
