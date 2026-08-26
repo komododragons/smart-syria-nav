@@ -97,7 +97,7 @@ export function NavigationMap({ markers, path, finalLeg, center, onPick, classNa
           type: "line",
           source: "route",
           layout: { "line-cap": "round", "line-join": "round" },
-          paint: { "line-color": "#1e3a5f", "line-width": 6, "line-opacity": 0.9 },
+          paint: { "line-color": "#16a34a", "line-width": 6, "line-opacity": 0.9 },
         });
         map.addLayer({
           id: "final-leg-line",
