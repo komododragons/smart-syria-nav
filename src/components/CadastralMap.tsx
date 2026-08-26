@@ -13,6 +13,7 @@ type Props = {
   center: { latitude: number; longitude: number };
   pins: MapPin[];
   spanMeters?: number;
+  fill?: boolean;
   onPick?: (coords: { latitude: number; longitude: number }) => void;
   onLocate?: () => void;
   className?: string;
@@ -27,9 +28,10 @@ const TONE_CLASS: Record<MapPin["tone"], string> = {
 };
 
 /**
- * Provider-neutral cadastral plate. Renders a survey grid with building and
+ * Provider-neutral civic map plate. Renders OpenStreetMap tiles with building and
  * access-point pins projected around a centre point; no map SDK is coupled to
- * the data model, so tiles/satellite can be layered later.
+ * the data model. In `fill` mode it stretches to its parent's height for the
+ * map-dominant split-screen home.
  */
 type Tile = { key: string; url: string; left: number; top: number; size: number };
 
@@ -42,7 +44,7 @@ function buildTiles(
 ): Tile[] {
   if (!width || !height) return [];
   const metersPerPixel = spanMeters / width;
-  const groundRes = (156543.03392 * Math.cos((center.latitude * Math.PI) / 180)) / 1;
+  const groundRes = 156543.03392 * Math.cos((center.latitude * Math.PI) / 180);
   let zoom = Math.round(Math.log2(groundRes / metersPerPixel));
   zoom = Math.min(19, Math.max(2, zoom));
   const scale = 2 ** zoom;
@@ -78,7 +80,15 @@ function buildTiles(
 const MIN_SPAN = 60;
 const MAX_SPAN = 900_000; // كامل سوريا وأكثر
 
-export function CadastralMap({ center, pins, spanMeters = 420, onPick, onLocate, className }: Props) {
+export function CadastralMap({
+  center,
+  pins,
+  spanMeters = 420,
+  fill = false,
+  onPick,
+  onLocate,
+  className,
+}: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState<string | null>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -127,9 +137,8 @@ export function CadastralMap({ center, pins, spanMeters = 420, onPick, onLocate,
       const fy = ay / h - 0.5;
       const spanYOld = (v.span * h) / w;
       const spanYNew = (next * h) / w;
-      // geo point under the anchor must stay put
-      const dLng = ((fx * v.span) / mLng) - ((fx * next) / mLng);
-      const dLat = (-(fy * spanYOld) / mLat) - (-(fy * spanYNew) / mLat);
+      const dLng = (fx * v.span) / mLng - (fx * next) / mLng;
+      const dLat = -(fy * spanYOld) / mLat - (-(fy * spanYNew) / mLat);
       return {
         latitude: v.latitude + dLat,
         longitude: v.longitude + dLng,
@@ -216,6 +225,9 @@ export function CadastralMap({ center, pins, spanMeters = 420, onPick, onLocate,
     });
   }
 
+  const plateClass = fill
+    ? `cadastral-grid relative h-full w-full overflow-hidden ${onPick ? "cursor-crosshair" : "cursor-grab"}`
+    : `cadastral-grid relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-border ${onPick ? "cursor-crosshair" : "cursor-grab"}`;
 
   return (
     <div className={className}>
@@ -228,7 +240,7 @@ export function CadastralMap({ center, pins, spanMeters = 420, onPick, onLocate,
         tabIndex={onPick ? 0 : undefined}
         aria-label={onPick ? "اختر موقعاً على الخريطة" : "خريطة المواقع"}
         style={{ touchAction: "none" }}
-        className={`cadastral-grid relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-border ${onPick ? "cursor-crosshair" : "cursor-grab"}`}
+        className={plateClass}
       >
         <div className="pointer-events-none absolute inset-0 opacity-90">
           {tiles.map((tile) => (
@@ -243,21 +255,27 @@ export function CadastralMap({ center, pins, spanMeters = 420, onPick, onLocate,
             />
           ))}
         </div>
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/50 via-transparent to-transparent" />
-        <span className="pointer-events-none absolute bottom-1 end-1 rounded bg-surface/80 px-1 font-mono text-[8px] text-muted-foreground">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent" />
+
+        {/* Civic coordinate HUD */}
+        <div className="pointer-events-none absolute bottom-3 start-3 flex items-center gap-3 rounded-lg border border-border bg-foreground/85 px-3 py-1.5 font-mono text-[10px] tracking-wider text-background backdrop-blur-md">
+          <span>
+            <span className="font-bold text-primary">LAT</span> {view.latitude.toFixed(4)}°N
+          </span>
+          <span className="h-3 w-px bg-background/25" />
+          <span>
+            <span className="font-bold text-primary">LON</span> {view.longitude.toFixed(4)}°E
+          </span>
+          <span className="h-3 w-px bg-background/25" />
+          <span>
+            {view.span >= 1000 ? `${Math.round(view.span / 1000)} km` : `${Math.round(view.span)} m`}
+          </span>
+        </div>
+        <span className="pointer-events-none absolute bottom-3 end-3 rounded bg-surface/80 px-1 font-mono text-[8px] text-muted-foreground">
           © OpenStreetMap
         </span>
-        <span className="pointer-events-none absolute top-3 start-3 font-mono text-[10px] tracking-widest text-muted-foreground">
-          {view.latitude.toFixed(4)}°N
-        </span>
-        <span className="pointer-events-none absolute bottom-3 start-3 font-mono text-[10px] tracking-widest text-muted-foreground">
-          {view.longitude.toFixed(4)}°E
-        </span>
-        <span className="pointer-events-none absolute top-3 end-3 font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
-          {view.span >= 1000 ? `${Math.round(view.span / 1000)} km` : `${Math.round(view.span)} m`}
-        </span>
 
-        <div className="absolute bottom-3 start-1/2 flex -translate-x-1/2 gap-1">
+        <div className="absolute top-3 start-1/2 flex -translate-x-1/2 gap-1">
           <button
             type="button"
             aria-label="تصغير"
@@ -265,7 +283,7 @@ export function CadastralMap({ center, pins, spanMeters = 420, onPick, onLocate,
               e.stopPropagation();
               zoomBy(2);
             }}
-            className="grid size-8 place-items-center rounded-lg border border-border bg-surface/95 text-base font-bold text-foreground"
+            className="grid size-9 place-items-center rounded-full border border-border bg-surface/95 text-base font-bold text-foreground shadow-plate"
           >
             −
           </button>
@@ -276,7 +294,7 @@ export function CadastralMap({ center, pins, spanMeters = 420, onPick, onLocate,
               e.stopPropagation();
               zoomBy(0.5);
             }}
-            className="grid size-8 place-items-center rounded-lg border border-border bg-surface/95 text-base font-bold text-foreground"
+            className="grid size-9 place-items-center rounded-full border border-border bg-surface/95 text-base font-bold text-foreground shadow-plate"
           >
             +
           </button>
@@ -287,7 +305,7 @@ export function CadastralMap({ center, pins, spanMeters = 420, onPick, onLocate,
               e.stopPropagation();
               setView({ latitude: 34.8, longitude: 38.5, span: 700_000 });
             }}
-            className="grid h-8 place-items-center rounded-lg border border-border bg-surface/95 px-2 text-[11px] font-bold text-foreground"
+            className="grid h-9 place-items-center rounded-full border border-border bg-surface/95 px-3 text-[11px] font-bold text-foreground shadow-plate"
           >
             سوريا
           </button>
@@ -298,12 +316,11 @@ export function CadastralMap({ center, pins, spanMeters = 420, onPick, onLocate,
               e.stopPropagation();
               setView({ ...center, span: spanMeters });
             }}
-            className="grid h-8 place-items-center rounded-lg border border-border bg-surface/95 px-2 text-[11px] font-bold text-foreground"
+            className="grid h-9 place-items-center rounded-full border border-border bg-surface/95 px-3 text-[11px] font-bold text-foreground shadow-plate"
           >
             ⤾
           </button>
         </div>
-
 
         {pins
           .filter((p) => p.latitude != null && p.longitude != null)
@@ -334,35 +351,37 @@ export function CadastralMap({ center, pins, spanMeters = 420, onPick, onLocate,
           })}
 
         {onPick ? (
-          <div className="pointer-events-none absolute bottom-3 end-3 flex items-center gap-1 rounded-lg border border-border bg-surface/90 px-2 py-1 text-[10px] font-medium">
+          <div className="pointer-events-none absolute top-3 end-3 flex items-center gap-1 rounded-lg border border-border bg-surface/90 px-2 py-1 text-[10px] font-medium">
             <Crosshair className="size-3 text-primary" />
             انقر لتحديد الموقع
           </div>
         ) : null}
       </div>
 
-      <div className="mt-2 flex items-center justify-between gap-3 text-[11px] text-muted-foreground">
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-primary" />
-            نقطة الوصول الموصى بها
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-foreground" />
-            المبنى / الموقع
-          </span>
+      {!fill ? (
+        <div className="mt-2 flex items-center justify-between gap-3 text-[11px] text-muted-foreground">
+          <div className="flex items-center gap-3">
+            <span className="flex items-center gap-1.5">
+              <span className="size-2 rounded-full bg-primary" />
+              نقطة الوصول الموصى بها
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="size-2 rounded-full bg-foreground" />
+              المبنى / الموقع
+            </span>
+          </div>
+          {onLocate ? (
+            <button
+              type="button"
+              onClick={onLocate}
+              className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2 py-1 font-medium text-foreground"
+            >
+              <LocateFixed className="size-3.5 text-primary" />
+              موقعي الحالي
+            </button>
+          ) : null}
         </div>
-        {onLocate ? (
-          <button
-            type="button"
-            onClick={onLocate}
-            className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2 py-1 font-medium text-foreground"
-          >
-            <LocateFixed className="size-3.5 text-primary" />
-            موقعي الحالي
-          </button>
-        ) : null}
-      </div>
+      ) : null}
     </div>
   );
 }
