@@ -203,6 +203,18 @@ function ResolverPage() {
       ]
     : [];
 
+  const resolvedIds = new Set(pins.map((p) => p.id));
+  const networkPins: MapPin[] = (networkQuery.data ?? [])
+    .filter((node) => !resolvedIds.has(node.id))
+    .map((node) => ({
+      id: node.id,
+      latitude: node.latitude,
+      longitude: node.longitude,
+      label: node.display_name,
+      tone: "alternative" as const,
+    }));
+  const allPins = [...pins, ...networkPins];
+
   const levels: SpineLevel[] =
     ok?.chain.map((node, index) => ({
       id: node.id,
