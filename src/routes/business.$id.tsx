@@ -144,24 +144,24 @@ function BusinessPage() {
                 <div>
                   <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-primary">
                     <Store className="size-3" />
-                    {ok.business.category ?? "عمل"}
+                    {ok.business!.category ?? "عمل"}
                   </span>
-                  <h1 className="mt-1 text-2xl font-bold leading-tight">{ok.business.name_ar}</h1>
-                  {ok.business.name_en ? (
+                  <h1 className="mt-1 text-2xl font-bold leading-tight">{ok.business!.name_ar}</h1>
+                  {ok.business!.name_en ? (
                     <p className="mt-0.5 text-sm text-muted-foreground" dir="ltr">
-                      {ok.business.name_en}
+                      {ok.business!.name_en}
                     </p>
                   ) : null}
                 </div>
                 <span
                   className={`flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-[10px] font-bold ${
-                    ok.business.verification_level === "unverified"
+                    ok.business!.verification_level === "unverified"
                       ? "bg-secondary text-muted-foreground"
                       : "bg-allow-surface text-allow"
                   }`}
                 >
                   <BadgeCheck className="size-3" />
-                  {VERIFICATION_LEVELS[ok.business.verification_level]?.ar ?? "غير موثق"}
+                  {VERIFICATION_LEVELS[ok.business!.verification_level]?.ar ?? "غير موثق"}
                 </span>
               </div>
 
@@ -172,19 +172,19 @@ function BusinessPage() {
               </p>
 
               <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                {ok.business.opening_hours ? (
+                {ok.business!.opening_hours ? (
                   <span className="flex items-center gap-1">
-                    <Clock className="size-3.5" /> {ok.business.opening_hours}
+                    <Clock className="size-3.5" /> {ok.business!.opening_hours}
                   </span>
                 ) : null}
-                {ok.business.phone ? (
-                  <a href={`tel:${ok.business.phone}`} className="flex items-center gap-1 font-mono" dir="ltr">
-                    <Phone className="size-3.5" /> {ok.business.phone}
+                {ok.business!.phone ? (
+                  <a href={`tel:${ok.business!.phone}`} className="flex items-center gap-1 font-mono" dir="ltr">
+                    <Phone className="size-3.5" /> {ok.business!.phone}
                   </a>
                 ) : null}
-                {ok.business.website ? (
+                {ok.business!.website ? (
                   <a
-                    href={ok.business.website}
+                    href={ok.business!.website}
                     target="_blank"
                     rel="noreferrer"
                     className="flex items-center gap-1 text-primary"
@@ -335,7 +335,7 @@ function BusinessPage() {
               <QrCard
                 url={`${window.location.origin}/?code=${ok.smart_code}`}
                 code={ok.smart_code}
-                title={ok.business.name_ar}
+                title={ok.business!.name_ar}
                 subtitle={[ok.node?.neighborhood, ok.node?.city].filter(Boolean).join(" — ")}
                 onClose={() => setShowQr(false)}
               />
