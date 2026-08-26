@@ -330,7 +330,10 @@ function CourierPage() {
                 type="button"
                 onClick={() => {
                   const c = parseCoords(draftCoords);
-                  if (!c) return toast.error("صيغة الإحداثيات غير صحيحة");
+                  if (!c) {
+                    toast.error("صيغة الإحداثيات غير صحيحة");
+                    return;
+                  }
                   addStop(c, draftLabel, null);
                 }}
                 className="rounded-lg border border-border px-3 py-2 text-xs font-bold"

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CourierRouteImport } from './routes/courier'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as DevelopersRouteImport } from './routes/developers'
 import { Route as MyAddressesRouteImport } from './routes/my-addresses'
@@ -36,6 +37,11 @@ const AdminRoute = AdminRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CourierRoute = CourierRouteImport.update({
+  id: '/courier',
+  path: '/courier',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CreateRoute = CreateRouteImport.update({
@@ -93,6 +99,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/courier': typeof CourierRoute
   '/create': typeof CreateRoute
   '/developers': typeof DevelopersRoute
   '/my-addresses': typeof MyAddressesRoute
@@ -108,6 +115,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/courier': typeof CourierRoute
   '/create': typeof CreateRoute
   '/developers': typeof DevelopersRoute
   '/my-addresses': typeof MyAddressesRoute
@@ -124,6 +132,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/courier': typeof CourierRoute
   '/create': typeof CreateRoute
   '/developers': typeof DevelopersRoute
   '/my-addresses': typeof MyAddressesRoute
@@ -141,6 +150,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/courier'
     | '/create'
     | '/developers'
     | '/my-addresses'
@@ -156,6 +166,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/courier'
     | '/create'
     | '/developers'
     | '/my-addresses'
@@ -171,6 +182,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/courier'
     | '/create'
     | '/developers'
     | '/my-addresses'
@@ -187,6 +199,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
+  CourierRoute: typeof CourierRoute
   CreateRoute: typeof CreateRoute
   DevelopersRoute: typeof DevelopersRoute
   MyAddressesRoute: typeof MyAddressesRoute
@@ -219,6 +232,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/courier': {
+      id: '/courier'
+      path: '/courier'
+      fullPath: '/courier'
+      preLoaderRoute: typeof CourierRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/create': {
@@ -308,6 +328,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
+  CourierRoute: CourierRoute,
   CreateRoute: CreateRoute,
   DevelopersRoute: DevelopersRoute,
   MyAddressesRoute: MyAddressesRoute,
