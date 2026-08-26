@@ -85,6 +85,39 @@ function MyAddressesPage() {
     onError: () => toast.error("تعذر إنشاء العنوان المؤقت"),
   });
 
+  const editMutation = useMutation({
+    mutationFn: (vars: { smart_address_id: string; node_id: string; access_point_id: string | null }) =>
+      updateFn({
+        data: {
+          smart_address_id: vars.smart_address_id,
+          node_id: vars.node_id,
+          access_point_id: vars.access_point_id,
+          label: editForm.label.trim() || null,
+          is_public: editForm.is_public,
+          display_name: editForm.display_name.trim(),
+          neighborhood: editForm.neighborhood.trim() || null,
+          street: editForm.street.trim() || null,
+          landmark: editForm.landmark.trim() || null,
+          public_notes: editForm.public_notes.trim() || null,
+          latitude: editForm.latitude ? Number(editForm.latitude) : null,
+          longitude: editForm.longitude ? Number(editForm.longitude) : null,
+          entrance_name: editForm.entrance_name.trim() || null,
+          entrance_instructions: editForm.entrance_instructions.trim() || null,
+        },
+      }),
+    onSuccess: async () => {
+      toast.success("تم حفظ التعديلات");
+      setEditFor(null);
+      await query.refetch();
+    },
+    onError: (err) =>
+      toast.error(
+        err instanceof Error && err.message === "not_found_or_forbidden"
+          ? "لا تملك صلاحية تعديل هذا العنوان"
+          : "تعذر حفظ التعديلات",
+      ),
+  });
+
   if (authed === false) {
     return (
       <div className="min-h-screen bg-background text-foreground">
