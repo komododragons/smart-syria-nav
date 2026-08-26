@@ -163,7 +163,7 @@ function ResolverPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("location_nodes")
-        .select("id, display_name, latitude, longitude")
+        .select("id, display_name, latitude, longitude, smart_addresses(code, is_public, status)")
         .eq("is_active", true)
         .eq("visibility", "public")
         .in("node_type", ["property", "building", "warehouse", "farm", "factory", "hospital", "school", "hotel"])
@@ -182,6 +182,7 @@ function ResolverPage() {
           longitude: ok.site.longitude,
           label: ok.site.display_name,
           tone: "site" as const,
+          code: ok.code,
         },
         ...(ok.recommended
           ? [
@@ -191,6 +192,7 @@ function ResolverPage() {
                 longitude: ok.recommended.longitude,
                 label: ok.recommended.display_name,
                 tone: "recommended" as const,
+                code: ok.code,
               },
             ]
           : []),
@@ -200,6 +202,7 @@ function ResolverPage() {
           longitude: a.longitude,
           label: a.display_name,
           tone: "alternative" as const,
+          code: ok.code,
         })),
       ]
     : [];
@@ -207,14 +210,32 @@ function ResolverPage() {
   const resolvedIds = new Set(pins.map((p) => p.id));
   const networkPins: MapPin[] = (networkQuery.data ?? [])
     .filter((node) => !resolvedIds.has(node.id))
-    .map((node) => ({
-      id: node.id,
-      latitude: node.latitude,
-      longitude: node.longitude,
-      label: node.display_name,
-      tone: "alternative" as const,
-    }));
+    .map((node) => {
+      const addresses = Array.isArray(node.smart_addresses)
+        ? node.smart_addresses
+        : node.smart_addresses
+          ? [node.smart_addresses]
+          : [];
+      const active = addresses.find((a) => a?.is_public && a?.status === "active") ?? addresses[0];
+      return {
+        id: node.id,
+        latitude: node.latitude,
+        longitude: node.longitude,
+        label: node.display_name,
+        tone: "alternative" as const,
+        code: active?.code ?? null,
+      };
+    });
   const allPins = [...pins, ...networkPins];
+
+  /** Selecting a pin resolves its smart code in the side panel. */
+  function handleSelectPin(pin: MapPin) {
+    if (!pin.code) return;
+    const next = normalizeCode(pin.code);
+    setCode(next);
+    mutation.mutate({ code: next, purpose, wheelchair });
+  }
+
 
   const levels: SpineLevel[] =
     ok?.chain.map((node, index) => ({
