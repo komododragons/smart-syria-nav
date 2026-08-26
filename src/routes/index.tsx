@@ -646,7 +646,7 @@ function ResolverPage() {
           <CadastralMap
             fill
             center={mapCenter}
-            pins={pins}
+            pins={allPins}
             className="h-[45vh] md:h-full"
           />
           {ok ? (
