@@ -168,6 +168,56 @@ function AdminPage() {
                 التصحيحات لا تُطبّق تلقائياً على العناوين الموثقة — المراجعة بشرية.
               </p>
             </section>
+
+            <section className="rounded-2xl border border-border bg-surface p-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                  تقييمات الوصول الأخيرة
+                </h2>
+                {query.data.successRate !== null ? (
+                  <span className="rounded-md bg-allow-surface px-2 py-1 text-[11px] font-bold text-allow">
+                    نسبة الوصول الناجح: {query.data.successRate}%
+                  </span>
+                ) : null}
+              </div>
+              {query.data.feedback.length === 0 ? (
+                <p className="mt-3 text-sm text-muted-foreground">لا تقييمات بعد.</p>
+              ) : (
+                <div className="mt-3 space-y-2">
+                  {query.data.feedback.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between gap-2 rounded-lg border border-border bg-background p-3"
+                    >
+                      <div className="flex items-center gap-2">
+                        {item.successful ? (
+                          <ThumbsUp className="size-4 text-allow" />
+                        ) : (
+                          <ThumbsDown className="size-4 text-prohibit" />
+                        )}
+                        <div>
+                          <span className="font-mono text-[11px]" dir="ltr">
+                            {item.smart_code}
+                          </span>
+                          <span className="mx-2 text-[11px] text-muted-foreground">
+                            {PURPOSE_LABELS[item.purpose] ?? item.purpose}
+                          </span>
+                          {item.notes ? (
+                            <p className="text-xs text-muted-foreground">{item.notes}</p>
+                          ) : null}
+                        </div>
+                      </div>
+                      <span className="shrink-0 text-[10px] text-muted-foreground">
+                        {new Date(item.created_at).toLocaleString("ar-SY")}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p className="mt-3 text-[11px] text-muted-foreground">
+                كل تقييم يحرّك درجة الثقة للمدخل المعني (+3 نجاح / −5 فشل) ويُسجَّل في سجل أحداث الثقة.
+              </p>
+            </section>
           </>
         ) : null}
       </main>
