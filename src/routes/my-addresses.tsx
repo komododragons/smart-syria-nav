@@ -3,12 +3,12 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Copy, EyeOff, Globe, Star, Timer, Trash2 } from "lucide-react";
+import { Copy, EyeOff, Globe, Pencil, Star, Timer, Trash2 } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
 import { QrCard } from "@/components/QrCard";
 import { supabase } from "@/integrations/supabase/client";
-import { createTemporaryAddress, listMyAddresses } from "@/lib/addresses.functions";
+import { createTemporaryAddress, listMyAddresses, updateMyAddress } from "@/lib/addresses.functions";
 import { listFavorites, toggleFavorite } from "@/lib/network.functions";
 import { NODE_TYPE_LABELS, PURPOSE_LABELS, QUICK_PURPOSES, VERIFICATION_LEVELS } from "@/lib/smart-address";
 
