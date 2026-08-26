@@ -277,7 +277,175 @@ function MyAddressesPage() {
                 >
                   <Timer className="size-3.5" /> عنوان مؤقت
                 </button>
+                {node?.id ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (editFor === row.id) {
+                        setEditFor(null);
+                        return;
+                      }
+                      setEditFor(row.id);
+                      setEditForm({
+                        label: row.label ?? "",
+                        is_public: row.is_public,
+                        display_name: node.display_name ?? "",
+                        neighborhood: node.neighborhood ?? "",
+                        street: node.street ?? "",
+                        landmark: node.landmark ?? "",
+                        public_notes: node.public_notes ?? "",
+                        latitude: node.latitude != null ? String(node.latitude) : "",
+                        longitude: node.longitude != null ? String(node.longitude) : "",
+                        entrance_name: ap?.display_name ?? "",
+                        entrance_instructions: ap?.instructions_ar ?? "",
+                      });
+                    }}
+                    className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-bold"
+                  >
+                    <Pencil className="size-3.5" /> تعديل
+                  </button>
+                ) : null}
               </div>
+
+              {editFor === row.id && node?.id ? (
+                <div className="mt-3 rounded-xl border border-border bg-background p-3">
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                    تعديل العنوان — يُحفظ فوراً ويظهر للمشاركين
+                  </p>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    <label className="flex flex-col gap-1 text-xs font-medium">
+                      اسم الموقع
+                      <input
+                        value={editForm.display_name}
+                        onChange={(e) => setEditForm({ ...editForm, display_name: e.target.value })}
+                        className="rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1 text-xs font-medium">
+                      التسمية (تظهر لك فقط)
+                      <input
+                        value={editForm.label}
+                        onChange={(e) => setEditForm({ ...editForm, label: e.target.value })}
+                        className="rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1 text-xs font-medium">
+                      الحي
+                      <input
+                        value={editForm.neighborhood}
+                        onChange={(e) => setEditForm({ ...editForm, neighborhood: e.target.value })}
+                        className="rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1 text-xs font-medium">
+                      الشارع
+                      <input
+                        value={editForm.street}
+                        onChange={(e) => setEditForm({ ...editForm, street: e.target.value })}
+                        className="rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1 text-xs font-medium">
+                      معلم قريب
+                      <input
+                        value={editForm.landmark}
+                        onChange={(e) => setEditForm({ ...editForm, landmark: e.target.value })}
+                        className="rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                      />
+                    </label>
+                    <label className="flex items-center gap-2 self-end text-xs font-medium">
+                      <input
+                        type="checkbox"
+                        checked={editForm.is_public}
+                        onChange={(e) => setEditForm({ ...editForm, is_public: e.target.checked })}
+                        className="size-3.5"
+                      />
+                      عنوان عام (قابل للبحث)
+                    </label>
+                    <label className="flex flex-col gap-1 text-xs font-medium">
+                      خط العرض
+                      <input
+                        value={editForm.latitude}
+                        onChange={(e) => setEditForm({ ...editForm, latitude: e.target.value })}
+                        dir="ltr"
+                        inputMode="decimal"
+                        placeholder="33.5138"
+                        className="rounded-lg border border-border bg-surface px-3 py-2 font-mono text-sm"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1 text-xs font-medium">
+                      خط الطول
+                      <input
+                        value={editForm.longitude}
+                        onChange={(e) => setEditForm({ ...editForm, longitude: e.target.value })}
+                        dir="ltr"
+                        inputMode="decimal"
+                        placeholder="36.2765"
+                        className="rounded-lg border border-border bg-surface px-3 py-2 font-mono text-sm"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1 text-xs font-medium sm:col-span-2">
+                      ملاحظات عامة
+                      <textarea
+                        value={editForm.public_notes}
+                        onChange={(e) => setEditForm({ ...editForm, public_notes: e.target.value })}
+                        rows={2}
+                        className="rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                      />
+                    </label>
+                    {ap?.id ? (
+                      <>
+                        <label className="flex flex-col gap-1 text-xs font-medium">
+                          اسم المدخل
+                          <input
+                            value={editForm.entrance_name}
+                            onChange={(e) => setEditForm({ ...editForm, entrance_name: e.target.value })}
+                            className="rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                          />
+                        </label>
+                        <label className="flex flex-col gap-1 text-xs font-medium">
+                          تعليمات الوصول للمدخل
+                          <input
+                            value={editForm.entrance_instructions}
+                            onChange={(e) =>
+                              setEditForm({ ...editForm, entrance_instructions: e.target.value })
+                            }
+                            className="rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                          />
+                        </label>
+                      </>
+                    ) : null}
+                  </div>
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      type="button"
+                      disabled={
+                        editMutation.isPending ||
+                        editForm.display_name.trim().length < 2 ||
+                        Boolean(editForm.latitude && Number.isNaN(Number(editForm.latitude))) ||
+                        Boolean(editForm.longitude && Number.isNaN(Number(editForm.longitude)))
+                      }
+                      onClick={() =>
+                        editMutation.mutate({
+                          smart_address_id: row.id,
+                          node_id: node.id!,
+                          access_point_id: ap?.id ?? null,
+                        })
+                      }
+                      className="flex-1 rounded-lg bg-primary py-2.5 text-xs font-bold text-primary-foreground disabled:opacity-60"
+                    >
+                      حفظ التعديلات
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditFor(null)}
+                      className="rounded-lg border border-border px-4 py-2.5 text-xs font-bold"
+                    >
+                      إلغاء
+                    </button>
+                  </div>
+                </div>
+              ) : null}
 
               {openFor === row.id ? (
                 <div className="mt-3 rounded-xl border border-border bg-background p-3">
