@@ -220,7 +220,7 @@ function NavigationWorkspace() {
       (err) => {
         setLocationDenied(true);
         setPickOnMap(true);
-        setOriginMethod("map_pick");
+        setOriginMethod("map_pin");
         const insecure =
           typeof window !== "undefined" &&
           !window.isSecureContext;
