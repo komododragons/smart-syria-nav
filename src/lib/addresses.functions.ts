@@ -365,7 +365,7 @@ export const listMyAddresses = createServerFn({ method: "POST" })
     const { data, error } = await context.supabase
       .from("smart_addresses")
       .select(
-        "id, code, label, is_public, status, created_at, location_nodes(display_name, node_type, unit_label, floor_label, neighborhood, city, governorate, visibility, latitude, longitude, confidence_score, verification_level), access_points(display_name, access_type, latitude, longitude)",
+        "id, code, label, is_public, status, created_at, location_nodes(id, display_name, node_type, unit_label, floor_label, neighborhood, city, governorate, street, landmark, public_notes, visibility, latitude, longitude, confidence_score, verification_level), access_points(id, display_name, instructions_ar, access_type, latitude, longitude)",
       )
       .order("created_at", { ascending: false })
       .limit(100);
