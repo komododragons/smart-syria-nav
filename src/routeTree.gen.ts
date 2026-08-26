@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as MyAddressesRouteImport } from './routes/my-addresses'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as BusinessIdRouteImport } from './routes/business.$id'
 import { Route as TTokenRouteImport } from './routes/t.$token'
 import { Route as ApiPublicResolveRouteImport } from './routes/api.public.resolve'
 
@@ -48,6 +49,11 @@ const SearchRoute = SearchRouteImport.update({
   path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BusinessIdRoute = BusinessIdRouteImport.update({
+  id: '/business/$id',
+  path: '/business/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TTokenRoute = TTokenRouteImport.update({
   id: '/t/$token',
   path: '/t/$token',
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/create': typeof CreateRoute
   '/my-addresses': typeof MyAddressesRoute
   '/search': typeof SearchRoute
+  '/business/$id': typeof BusinessIdRoute
   '/t/$token': typeof TTokenRoute
   '/api/public/resolve': typeof ApiPublicResolveRoute
 }
@@ -76,6 +83,7 @@ export interface FileRoutesByTo {
   '/create': typeof CreateRoute
   '/my-addresses': typeof MyAddressesRoute
   '/search': typeof SearchRoute
+  '/business/$id': typeof BusinessIdRoute
   '/t/$token': typeof TTokenRoute
   '/api/public/resolve': typeof ApiPublicResolveRoute
 }
@@ -87,6 +95,7 @@ export interface FileRoutesById {
   '/create': typeof CreateRoute
   '/my-addresses': typeof MyAddressesRoute
   '/search': typeof SearchRoute
+  '/business/$id': typeof BusinessIdRoute
   '/t/$token': typeof TTokenRoute
   '/api/public/resolve': typeof ApiPublicResolveRoute
 }
@@ -99,6 +108,7 @@ export interface FileRouteTypes {
     | '/create'
     | '/my-addresses'
     | '/search'
+    | '/business/$id'
     | '/t/$token'
     | '/api/public/resolve'
   fileRoutesByTo: FileRoutesByTo
@@ -109,6 +119,7 @@ export interface FileRouteTypes {
     | '/create'
     | '/my-addresses'
     | '/search'
+    | '/business/$id'
     | '/t/$token'
     | '/api/public/resolve'
   id:
@@ -119,6 +130,7 @@ export interface FileRouteTypes {
     | '/create'
     | '/my-addresses'
     | '/search'
+    | '/business/$id'
     | '/t/$token'
     | '/api/public/resolve'
   fileRoutesById: FileRoutesById
@@ -130,6 +142,7 @@ export interface RootRouteChildren {
   CreateRoute: typeof CreateRoute
   MyAddressesRoute: typeof MyAddressesRoute
   SearchRoute: typeof SearchRoute
+  BusinessIdRoute: typeof BusinessIdRoute
   TTokenRoute: typeof TTokenRoute
   ApiPublicResolveRoute: typeof ApiPublicResolveRoute
 }
@@ -178,6 +191,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/business/$id': {
+      id: '/business/$id'
+      path: '/business/$id'
+      fullPath: '/business/$id'
+      preLoaderRoute: typeof BusinessIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/t/$token': {
       id: '/t/$token'
       path: '/t/$token'
@@ -202,6 +222,7 @@ const rootRouteChildren: RootRouteChildren = {
   CreateRoute: CreateRoute,
   MyAddressesRoute: MyAddressesRoute,
   SearchRoute: SearchRoute,
+  BusinessIdRoute: BusinessIdRoute,
   TTokenRoute: TTokenRoute,
   ApiPublicResolveRoute: ApiPublicResolveRoute,
 }

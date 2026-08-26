@@ -14,10 +14,10 @@ import {
   Search,
   Timer,
 } from "lucide-react";
-import { QRCodeSVG } from "qrcode.react";
 
 import { AppHeader } from "@/components/AppHeader";
 import { AddressFeedback } from "@/components/AddressFeedback";
+import { QrCard } from "@/components/QrCard";
 import { CadastralMap, type MapPin } from "@/components/CadastralMap";
 import { HierarchySpine, type SpineLevel } from "@/components/HierarchySpine";
 import { resolveAddress } from "@/lib/addresses.functions";
@@ -34,6 +34,8 @@ import {
 } from "@/lib/smart-address";
 
 export const Route = createFileRoute("/")({
+  validateSearch: (search: Record<string, unknown>): { code?: string } =>
+    typeof search["code"] === "string" ? { code: search["code"] } : {},
   head: () => ({
     meta: [
       { title: "محلّل العنوان الذكي | شبكة العنوان الذكي السورية" },
@@ -60,7 +62,8 @@ const DEMO_CODES = [
 
 function ResolverPage() {
   const resolve = useServerFn(resolveAddress);
-  const [code, setCode] = useState("SY-DAM-K7X4");
+  const searchParams = Route.useSearch();
+  const [code, setCode] = useState(() => normalizeCode(searchParams.code ?? "") || "SY-DAM-K7X4");
   const [purpose, setPurpose] = useState<Purpose>("parcel_delivery");
   const [wheelchair, setWheelchair] = useState(false);
   const [showQr, setShowQr] = useState(false);
@@ -349,25 +352,17 @@ function ResolverPage() {
                 </div>
 
                 {showQr ? (
-                  <div className="mt-4 flex flex-col items-center gap-2 rounded-xl border border-border bg-background p-4">
-                    <QRCodeSVG
-                      value={
-                        typeof window === "undefined"
-                          ? `https://smartaddress.sy/?code=${ok.code}`
-                          : `${window.location.origin}/?code=${ok.code}`
-                      }
-                      size={132}
-                      bgColor="transparent"
-                      fgColor="currentColor"
-                      className="text-foreground"
-                    />
-                    <span className="font-mono text-xs" dir="ltr">
-                      {ok.code}
-                    </span>
-                    <p className="text-center text-[10px] text-muted-foreground">
-                      الرمز يحتوي رابطاً فقط — لا بيانات شخصية.
-                    </p>
-                  </div>
+                  <QrCard
+                    url={
+                      typeof window === "undefined"
+                        ? `https://smartaddress.sy/?code=${ok.code}`
+                        : `${window.location.origin}/?code=${ok.code}`
+                    }
+                    code={ok.code}
+                    title={ok.site.display_name}
+                    subtitle={[ok.site.neighborhood, ok.site.city].filter(Boolean).join(" — ")}
+                    onClose={() => setShowQr(false)}
+                  />
                 ) : null}
               </section>
             ) : (

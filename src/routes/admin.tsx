@@ -7,7 +7,7 @@ import { ThumbsDown, ThumbsUp } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
 import { supabase } from "@/integrations/supabase/client";
-import { adminOverview, reviewCorrection } from "@/lib/addresses.functions";
+import { adminOverview, reviewClaim, reviewCorrection } from "@/lib/addresses.functions";
 import { CORRECTION_TYPES, PURPOSE_LABELS } from "@/lib/smart-address";
 
 export const Route = createFileRoute("/admin")({
@@ -42,6 +42,7 @@ function AdminPage() {
   const queryClient = useQueryClient();
   const overview = useServerFn(adminOverview);
   const review = useServerFn(reviewCorrection);
+  const reviewClaimFn = useServerFn(reviewClaim);
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
 
@@ -63,6 +64,19 @@ function AdminPage() {
       await queryClient.invalidateQueries({ queryKey: ["admin-overview"] });
     } catch {
       toast.error("تعذّر تحديث التقرير — تحتاج صلاحية مشرف أو مراجع");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleClaimReview = async (id: string, status: "approved" | "rejected") => {
+    setBusyId(id);
+    try {
+      await reviewClaimFn({ data: { id, status } });
+      toast.success(status === "approved" ? "تمت الموافقة ونُقلت الملكية" : "تم رفض المطالبة");
+      await queryClient.invalidateQueries({ queryKey: ["admin-overview"] });
+    } catch {
+      toast.error("تعذّر تحديث المطالبة — تحتاج صلاحية مشرف أو مراجع");
     } finally {
       setBusyId(null);
     }
@@ -166,6 +180,55 @@ function AdminPage() {
               )}
               <p className="mt-3 text-[11px] text-muted-foreground">
                 التصحيحات لا تُطبّق تلقائياً على العناوين الموثقة — المراجعة بشرية.
+              </p>
+            </section>
+
+            <section className="rounded-2xl border border-border bg-surface p-4">
+              <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                مطالبات ملكية الأعمال المعلّقة
+              </h2>
+              {query.data.claims.length === 0 ? (
+                <p className="mt-3 text-sm text-muted-foreground">لا مطالبات معلّقة.</p>
+              ) : (
+                <div className="mt-3 space-y-2">
+                  {query.data.claims.map((claim) => {
+                    const biz = Array.isArray(claim.businesses) ? claim.businesses[0] : claim.businesses;
+                    return (
+                      <div key={claim.id} className="rounded-lg border border-border bg-background p-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-sm font-bold">{biz?.name_ar ?? "عمل"}</span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {new Date(claim.created_at).toLocaleString("ar-SY")}
+                          </span>
+                        </div>
+                        {claim.evidence ? (
+                          <p className="mt-1 text-xs text-muted-foreground">{claim.evidence}</p>
+                        ) : null}
+                        <div className="mt-2 flex justify-end gap-1.5">
+                          <button
+                            type="button"
+                            disabled={busyId === claim.id}
+                            onClick={() => handleClaimReview(claim.id, "approved")}
+                            className="rounded-md bg-allow px-2.5 py-1 text-[11px] font-bold text-primary-foreground disabled:opacity-50"
+                          >
+                            موافقة ونقل الملكية
+                          </button>
+                          <button
+                            type="button"
+                            disabled={busyId === claim.id}
+                            onClick={() => handleClaimReview(claim.id, "rejected")}
+                            className="rounded-md border border-border px-2.5 py-1 text-[11px] font-bold text-muted-foreground disabled:opacity-50"
+                          >
+                            رفض
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              <p className="mt-3 text-[11px] text-muted-foreground">
+                الموافقة تنقل ملكية العمل إلى المُطالِب وترفع توثيقه إلى «موثق من المالك».
               </p>
             </section>
 

@@ -584,6 +584,149 @@ export const reviewCorrection = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const getBusinessProfile = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data }) => {
+    const { serverPublicClient } = await import("./addresses.server");
+    const supa = serverPublicClient();
+    const { data: biz, error } = await supa
+      .from("businesses")
+      .select(
+        "id, name_ar, name_en, category, phone, website, opening_hours, verification_level, node_id, visitor_access_point_id, delivery_access_point_id, smart_addresses(code), location_nodes(display_name, governorate, city, district, neighborhood, street, landmark, latitude, longitude, confidence_score)",
+      )
+      .eq("id", data.id)
+      .eq("is_published", true)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!biz) return { status: "not_found" as const };
+
+    const apIds = [biz.visitor_access_point_id, biz.delivery_access_point_id].filter(
+      (v): v is string => Boolean(v),
+    );
+    let accessPoints: {
+      id: string;
+      display_name: string;
+      access_type: string;
+      latitude: number | null;
+      longitude: number | null;
+      instructions_ar: string | null;
+      always_open: boolean;
+      opens_at: string | null;
+      closes_at: string | null;
+      accessibility: string[];
+    }[] = [];
+    if (apIds.length) {
+      const { data: aps } = await supa
+        .from("access_points")
+        .select(
+          "id, display_name, access_type, latitude, longitude, instructions_ar, always_open, opens_at, closes_at, accessibility",
+        )
+        .in("id", [...new Set(apIds)]);
+      accessPoints = (aps ?? []) as typeof accessPoints;
+    }
+
+    return {
+      status: "ok" as const,
+      business: {
+        id: biz.id,
+        name_ar: biz.name_ar,
+        name_en: biz.name_en,
+        category: biz.category,
+        phone: biz.phone,
+        website: biz.website,
+        opening_hours: biz.opening_hours,
+        verification_level: biz.verification_level,
+      },
+      node: Array.isArray(biz.location_nodes) ? biz.location_nodes[0] : biz.location_nodes,
+      smart_code:
+        (Array.isArray(biz.smart_addresses) ? biz.smart_addresses[0] : biz.smart_addresses)?.code ?? null,
+      visitor_access_point:
+        accessPoints.find((a) => a.id === biz.visitor_access_point_id) ?? null,
+      delivery_access_point:
+        accessPoints.find((a) => a.id === biz.delivery_access_point_id) ?? null,
+    };
+  });
+
+export const claimBusiness = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({ business_id: z.string().uuid(), evidence: z.string().max(600).optional() })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const supa = context.supabase;
+    const { data: existing } = await supa
+      .from("business_claims")
+      .select("id, status")
+      .eq("business_id", data.business_id)
+      .eq("claimant_id", context.userId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (existing?.status === "pending") return { status: "already_pending" as const };
+    if (existing?.status === "approved") return { status: "already_owner" as const };
+
+    const { error } = await supa.from("business_claims").insert({
+      business_id: data.business_id,
+      claimant_id: context.userId,
+      evidence: data.evidence ?? null,
+    });
+    if (error) throw new Error(error.message);
+
+    await supa.from("audit_logs").insert({
+      actor_id: context.userId,
+      action: "business_claim_submitted",
+      resource_type: "business",
+      resource_id: data.business_id,
+      metadata: {},
+    });
+    return { status: "submitted" as const };
+  });
+
+export const reviewClaim = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({ id: z.string().uuid(), status: z.enum(["approved", "rejected"]) })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const supa = context.supabase;
+    const { data: isAdmin } = await supa.rpc("has_role", { _user_id: context.userId, _role: "admin" });
+    const { data: isModerator } = await supa.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "moderator",
+    });
+    if (!isAdmin && !isModerator) throw new Error("Forbidden");
+
+    const { data: claim, error } = await supa
+      .from("business_claims")
+      .update({ status: data.status, reviewed_by: context.userId })
+      .eq("id", data.id)
+      .eq("status", "pending")
+      .select("id, business_id, claimant_id")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!claim) return { ok: false as const };
+
+    if (data.status === "approved") {
+      await supa
+        .from("businesses")
+        .update({ owner_id: claim.claimant_id, verification_level: "owner_verified" })
+        .eq("id", claim.business_id);
+    }
+
+    await supa.from("audit_logs").insert({
+      actor_id: context.userId,
+      action: `business_claim_${data.status}`,
+      resource_type: "business_claim",
+      resource_id: claim.id,
+      metadata: { business_id: claim.business_id },
+    });
+    return { ok: true as const };
+  });
+
 export const networkStats = createServerFn({ method: "GET" }).handler(async () => {
   const { serverPublicClient } = await import("./addresses.server");
   const supa = serverPublicClient();
@@ -651,12 +794,20 @@ export const adminOverview = createServerFn({ method: "POST" })
       .select("*", { count: "exact", head: true })
       .eq("successful", true);
 
+    const { data: pendingClaims } = await supa
+      .from("business_claims")
+      .select("id, evidence, status, created_at, businesses(name_ar)")
+      .eq("status", "pending")
+      .order("created_at", { ascending: false })
+      .limit(20);
+
     return {
       authorized: true as const,
       is_admin: Boolean(isAdmin),
       metrics: { nodes, accessPoints, codes, businesses, temporary, corrections, duplicates, visits },
       pending: pending ?? [],
       feedback: recentFeedback ?? [],
+      claims: pendingClaims ?? [],
       successRate: visits > 0 ? Math.round(((successfulVisits ?? 0) / visits) * 100) : null,
     };
   });

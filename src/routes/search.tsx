@@ -68,6 +68,7 @@ function SearchPage() {
         {data?.code ? (
           <Link
             to="/"
+            search={{ code: data.code.code }}
             className="animate-entrance rounded-2xl border border-primary/40 bg-primary/5 p-4"
           >
             <span className="text-[10px] font-bold uppercase tracking-widest text-primary">
@@ -94,9 +95,11 @@ function SearchPage() {
                   ? biz.smart_addresses[0]
                   : biz.smart_addresses;
                 return (
-                  <div
+                  <Link
                     key={biz.id}
-                    className="rounded-xl border border-border bg-surface p-4 shadow-sm"
+                    to="/business/$id"
+                    params={{ id: biz.id }}
+                    className="block rounded-xl border border-border bg-surface p-4 shadow-sm transition-colors hover:border-primary/50"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
@@ -120,7 +123,7 @@ function SearchPage() {
                       ) : null}
                       <span>{VERIFICATION_LEVELS[biz.verification_level]?.ar ?? "غير موثق"}</span>
                     </div>
-                  </div>
+                  </Link>
                 );
               })}
             </div>
