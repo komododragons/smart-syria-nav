@@ -312,8 +312,8 @@ function NavigationWorkspace() {
   const finalLeg: [number, number][] | undefined =
     destination?.final_leg_on_foot && destination.property_point
       ? [
-          [destination.point.latitude, destination.point.longitude],
-          [destination.property_point.latitude, destination.property_point.longitude],
+          [destination.point.longitude, destination.point.latitude],
+          [destination.property_point.longitude, destination.property_point.latitude],
         ]
       : undefined;
 

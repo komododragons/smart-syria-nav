@@ -31,9 +31,9 @@ export const MARKER_STYLE: Record<NavMarkerKind, { color: string; glyph: string;
 
 type Props = {
   markers: NavMarker[];
-  /** Decoded route path as [lat, lng] pairs. */
+  /** Decoded route path as [lng, lat] pairs. */
   path?: [number, number][] | undefined;
-  /** Dashed final walking leg, [lat, lng] pairs. */
+  /** Dashed final walking leg, [lng, lat] pairs. */
   finalLeg?: [number, number][] | undefined;
   center: Coordinates;
   onPick?: ((point: Coordinates) => void) | undefined;
@@ -137,7 +137,7 @@ export function NavigationMap({ markers, path, finalLeg, center, onPick, classNa
           properties: {},
           geometry: {
             type: "LineString",
-            coordinates: (coords ?? []).map(([lat, lng]) => [lng, lat]),
+            coordinates: (coords ?? []).map(([lng, lat]) => [lng, lat]),
           },
         });
       };
@@ -182,7 +182,7 @@ export function NavigationMap({ markers, path, finalLeg, center, onPick, classNa
     if (!map) return;
     const points: [number, number][] = [
       ...markers.map((m) => [m.point.longitude, m.point.latitude] as [number, number]),
-      ...(path ?? []).map(([lat, lng]) => [lng, lat] as [number, number]),
+      ...(path ?? []).map(([lng, lat]) => [lng, lat] as [number, number]),
     ];
     if (points.length === 0) return;
     const fit = () => {
