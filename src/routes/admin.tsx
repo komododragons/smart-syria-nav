@@ -1,14 +1,15 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ThumbsDown, ThumbsUp } from "lucide-react";
+import { GitMerge, ScanSearch, ScrollText, ThumbsDown, ThumbsUp } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { adminOverview, reviewClaim, reviewCorrection } from "@/lib/addresses.functions";
-import { CORRECTION_TYPES, PURPOSE_LABELS } from "@/lib/smart-address";
+import { detectDuplicates, listDuplicates, reviewDuplicate } from "@/lib/network.functions";
+import { CORRECTION_TYPES, NODE_TYPE_LABELS, PURPOSE_LABELS } from "@/lib/smart-address";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -43,8 +44,12 @@ function AdminPage() {
   const overview = useServerFn(adminOverview);
   const review = useServerFn(reviewCorrection);
   const reviewClaimFn = useServerFn(reviewClaim);
+  const detectFn = useServerFn(detectDuplicates);
+  const listDupFn = useServerFn(listDuplicates);
+  const reviewDupFn = useServerFn(reviewDuplicate);
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [scanning, setScanning] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setAuthed(Boolean(data.session)));
@@ -55,6 +60,39 @@ function AdminPage() {
     queryFn: () => overview({ data: undefined as never }),
     enabled: authed === true,
   });
+
+  const dupQuery = useQuery({
+    queryKey: ["admin-duplicates"],
+    queryFn: () => listDupFn({ data: undefined as never }),
+    enabled: authed === true && query.data?.authorized === true,
+  });
+
+  const handleScan = async () => {
+    setScanning(true);
+    try {
+      const result = await detectFn({ data: undefined as never });
+      toast.success(`فُحص ${result.scanned} عقدة — ${result.inserted} تكرار جديد`);
+      await queryClient.invalidateQueries({ queryKey: ["admin-duplicates"] });
+    } catch {
+      toast.error("تعذر فحص التكرارات");
+    } finally {
+      setScanning(false);
+    }
+  };
+
+  const handleDupReview = async (id: string, action: "merge" | "dismiss", keep: "a" | "b") => {
+    setBusyId(id);
+    try {
+      await reviewDupFn({ data: { id, action, keep } });
+      toast.success(action === "merge" ? "تم الدمج ونقل البيانات" : "تم رفض التكرار");
+      await queryClient.invalidateQueries({ queryKey: ["admin-duplicates"] });
+      await queryClient.invalidateQueries({ queryKey: ["admin-overview"] });
+    } catch {
+      toast.error("تعذر تنفيذ الإجراء");
+    } finally {
+      setBusyId(null);
+    }
+  };
 
   const handleReview = async (id: string, status: "reviewed" | "dismissed") => {
     setBusyId(id);
@@ -104,7 +142,15 @@ function AdminPage() {
     <div className="min-h-screen bg-background text-foreground">
       <AppHeader />
       <main className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-6">
-        <h1 className="text-lg font-bold">لوحة إدارة الشبكة</h1>
+        <div className="flex items-center justify-between gap-2">
+          <h1 className="text-lg font-bold">لوحة إدارة الشبكة</h1>
+          <Link
+            to="/admin/audit"
+            className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-bold text-foreground"
+          >
+            <ScrollText className="size-3.5" /> سجل التدقيق
+          </Link>
+        </div>
 
         {query.isPending ? (
           <p className="py-10 text-center text-sm text-muted-foreground">جارٍ التحميل…</p>
@@ -229,6 +275,86 @@ function AdminPage() {
               )}
               <p className="mt-3 text-[11px] text-muted-foreground">
                 الموافقة تنقل ملكية العمل إلى المُطالِب وترفع توثيقه إلى «موثق من المالك».
+              </p>
+            </section>
+
+            <section className="rounded-2xl border border-border bg-surface p-4">
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                  تكرارات مرشحة للدمج
+                </h2>
+                <button
+                  type="button"
+                  disabled={scanning}
+                  onClick={() => void handleScan()}
+                  className="flex items-center gap-1.5 rounded-lg bg-foreground px-3 py-1.5 text-[11px] font-bold text-background disabled:opacity-50"
+                >
+                  <ScanSearch className="size-3.5" /> {scanning ? "جارٍ الفحص…" : "فحص الآن"}
+                </button>
+              </div>
+              {dupQuery.data && !dupQuery.data.authorized ? (
+                <p className="mt-3 text-sm text-muted-foreground">مراجعة التكرارات للمشرفين فقط.</p>
+              ) : dupQuery.data?.candidates.length ? (
+                <div className="mt-3 space-y-2">
+                  {dupQuery.data.candidates.map((cand) => {
+                    const a = dupQuery.data?.authorized ? dupQuery.data.nodes[cand.node_a] : undefined;
+                    const b = dupQuery.data?.authorized ? dupQuery.data.nodes[cand.node_b] : undefined;
+                    return (
+                      <div key={cand.id} className="rounded-lg border border-border bg-background p-3">
+                        <div className="flex items-center justify-between gap-2 text-xs">
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate font-bold">أ: {a?.display_name ?? cand.node_a}</p>
+                            <p className="text-[10px] text-muted-foreground">
+                              {a ? `${NODE_TYPE_LABELS[a.node_type] ?? a.node_type} · ${[a.neighborhood, a.city].filter(Boolean).join(" — ")}` : ""}
+                            </p>
+                          </div>
+                          <span className="shrink-0 font-mono text-[10px] text-primary" dir="ltr">
+                            {cand.distance_meters != null ? `${Math.round(cand.distance_meters)}m` : ""}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate font-bold">ب: {b?.display_name ?? cand.node_b}</p>
+                            <p className="text-[10px] text-muted-foreground">
+                              {b ? `${NODE_TYPE_LABELS[b.node_type] ?? b.node_type} · ${[b.neighborhood, b.city].filter(Boolean).join(" — ")}` : ""}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="mt-2 flex flex-wrap justify-end gap-1.5">
+                          <button
+                            type="button"
+                            disabled={busyId === cand.id}
+                            onClick={() => void handleDupReview(cand.id, "merge", "a")}
+                            className="flex items-center gap-1 rounded-md bg-allow px-2.5 py-1 text-[11px] font-bold text-primary-foreground disabled:opacity-50"
+                          >
+                            <GitMerge className="size-3" /> دمج بإبقاء أ
+                          </button>
+                          <button
+                            type="button"
+                            disabled={busyId === cand.id}
+                            onClick={() => void handleDupReview(cand.id, "merge", "b")}
+                            className="flex items-center gap-1 rounded-md bg-allow px-2.5 py-1 text-[11px] font-bold text-primary-foreground disabled:opacity-50"
+                          >
+                            <GitMerge className="size-3" /> دمج بإبقاء ب
+                          </button>
+                          <button
+                            type="button"
+                            disabled={busyId === cand.id}
+                            onClick={() => void handleDupReview(cand.id, "dismiss", "a")}
+                            className="rounded-md border border-border px-2.5 py-1 text-[11px] font-bold text-muted-foreground disabled:opacity-50"
+                          >
+                            ليسا مكررين
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="mt-3 text-sm text-muted-foreground">
+                  لا تكرارات معلّقة. شغّل «فحص الآن» لمسح العقد العامة ضمن نطاق 30 متراً.
+                </p>
+              )}
+              <p className="mt-3 text-[11px] text-muted-foreground">
+                الدمج ينقل المداخل والأعمال والعناوين الذكية إلى العقدة المحتفَظ بها ويُنشئ تحويلات للرموز المتقاعدة.
               </p>
             </section>
 

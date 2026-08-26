@@ -13,8 +13,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CreateRouteImport } from './routes/create'
+import { Route as DevelopersRouteImport } from './routes/developers'
 import { Route as MyAddressesRouteImport } from './routes/my-addresses'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as VerifyRouteImport } from './routes/verify'
+import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as BusinessIdRouteImport } from './routes/business.$id'
 import { Route as TTokenRouteImport } from './routes/t.$token'
 import { Route as ApiPublicResolveRouteImport } from './routes/api.public.resolve'
@@ -39,6 +42,11 @@ const CreateRoute = CreateRouteImport.update({
   path: '/create',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DevelopersRoute = DevelopersRouteImport.update({
+  id: '/developers',
+  path: '/developers',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MyAddressesRoute = MyAddressesRouteImport.update({
   id: '/my-addresses',
   path: '/my-addresses',
@@ -48,6 +56,16 @@ const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
   getParentRoute: () => rootRouteImport,
+} as any)
+const VerifyRoute = VerifyRouteImport.update({
+  id: '/verify',
+  path: '/verify',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminAuditRoute = AdminAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => AdminRoute,
 } as any)
 const BusinessIdRoute = BusinessIdRouteImport.update({
   id: '/business/$id',
@@ -67,22 +85,28 @@ const ApiPublicResolveRoute = ApiPublicResolveRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/create': typeof CreateRoute
+  '/developers': typeof DevelopersRoute
   '/my-addresses': typeof MyAddressesRoute
   '/search': typeof SearchRoute
+  '/verify': typeof VerifyRoute
+  '/admin/audit': typeof AdminAuditRoute
   '/business/$id': typeof BusinessIdRoute
   '/t/$token': typeof TTokenRoute
   '/api/public/resolve': typeof ApiPublicResolveRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/create': typeof CreateRoute
+  '/developers': typeof DevelopersRoute
   '/my-addresses': typeof MyAddressesRoute
   '/search': typeof SearchRoute
+  '/verify': typeof VerifyRoute
+  '/admin/audit': typeof AdminAuditRoute
   '/business/$id': typeof BusinessIdRoute
   '/t/$token': typeof TTokenRoute
   '/api/public/resolve': typeof ApiPublicResolveRoute
@@ -90,11 +114,14 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/create': typeof CreateRoute
+  '/developers': typeof DevelopersRoute
   '/my-addresses': typeof MyAddressesRoute
   '/search': typeof SearchRoute
+  '/verify': typeof VerifyRoute
+  '/admin/audit': typeof AdminAuditRoute
   '/business/$id': typeof BusinessIdRoute
   '/t/$token': typeof TTokenRoute
   '/api/public/resolve': typeof ApiPublicResolveRoute
@@ -106,8 +133,11 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/create'
+    | '/developers'
     | '/my-addresses'
     | '/search'
+    | '/verify'
+    | '/admin/audit'
     | '/business/$id'
     | '/t/$token'
     | '/api/public/resolve'
@@ -117,8 +147,11 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/create'
+    | '/developers'
     | '/my-addresses'
     | '/search'
+    | '/verify'
+    | '/admin/audit'
     | '/business/$id'
     | '/t/$token'
     | '/api/public/resolve'
@@ -128,8 +161,11 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/create'
+    | '/developers'
     | '/my-addresses'
     | '/search'
+    | '/verify'
+    | '/admin/audit'
     | '/business/$id'
     | '/t/$token'
     | '/api/public/resolve'
@@ -137,11 +173,13 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
   CreateRoute: typeof CreateRoute
+  DevelopersRoute: typeof DevelopersRoute
   MyAddressesRoute: typeof MyAddressesRoute
   SearchRoute: typeof SearchRoute
+  VerifyRoute: typeof VerifyRoute
   BusinessIdRoute: typeof BusinessIdRoute
   TTokenRoute: typeof TTokenRoute
   ApiPublicResolveRoute: typeof ApiPublicResolveRoute
@@ -177,6 +215,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CreateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/developers': {
+      id: '/developers'
+      path: '/developers'
+      fullPath: '/developers'
+      preLoaderRoute: typeof DevelopersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/my-addresses': {
       id: '/my-addresses'
       path: '/my-addresses'
@@ -190,6 +235,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/verify': {
+      id: '/verify'
+      path: '/verify'
+      fullPath: '/verify'
+      preLoaderRoute: typeof VerifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/audit': {
+      id: '/admin/audit'
+      path: '/audit'
+      fullPath: '/admin/audit'
+      preLoaderRoute: typeof AdminAuditRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/business/$id': {
       id: '/business/$id'
@@ -215,13 +274,25 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteChildren {
+  AdminAuditRoute: typeof AdminAuditRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAuditRoute: AdminAuditRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   CreateRoute: CreateRoute,
+  DevelopersRoute: DevelopersRoute,
   MyAddressesRoute: MyAddressesRoute,
   SearchRoute: SearchRoute,
+  VerifyRoute: VerifyRoute,
   BusinessIdRoute: BusinessIdRoute,
   TTokenRoute: TTokenRoute,
   ApiPublicResolveRoute: ApiPublicResolveRoute,

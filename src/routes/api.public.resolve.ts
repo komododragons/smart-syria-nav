@@ -10,7 +10,7 @@ const querySchema = z.object({
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
-  "Access-Control-Allow-Headers": "content-type",
+  "Access-Control-Allow-Headers": "content-type, x-api-key",
   "Content-Type": "application/json",
   "Cache-Control": "public, max-age=60",
 };
@@ -19,12 +19,30 @@ const CORS = {
  * Public purpose-aware resolution API for couriers, emergency services and
  * logistics platforms. Only public smart addresses resolve here; private
  * residential addresses return `private` with no hierarchy disclosed.
+ *
+ * Optional `x-api-key` header: keys issued from /developers are validated
+ * against the network key store and each request is metered into api_usage.
+ * Anonymous requests stay allowed but unmetered.
  */
 export const Route = createFileRoute("/api/public/resolve")({
   server: {
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       GET: async ({ request }) => {
+        let clientId: string | null = null;
+        const apiKey = request.headers.get("x-api-key");
+        if (apiKey) {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { verifyApiKey } = await import("@/lib/network.server");
+          clientId = await verifyApiKey(supabaseAdmin, apiKey);
+          if (!clientId) {
+            return new Response(
+              JSON.stringify({ error: "invalid_api_key" }),
+              { status: 401, headers: CORS },
+            );
+          }
+        }
+
         const url = new URL(request.url);
         const parsed = querySchema.safeParse({
           code: url.searchParams.get("code") ?? "",
@@ -43,9 +61,18 @@ export const Route = createFileRoute("/api/public/resolve")({
           requireWheelchair: parsed.data.wheelchair === "true",
         });
 
+        const statusCode = result.status === "ok" ? 200 : result.status === "not_found" ? 404 : 403;
+        if (clientId) {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          void supabaseAdmin
+            .from("api_usage")
+            .insert({ client_id: clientId, endpoint: "/api/public/resolve", status_code: statusCode })
+            .then(() => undefined, () => undefined);
+        }
+
         if (result.status !== "ok") {
           return new Response(JSON.stringify(result), {
-            status: result.status === "not_found" ? 404 : 403,
+            status: statusCode,
             headers: CORS,
           });
         }

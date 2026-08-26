@@ -1,14 +1,15 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Copy, EyeOff, Globe, Timer } from "lucide-react";
+import { Copy, EyeOff, Globe, Star, Timer, Trash2 } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
 import { QrCard } from "@/components/QrCard";
 import { supabase } from "@/integrations/supabase/client";
 import { createTemporaryAddress, listMyAddresses } from "@/lib/addresses.functions";
+import { listFavorites, toggleFavorite } from "@/lib/network.functions";
 import { NODE_TYPE_LABELS, PURPOSE_LABELS, QUICK_PURPOSES, VERIFICATION_LEVELS } from "@/lib/smart-address";
 
 export const Route = createFileRoute("/my-addresses")({
@@ -51,6 +52,14 @@ function MyAddressesPage() {
     enabled: authed === true,
   });
 
+  const favListFn = useServerFn(listFavorites);
+  const favToggleFn = useServerFn(toggleFavorite);
+  const favQuery = useQuery({
+    queryKey: ["favorites"],
+    queryFn: () => favListFn({ data: undefined as never }),
+    enabled: authed === true,
+  });
+
   const mutation = useMutation({
     mutationFn: (smartAddressId: string) =>
       tempFn({ data: { smart_address_id: smartAddressId, purpose, hours, one_use: oneUse } }),
@@ -84,6 +93,64 @@ function MyAddressesPage() {
       <AppHeader />
       <main className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-6">
         <h1 className="text-lg font-bold">عناويني الذكية</h1>
+
+        {favQuery.data && favQuery.data.length ? (
+          <section className="rounded-2xl border border-border bg-surface p-4">
+            <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+              <Star className="size-3.5" /> المفضلة ({favQuery.data.length})
+            </h2>
+            <div className="mt-3 space-y-2">
+              {favQuery.data.map((fav) => {
+                const smart = Array.isArray(fav.smart_addresses)
+                  ? fav.smart_addresses[0]
+                  : fav.smart_addresses;
+                const node = smart?.location_nodes
+                  ? Array.isArray(smart.location_nodes)
+                    ? smart.location_nodes[0]
+                    : smart.location_nodes
+                  : null;
+                if (!smart?.code) return null;
+                return (
+                  <div
+                    key={fav.id}
+                    className="flex items-center justify-between gap-2 rounded-lg border border-border bg-background p-2.5"
+                  >
+                    <Link
+                      to="/"
+                      search={{ code: smart.code }}
+                      className="flex min-w-0 flex-col"
+                    >
+                      <span className="font-mono text-xs" dir="ltr">
+                        {smart.code}
+                      </span>
+                      <span className="truncate text-xs font-bold">
+                        {node?.display_name ?? smart.label ?? fav.label}
+                      </span>
+                      <span className="truncate text-[10px] text-muted-foreground">
+                        {[node?.neighborhood, node?.city].filter(Boolean).join(" — ")}
+                      </span>
+                    </Link>
+                    <button
+                      type="button"
+                      aria-label="إزالة من المفضلة"
+                      onClick={async () => {
+                        try {
+                          await favToggleFn({ data: { code: smart.code!, label: fav.label } });
+                          await favQuery.refetch();
+                        } catch {
+                          toast.error("تعذر التحديث");
+                        }
+                      }}
+                      className="grid size-8 shrink-0 place-items-center rounded-lg border border-border text-muted-foreground"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
 
         {query.isPending ? (
           <p className="py-10 text-center text-sm text-muted-foreground">جارٍ التحميل…</p>
