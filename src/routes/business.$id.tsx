@@ -9,7 +9,7 @@ import {
   Clock,
   Globe,
   Handshake,
-  MapPin,
+  MapPin as MapPinIcon,
   Navigation,
   Phone,
   QrCode,
@@ -19,7 +19,7 @@ import {
 
 import { AppHeader } from "@/components/AppHeader";
 import { QrCard } from "@/components/QrCard";
-import { CadastralMap, type MapPin } from "@/components/CadastralMap";
+import { CadastralMap, type MapPin as CadMapPin } from "@/components/CadastralMap";
 import { supabase } from "@/integrations/supabase/client";
 import { claimBusiness, getBusinessProfile } from "@/lib/addresses.functions";
 import {
@@ -90,7 +90,7 @@ function BusinessPage() {
   const data = query.data;
   const ok = data?.status === "ok" ? data : null;
 
-  const pins: MapPin[] = ok
+  const pins: CadMapPin[] = ok
     ? [
         ...(ok.node?.latitude != null && ok.node?.longitude != null
           ? [
@@ -166,7 +166,7 @@ function BusinessPage() {
               </div>
 
               <p className="mt-3 flex items-center gap-1.5 text-sm text-muted-foreground">
-                <MapPin className="size-4 shrink-0" />
+                <MapPinIcon className="size-4 shrink-0" />
                 {[ok.node?.neighborhood, ok.node?.city, ok.node?.governorate].filter(Boolean).join(" — ")}
                 {ok.node?.landmark ? ` · ${ok.node.landmark}` : ""}
               </p>
