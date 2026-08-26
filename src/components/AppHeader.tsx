@@ -1,6 +1,6 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { LogOut, MapPinPlus, Search, ShieldCheck } from "lucide-react";
+import { BadgeCheck, Code2, LogOut, MapPinPlus, Search, ShieldCheck } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 
