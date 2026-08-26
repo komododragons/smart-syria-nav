@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { BadgeCheck, GitMerge, ScanSearch, ScrollText, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Activity, BadgeCheck, GitMerge, ScanSearch, ScrollText, ThumbsDown, ThumbsUp } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
 import { supabase } from "@/integrations/supabase/client";
