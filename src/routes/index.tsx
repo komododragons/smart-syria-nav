@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -155,6 +155,24 @@ function ResolverPage() {
   const result = mutation.data;
   const ok = result?.status === "ok" ? result : null;
 
+  // Network layer: every public, active site with coordinates appears on the map.
+  const networkQuery = useQuery({
+    queryKey: ["network-pins"],
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("location_nodes")
+        .select("id, display_name, latitude, longitude")
+        .eq("is_active", true)
+        .eq("visibility", "public")
+        .in("node_type", ["property", "building", "warehouse", "farm", "factory", "hospital", "school", "hotel"])
+        .not("latitude", "is", null)
+        .not("longitude", "is", null)
+        .limit(500);
+      return data ?? [];
+    },
+  });
+
   const pins: MapPin[] = ok
     ? [
         {
@@ -184,6 +202,18 @@ function ResolverPage() {
         })),
       ]
     : [];
+
+  const resolvedIds = new Set(pins.map((p) => p.id));
+  const networkPins: MapPin[] = (networkQuery.data ?? [])
+    .filter((node) => !resolvedIds.has(node.id))
+    .map((node) => ({
+      id: node.id,
+      latitude: node.latitude,
+      longitude: node.longitude,
+      label: node.display_name,
+      tone: "alternative" as const,
+    }));
+  const allPins = [...pins, ...networkPins];
 
   const levels: SpineLevel[] =
     ok?.chain.map((node, index) => ({
@@ -616,7 +646,7 @@ function ResolverPage() {
           <CadastralMap
             fill
             center={mapCenter}
-            pins={pins}
+            pins={allPins}
             className="h-[45vh] md:h-full"
           />
           {ok ? (
