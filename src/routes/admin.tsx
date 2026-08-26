@@ -42,6 +42,7 @@ function AdminPage() {
   const queryClient = useQueryClient();
   const overview = useServerFn(adminOverview);
   const review = useServerFn(reviewCorrection);
+  const reviewClaimFn = useServerFn(reviewClaim);
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
 
@@ -63,6 +64,19 @@ function AdminPage() {
       await queryClient.invalidateQueries({ queryKey: ["admin-overview"] });
     } catch {
       toast.error("تعذّر تحديث التقرير — تحتاج صلاحية مشرف أو مراجع");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleClaimReview = async (id: string, status: "approved" | "rejected") => {
+    setBusyId(id);
+    try {
+      await reviewClaimFn({ data: { id, status } });
+      toast.success(status === "approved" ? "تمت الموافقة ونُقلت الملكية" : "تم رفض المطالبة");
+      await queryClient.invalidateQueries({ queryKey: ["admin-overview"] });
+    } catch {
+      toast.error("تعذّر تحديث المطالبة — تحتاج صلاحية مشرف أو مراجع");
     } finally {
       setBusyId(null);
     }
