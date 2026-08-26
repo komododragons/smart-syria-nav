@@ -18,12 +18,12 @@ import {
 import { QRCodeSVG } from "qrcode.react";
 
 import { AppHeader } from "@/components/AppHeader";
+import { AddressFeedback } from "@/components/AddressFeedback";
 import { CadastralMap, type MapPin } from "@/components/CadastralMap";
 import { HierarchySpine, type SpineLevel } from "@/components/HierarchySpine";
-import { resolveAddress, reportCorrection } from "@/lib/addresses.functions";
+import { resolveAddress } from "@/lib/addresses.functions";
 import {
   ACCESSIBILITY_LABELS,
-  CORRECTION_TYPES,
   PURPOSE_LABELS,
   QUICK_PURPOSES,
   VERIFICATION_LEVELS,
@@ -61,7 +61,6 @@ const DEMO_CODES = [
 
 function ResolverPage() {
   const resolve = useServerFn(resolveAddress);
-  const report = useServerFn(reportCorrection);
   const [code, setCode] = useState("SY-DAM-K7X4");
   const [purpose, setPurpose] = useState<Purpose>("parcel_delivery");
   const [wheelchair, setWheelchair] = useState(false);
