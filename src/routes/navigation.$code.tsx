@@ -212,16 +212,36 @@ function NavigationWorkspace() {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setLocationDenied(false);
+        setPickOnMap(false);
         setOriginMethod("current_location");
         setOriginLabel("موقعي الحالي");
         setOrigin({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
       },
-      () => {
+      (err) => {
         setLocationDenied(true);
-        toast.error("تم رفض إذن الموقع — اختر نقطة انطلاق من البحث أو الخريطة");
+        setPickOnMap(true);
+        setOriginMethod("map_pick");
+        const insecure =
+          typeof window !== "undefined" &&
+          !window.isSecureContext;
+        const embedded = typeof window !== "undefined" && window.self !== window.top;
+        if (err.code === err.PERMISSION_DENIED) {
+          toast.error(
+            insecure
+              ? "تحديد الموقع يتطلب اتصالاً آمناً (HTTPS) — حددنا الخريطة لاختيار نقطة الانطلاق"
+              : embedded
+                ? "المعاينة داخل إطار تمنع تحديد الموقع — افتح التطبيق في تبويب مستقل أو اختر نقطة الانطلاق من الخريطة"
+                : "تم رفض إذن الموقع من المتصفح — فعّله من إعدادات الموقع، أو اختر نقطة الانطلاق من الخريطة",
+          );
+        } else if (err.code === err.TIMEOUT) {
+          toast.error("انتهت مهلة تحديد الموقع — اختر نقطة الانطلاق من الخريطة أو أعد المحاولة");
+        } else {
+          toast.error("تعذّر تحديد الموقع الحالي — اختر نقطة الانطلاق من الخريطة");
+        }
       },
-      { enableHighAccuracy: true, timeout: 12_000 },
+      { enableHighAccuracy: true, timeout: 12_000, maximumAge: 60_000 },
     );
+
   }, []);
 
   // Live GPS while navigating.
