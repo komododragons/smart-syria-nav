@@ -1,12 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { ThumbsDown, ThumbsUp } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
 import { supabase } from "@/integrations/supabase/client";
-import { adminOverview } from "@/lib/addresses.functions";
-import { CORRECTION_TYPES } from "@/lib/smart-address";
+import { adminOverview, reviewCorrection } from "@/lib/addresses.functions";
+import { CORRECTION_TYPES, PURPOSE_LABELS } from "@/lib/smart-address";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -37,8 +39,11 @@ const METRIC_LABELS: Record<string, string> = {
 
 function AdminPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const overview = useServerFn(adminOverview);
+  const review = useServerFn(reviewCorrection);
   const [authed, setAuthed] = useState<boolean | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setAuthed(Boolean(data.session)));
@@ -49,6 +54,19 @@ function AdminPage() {
     queryFn: () => overview({ data: undefined as never }),
     enabled: authed === true,
   });
+
+  const handleReview = async (id: string, status: "reviewed" | "dismissed") => {
+    setBusyId(id);
+    try {
+      await review({ data: { id, status } });
+      toast.success(status === "reviewed" ? "تمت مراجعة التقرير" : "تم رفض التقرير");
+      await queryClient.invalidateQueries({ queryKey: ["admin-overview"] });
+    } catch {
+      toast.error("تعذّر تحديث التقرير — تحتاج صلاحية مشرف أو مراجع");
+    } finally {
+      setBusyId(null);
+    }
+  };
 
   if (authed === false) {
     return (
@@ -119,15 +137,85 @@ function AdminPage() {
                       {item.details ? (
                         <p className="mt-1 text-xs text-muted-foreground">{item.details}</p>
                       ) : null}
-                      <p className="mt-1 text-[10px] text-muted-foreground">
-                        {new Date(item.created_at).toLocaleString("ar-SY")}
-                      </p>
+                      <div className="mt-2 flex items-center justify-between gap-2">
+                        <p className="text-[10px] text-muted-foreground">
+                          {new Date(item.created_at).toLocaleString("ar-SY")}
+                        </p>
+                        <div className="flex gap-1.5">
+                          <button
+                            type="button"
+                            disabled={busyId === item.id}
+                            onClick={() => handleReview(item.id, "reviewed")}
+                            className="rounded-md bg-allow px-2.5 py-1 text-[11px] font-bold text-primary-foreground disabled:opacity-50"
+                          >
+                            تمت المراجعة
+                          </button>
+                          <button
+                            type="button"
+                            disabled={busyId === item.id}
+                            onClick={() => handleReview(item.id, "dismissed")}
+                            className="rounded-md border border-border px-2.5 py-1 text-[11px] font-bold text-muted-foreground disabled:opacity-50"
+                          >
+                            رفض
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
               )}
               <p className="mt-3 text-[11px] text-muted-foreground">
                 التصحيحات لا تُطبّق تلقائياً على العناوين الموثقة — المراجعة بشرية.
+              </p>
+            </section>
+
+            <section className="rounded-2xl border border-border bg-surface p-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                  تقييمات الوصول الأخيرة
+                </h2>
+                {query.data.successRate !== null ? (
+                  <span className="rounded-md bg-allow-surface px-2 py-1 text-[11px] font-bold text-allow">
+                    نسبة الوصول الناجح: {query.data.successRate}%
+                  </span>
+                ) : null}
+              </div>
+              {query.data.feedback.length === 0 ? (
+                <p className="mt-3 text-sm text-muted-foreground">لا تقييمات بعد.</p>
+              ) : (
+                <div className="mt-3 space-y-2">
+                  {query.data.feedback.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between gap-2 rounded-lg border border-border bg-background p-3"
+                    >
+                      <div className="flex items-center gap-2">
+                        {item.successful ? (
+                          <ThumbsUp className="size-4 text-allow" />
+                        ) : (
+                          <ThumbsDown className="size-4 text-prohibit" />
+                        )}
+                        <div>
+                          <span className="font-mono text-[11px]" dir="ltr">
+                            {item.smart_code}
+                          </span>
+                          <span className="mx-2 text-[11px] text-muted-foreground">
+                            {PURPOSE_LABELS[item.purpose] ?? item.purpose}
+                          </span>
+                          {item.notes ? (
+                            <p className="text-xs text-muted-foreground">{item.notes}</p>
+                          ) : null}
+                        </div>
+                      </div>
+                      <span className="shrink-0 text-[10px] text-muted-foreground">
+                        {new Date(item.created_at).toLocaleString("ar-SY")}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p className="mt-3 text-[11px] text-muted-foreground">
+                كل تقييم يحرّك درجة الثقة للمدخل المعني (+3 نجاح / −5 فشل) ويُسجَّل في سجل أحداث الثقة.
               </p>
             </section>
           </>
