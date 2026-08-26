@@ -365,12 +365,83 @@ export const listMyAddresses = createServerFn({ method: "POST" })
     const { data, error } = await context.supabase
       .from("smart_addresses")
       .select(
-        "id, code, label, is_public, status, created_at, location_nodes(display_name, node_type, unit_label, floor_label, neighborhood, city, governorate, visibility, latitude, longitude, confidence_score, verification_level), access_points(display_name, access_type, latitude, longitude)",
+        "id, code, label, is_public, status, created_at, location_nodes(id, display_name, node_type, unit_label, floor_label, neighborhood, city, governorate, street, landmark, public_notes, visibility, latitude, longitude, confidence_score, verification_level), access_points(id, display_name, instructions_ar, access_type, latitude, longitude)",
       )
       .order("created_at", { ascending: false })
       .limit(100);
     if (error) throw new Error(error.message);
     return data ?? [];
+  });
+
+/** Owner-only edit of a smart address: label/privacy, site details, and default entrance. */
+export const updateMyAddress = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        smart_address_id: z.string().uuid(),
+        node_id: z.string().uuid(),
+        access_point_id: z.string().uuid().nullable().optional(),
+        label: z.string().max(120).nullable().optional(),
+        is_public: z.boolean(),
+        display_name: z.string().min(2).max(160),
+        neighborhood: z.string().max(120).nullable().optional(),
+        street: z.string().max(160).nullable().optional(),
+        landmark: z.string().max(160).nullable().optional(),
+        public_notes: z.string().max(500).nullable().optional(),
+        latitude: z.number().min(-90).max(90).nullable().optional(),
+        longitude: z.number().min(-180).max(180).nullable().optional(),
+        entrance_name: z.string().max(160).nullable().optional(),
+        entrance_instructions: z.string().max(500).nullable().optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    // Ownership enforced by RLS: updates only land when created_by = auth.uid().
+    const { data: addr, error: addrErr } = await context.supabase
+      .from("smart_addresses")
+      .update({ label: data.label ?? null, is_public: data.is_public })
+      .eq("id", data.smart_address_id)
+      .select("id")
+      .maybeSingle();
+    if (addrErr) throw new Error(addrErr.message);
+    if (!addr) throw new Error("not_found_or_forbidden");
+
+    const { error: nodeErr } = await context.supabase
+      .from("location_nodes")
+      .update({
+        display_name: data.display_name,
+        neighborhood: data.neighborhood ?? null,
+        street: data.street ?? null,
+        landmark: data.landmark ?? null,
+        public_notes: data.public_notes ?? null,
+        latitude: data.latitude ?? null,
+        longitude: data.longitude ?? null,
+      })
+      .eq("id", data.node_id);
+    if (nodeErr) throw new Error(nodeErr.message);
+
+    if (data.access_point_id) {
+      const { error: apErr } = await context.supabase
+        .from("access_points")
+        .update({
+          ...(data.entrance_name ? { display_name: data.entrance_name } : {}),
+          instructions_ar: data.entrance_instructions ?? null,
+        })
+        .eq("id", data.access_point_id);
+      if (apErr) throw new Error(apErr.message);
+    }
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("audit_logs").insert({
+      actor_id: context.userId,
+      action: "address_updated",
+      resource_type: "smart_address",
+      resource_id: data.smart_address_id,
+      metadata: { node_id: data.node_id },
+    });
+
+    return { ok: true as const };
   });
 
 export const createTemporaryAddress = createServerFn({ method: "POST" })
