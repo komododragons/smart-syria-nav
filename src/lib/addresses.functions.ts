@@ -794,12 +794,20 @@ export const adminOverview = createServerFn({ method: "POST" })
       .select("*", { count: "exact", head: true })
       .eq("successful", true);
 
+    const { data: pendingClaims } = await supa
+      .from("business_claims")
+      .select("id, evidence, status, created_at, businesses(name_ar)")
+      .eq("status", "pending")
+      .order("created_at", { ascending: false })
+      .limit(20);
+
     return {
       authorized: true as const,
       is_admin: Boolean(isAdmin),
       metrics: { nodes, accessPoints, codes, businesses, temporary, corrections, duplicates, visits },
       pending: pending ?? [],
       feedback: recentFeedback ?? [],
+      claims: pendingClaims ?? [],
       successRate: visits > 0 ? Math.round(((successfulVisits ?? 0) / visits) * 100) : null,
     };
   });
