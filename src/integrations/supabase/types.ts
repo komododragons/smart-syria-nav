@@ -895,24 +895,36 @@ export type Database = {
       }
       favorites: {
         Row: {
+          category: string
           created_at: string
           id: string
           label: string
+          note: string | null
           smart_address_id: string | null
+          sort_order: number
+          updated_at: string
           user_id: string
         }
         Insert: {
+          category?: string
           created_at?: string
           id?: string
           label: string
+          note?: string | null
           smart_address_id?: string | null
+          sort_order?: number
+          updated_at?: string
           user_id: string
         }
         Update: {
+          category?: string
           created_at?: string
           id?: string
           label?: string
+          note?: string | null
           smart_address_id?: string | null
+          sort_order?: number
+          updated_at?: string
           user_id?: string
         }
         Relationships: [
