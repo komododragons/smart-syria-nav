@@ -1526,37 +1526,49 @@ export type Database = {
       }
       temporary_addresses: {
         Row: {
+          contact_name: string | null
+          contact_phone: string | null
           created_at: string
           created_by: string
           expires_at: string
           id: string
+          label: string | null
           max_uses: number | null
           purpose: string
           revoked: boolean
+          shared_fields: string[]
           smart_address_id: string
           token: string
           use_count: number
         }
         Insert: {
+          contact_name?: string | null
+          contact_phone?: string | null
           created_at?: string
           created_by: string
           expires_at: string
           id?: string
+          label?: string | null
           max_uses?: number | null
           purpose?: string
           revoked?: boolean
+          shared_fields?: string[]
           smart_address_id: string
           token: string
           use_count?: number
         }
         Update: {
+          contact_name?: string | null
+          contact_phone?: string | null
           created_at?: string
           created_by?: string
           expires_at?: string
           id?: string
+          label?: string | null
           max_uses?: number | null
           purpose?: string
           revoked?: boolean
+          shared_fields?: string[]
           smart_address_id?: string
           token?: string
           use_count?: number
