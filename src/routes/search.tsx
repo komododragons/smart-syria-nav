@@ -190,7 +190,9 @@ function SearchPage() {
                     <p className="font-bold leading-tight">{place.display_name}</p>
                     <p className="text-xs text-muted-foreground">
                       {[
-                        NODE_TYPE_LABELS[place.node_type] ?? place.node_type,
+                        PLACE_CATEGORY_META[place.place_category ?? ""]?.ar ??
+                          NODE_TYPE_LABELS[place.node_type] ??
+                          place.node_type,
                         place.neighborhood,
                         place.city,
                         place.governorate,
