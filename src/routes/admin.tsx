@@ -295,7 +295,7 @@ function AdminPage() {
                           <button
                             type="button"
                             disabled={busyId === item.id}
-                            onClick={() => handleReview(item.id, "dismissed")}
+                            onClick={() => handleReview(item.id, "rejected")}
                             className="rounded-md border border-border px-2.5 py-1 text-[11px] font-bold text-muted-foreground disabled:opacity-50"
                           >
                             رفض
