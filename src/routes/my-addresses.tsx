@@ -122,14 +122,27 @@ function MyAddressesPage() {
     enabled: authed === true,
   });
 
+  const linksQueryClient = useQueryClient();
   const mutation = useMutation({
     mutationFn: (smartAddressId: string) =>
-      tempFn({ data: { smart_address_id: smartAddressId, purpose, hours, one_use: oneUse } }),
-    onSuccess: (row) => {
+      tempFn({
+        data: {
+          smart_address_id: smartAddressId,
+          purpose,
+          hours,
+          one_use: oneUse,
+          shared_fields: fields,
+          label: linkLabel.trim() || undefined,
+          contact_phone: contactPhone.trim() || undefined,
+          contact_name: contactName.trim() || undefined,
+        },
+      }),
+    onSuccess: async (row) => {
       setIssued({ token: row.token, expires_at: row.expires_at });
-      toast.success("تم إنشاء عنوان مؤقت");
+      toast.success("تم إنشاء رابط مؤقت");
+      await linksQueryClient.invalidateQueries({ queryKey: ["temp-links"] });
     },
-    onError: () => toast.error("تعذر إنشاء العنوان المؤقت"),
+    onError: () => toast.error("تعذر إنشاء الرابط المؤقت"),
   });
 
   const editMutation = useMutation({
