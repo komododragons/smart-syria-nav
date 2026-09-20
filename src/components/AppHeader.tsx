@@ -14,9 +14,12 @@ import {
 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { useI18n } from "@/lib/i18n";
+import { LanguageToggle } from "@/components/LanguageToggle";
 
 export function AppHeader() {
   const router = useRouter();
+  const { t } = useI18n();
   const [signedIn, setSignedIn] = useState(false);
 
   useEffect(() => {
@@ -40,42 +43,43 @@ export function AppHeader() {
       <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
         <Link to="/" className="flex items-center gap-2">
           <span className="text-lg font-bold tracking-tight underline decoration-primary decoration-2 underline-offset-4">
-            شبكة العنوان الذكي
+            {t({ ar: "شبكة العنوان الذكي", en: "Smart Address Network" })}
           </span>
         </Link>
         <nav className="flex items-center gap-1">
+          <LanguageToggle />
           <Link
             to="/search"
             className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
-            aria-label="البحث"
+            aria-label={t({ ar: "البحث", en: "Search" })}
           >
             <Search className="size-4" />
           </Link>
           <Link
             to="/places"
             className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
-            aria-label="دليل الأماكن العامة"
+            aria-label={t({ ar: "دليل الأماكن العامة", en: "Public places directory" })}
           >
             <Landmark className="size-4" />
           </Link>
           <Link
             to="/offline"
             className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
-            aria-label="العمل دون اتصال"
+            aria-label={t({ ar: "العمل دون اتصال", en: "Offline mode" })}
           >
             <CloudDownload className="size-4" />
           </Link>
           <Link
             to="/plans"
             className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
-            aria-label="الخطط"
+            aria-label={t({ ar: "الخطط", en: "Plans" })}
           >
             <Layers className="size-4" />
           </Link>
           <Link
             to="/create"
             className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
-            aria-label="إنشاء عنوان ذكي"
+            aria-label={t({ ar: "إنشاء عنوان ذكي", en: "Create a smart address" })}
           >
             <MapPinPlus className="size-4" />
           </Link>
@@ -84,28 +88,28 @@ export function AppHeader() {
               <Link
                 to="/privacy"
                 className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
-                aria-label="مركز الخصوصية"
+                aria-label={t({ ar: "مركز الخصوصية", en: "Privacy centre" })}
               >
                 <ShieldCheck className="size-4" />
               </Link>
               <Link
                 to="/verify"
                 className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
-                aria-label="التوثيق الميداني"
+                aria-label={t({ ar: "التوثيق الميداني", en: "Field verification" })}
               >
                 <BadgeCheck className="size-4" />
               </Link>
               <Link
                 to="/courier"
                 className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
-                aria-label="مسارات التوصيل"
+                aria-label={t({ ar: "مسارات التوصيل", en: "Delivery routes" })}
               >
                 <Truck className="size-4" />
               </Link>
               <Link
                 to="/developers"
                 className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
-                aria-label="واجهة المطورين"
+                aria-label={t({ ar: "واجهة المطورين", en: "Developer tools" })}
               >
                 <Code2 className="size-4" />
               </Link>
@@ -113,23 +117,23 @@ export function AppHeader() {
                 to="/dashboard"
                 className="rounded-lg border border-border px-3 py-2 text-xs font-bold text-foreground"
               >
-                لوحة الأعمال
+                {t({ ar: "لوحة الأعمال", en: "Business dashboard" })}
               </Link>
               <Link
                 to="/vault"
                 className="rounded-lg border border-border px-3 py-2 text-xs font-bold text-foreground"
               >
-                خزنة العناوين
+                {t({ ar: "خزنة العناوين", en: "Address vault" })}
               </Link>
               <Link
                 to="/my-addresses"
                 className="rounded-lg border border-border px-3 py-2 text-xs font-bold text-foreground"
               >
-                عناويني
+                {t({ ar: "عناويني", en: "My addresses" })}
               </Link>
               <button
                 type="button"
-                aria-label="تسجيل الخروج"
+                aria-label={t({ ar: "تسجيل الخروج", en: "Sign out" })}
                 onClick={async () => {
                   await supabase.auth.signOut();
                   router.navigate({ to: "/" });
@@ -145,7 +149,7 @@ export function AppHeader() {
               className="flex items-center gap-1.5 rounded-lg bg-foreground px-3 py-2 text-xs font-bold text-background"
             >
               <ShieldCheck className="size-3.5" />
-              الدخول
+              {t({ ar: "الدخول", en: "Sign in" })}
             </Link>
           )}
         </nav>
