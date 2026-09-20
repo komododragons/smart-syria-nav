@@ -663,7 +663,7 @@ function MyAddressesPage() {
                       onClick={() => setEditFor(null)}
                       className="rounded-lg border border-border px-4 py-2.5 text-xs font-bold"
                     >
-                      إلغاء
+                      {t({ ar: "إلغاء", en: "Revoke" })}
                     </button>
                   </div>
                 </div>
@@ -837,6 +837,7 @@ function MyAddressesPage() {
 }
 
 function MyClaimsSection() {
+  const { t, lang, date } = useI18n();
   const queryClient = useQueryClient();
   const listClaims = useServerFn(myClaims);
   const withdrawFn = useServerFn(withdrawClaim);
@@ -853,20 +854,20 @@ function MyClaimsSection() {
     try {
       const res = await withdrawFn({ data: { id } });
       if (res.ok) {
-        toast.success("تم سحب الطلب");
+        toast.success(t({ ar: "تم سحب الطلب", en: "Claim withdrawn" }));
         await queryClient.invalidateQueries({ queryKey: ["my-claims"] });
       } else {
-        toast.error("الطلب لم يعد معلّقاً");
+        toast.error(t({ ar: "الطلب لم يعد معلّقاً", en: "This claim is no longer pending" }));
       }
     } catch {
-      toast.error("تعذّر سحب الطلب");
+      toast.error(t({ ar: "تعذّر سحب الطلب", en: "Could not withdraw the claim" }));
     }
   };
 
   return (
     <section className="rounded-2xl border border-border bg-surface p-4">
       <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-        <ShieldCheck className="size-3.5" /> مطالبات الملكية ({claims.length})
+        <ShieldCheck className="size-3.5" /> {t({ ar: "مطالبات الملكية", en: "Ownership claims" })} ({claims.length})
       </h2>
       <div className="mt-3 space-y-2">
         {claims.map((claim) => {
@@ -874,22 +875,22 @@ function MyClaimsSection() {
           return (
             <div key={claim.id} className="rounded-lg border border-border bg-background p-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-sm font-bold">{biz?.name_ar ?? "عمل"}</span>
+                <span className="text-sm font-bold">{biz?.name_ar ?? t({ ar: "عمل", en: "Business" })}</span>
                 <span className="text-xs text-muted-foreground">
                   {(() => {
                     const cs = CLAIM_STATUS_LABELS[claim.status];
                     return typeof cs === "string" ? cs : cs ? t(cs) : claim.status;
                   })()} ·{" "}
-                  {new Date(claim.created_at).toLocaleDateString("ar-SY")}
+                  {date(claim.created_at)}
                 </span>
               </div>
               {claim.granted_level ? (
                 <p className="mt-1 text-xs text-muted-foreground">
-                  المستوى الممنوح: {verificationLabel(claim.granted_level, lang)}
+                  {t({ ar: "المستوى الممنوح", en: "Granted level" })}: {verificationLabel(claim.granted_level, lang)}
                 </p>
               ) : null}
               {claim.review_notes ? (
-                <p className="mt-1 text-xs text-muted-foreground">ملاحظة المراجع: {claim.review_notes}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{t({ ar: "ملاحظة المراجع", en: "Reviewer note" })}: {claim.review_notes}</p>
               ) : null}
               <div className="mt-2 flex gap-2">
                 <Link
@@ -897,7 +898,7 @@ function MyClaimsSection() {
                   params={{ id: claim.business_id }}
                   className="rounded-lg border border-border px-3 py-1.5 text-xs font-bold"
                 >
-                  ملف العمل
+                  {t({ ar: "ملف العمل", en: "Business profile" })}
                 </Link>
                 {claim.status === "pending" ? (
                   <button
@@ -905,7 +906,7 @@ function MyClaimsSection() {
                     onClick={() => withdraw(claim.id)}
                     className="rounded-lg border border-border px-3 py-1.5 text-xs font-bold text-destructive"
                   >
-                    سحب الطلب
+                    {t({ ar: "سحب الطلب", en: "Withdraw claim" })}
                   </button>
                 ) : null}
               </div>
@@ -918,6 +919,7 @@ function MyClaimsSection() {
 }
 
 function TemporaryLinksList({ smartAddressId }: { smartAddressId: string }) {
+  const { t, lang, date } = useI18n();
   const queryClient = useQueryClient();
   const listFn = useServerFn(listTemporaryLinks);
   const revokeFn = useServerFn(revokeTemporaryLink);
@@ -933,7 +935,7 @@ function TemporaryLinksList({ smartAddressId }: { smartAddressId: string }) {
   return (
     <div className="mt-4 border-t border-border pt-3">
       <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-        الروابط المؤقتة
+        {t({ ar: "الروابط المؤقتة", en: "Temporary links" })}
       </p>
       <div className="mt-2 space-y-2">
         {links.map((link) => {
@@ -951,39 +953,43 @@ function TemporaryLinksList({ smartAddressId }: { smartAddressId: string }) {
                 </span>
                 <span className={dead ? "text-muted-foreground" : "text-allow font-bold"}>
                   {link.revoked
-                    ? "ملغى"
+                    ? t({ ar: "ملغى", en: "Revoked" })
                     : expired
-                      ? "منتهٍ"
+                      ? t({ ar: "منتهٍ", en: "Expired" })
                       : used
-                        ? "استُخدم"
-                        : "فعّال"}
+                        ? t({ ar: "استُخدم", en: "Used up" })
+                        : t({ ar: "فعّال", en: "Active" })}
                 </span>
               </div>
               <p className="mt-1 text-[11px] text-muted-foreground">
                 {[
                   link.label,
                   purposeLabel(link.purpose, lang),
-                  `ينتهي ${new Date(link.expires_at).toLocaleString("ar-SY")}`,
+                  `${t({ ar: "ينتهي", en: "expires" })} ${date(link.expires_at)}`,
                 ]
                   .filter(Boolean)
                   .join(" · ")}
               </p>
               <p className="mt-1 text-[11px] text-muted-foreground">
-                يكشف:{" "}
+                {t({ ar: "يكشف", en: "Reveals" })}:{" "}
                 {(link.shared_fields ?? [])
-                  .map((f) => SHARE_FIELD_LABELS.find((s) => s.value === f)?.ar ?? f)
-                  .join("، ")}
+                  .map((f) => {
+                    const meta = SHARE_FIELD_LABELS.find((s) => s.value === f);
+                    if (!meta) return f;
+                    return lang === "ar" ? meta.ar : ((meta as { en?: string }).en ?? meta.ar);
+                  })
+                  .join(lang === "ar" ? "، " : ", ")}
               </p>
               <div className="mt-2 flex gap-2">
                 <button
                   type="button"
                   onClick={() => {
                     void navigator.clipboard.writeText(`${window.location.origin}/t/${link.token}`);
-                    toast.success("تم نسخ الرابط");
+                    toast.success(t({ ar: "تم نسخ الرابط", en: "Link copied" }));
                   }}
                   className="rounded-lg border border-border px-3 py-1.5 font-bold"
                 >
-                  نسخ الرابط
+                  {t({ ar: "نسخ الرابط", en: "Copy link" })}
                 </button>
                 {!dead ? (
                   <button
@@ -991,15 +997,15 @@ function TemporaryLinksList({ smartAddressId }: { smartAddressId: string }) {
                     onClick={async () => {
                       try {
                         await revokeFn({ data: { id: link.id } });
-                        toast.success("تم إلغاء الرابط");
+                        toast.success(t({ ar: "تم إلغاء الرابط", en: "Link revoked" }));
                         await queryClient.invalidateQueries({ queryKey: ["temp-links"] });
                       } catch {
-                        toast.error("تعذّر إلغاء الرابط");
+                        toast.error(t({ ar: "تعذّر إلغاء الرابط", en: "Could not revoke the link" }));
                       }
                     }}
                     className="rounded-lg border border-prohibit/40 px-3 py-1.5 font-bold text-prohibit"
                   >
-                    إلغاء
+                    {t({ ar: "إلغاء", en: "Revoke" })}
                   </button>
                 ) : null}
               </div>
