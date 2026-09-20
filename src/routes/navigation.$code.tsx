@@ -702,7 +702,7 @@ function NavigationWorkspace() {
 
             {/* Routing context — Phase 18 */}
             <section className="space-y-2">
-              <p className="text-xs font-semibold text-muted-foreground">سياق الوصول</p>
+              <p className="text-xs font-semibold text-muted-foreground">{t({ ar: "سياق الوصول", en: "Access context" })}</p>
               <div className="flex flex-wrap gap-1.5">
                 {ROUTING_CONTEXTS.map((option) => (
                   <button
@@ -724,30 +724,35 @@ function NavigationWorkspace() {
                         : "border-border text-muted-foreground"
                     }`}
                   >
-                    {option.ar}
+                    {lang === "ar" ? option.ar : option.en}
                   </button>
                 ))}
               </div>
               {destination?.context_approach ? (
                 <div className="rounded-md border border-primary/40 bg-primary/10 p-2 text-[12px]">
                   <p className="font-bold">
-                    تعليمات {routingContext(context).ar}: {destination.context_approach}
+                    {t({ ar: "تعليمات", en: "Instructions for" })} {routingContextLabel(context, lang)}:{" "}
+                    {destination.context_approach}
                   </p>
                   {destination.context_preferred_road ? (
-                    <p className="mt-0.5">الطريق المفضل: {destination.context_preferred_road}</p>
+                    <p className="mt-0.5">
+                      {t({ ar: "الطريق المفضل:", en: "Preferred road:" })} {destination.context_preferred_road}
+                    </p>
                   ) : null}
                   {destination.context_vehicle_note ? (
-                    <p className="mt-0.5">المركبة: {destination.context_vehicle_note}</p>
+                    <p className="mt-0.5">
+                      {t({ ar: "المركبة:", en: "Vehicle:" })} {destination.context_vehicle_note}
+                    </p>
                   ) : null}
                 </div>
               ) : (
-                <p className="text-[11px] text-muted-foreground">{routingContext(context).hintAr}</p>
+                <p className="text-[11px] text-muted-foreground">{routingContextHint(context, lang)}</p>
               )}
             </section>
 
             {/* Travel mode */}
             <section className="space-y-2">
-              <p className="text-xs font-semibold text-muted-foreground">نمط التنقل</p>
+              <p className="text-xs font-semibold text-muted-foreground">{t({ ar: "نمط التنقل", en: "Travel mode" })}</p>
               <div className="flex flex-wrap gap-1.5">
                 {TRAVEL_MODES.map((option) => {
                   const Icon = MODE_ICON[option.value];
@@ -762,7 +767,7 @@ function NavigationWorkspace() {
                           : "border-border text-muted-foreground"
                       }`}
                     >
-                      <Icon className="size-3.5" /> {option.ar}
+                      <Icon className="size-3.5" /> {lang === "ar" ? option.ar : option.en}
                     </button>
                   );
                 })}
@@ -773,7 +778,7 @@ function NavigationWorkspace() {
                   checked={wheelchair}
                   onChange={(event) => setWheelchair(event.target.checked)}
                 />
-                أحتاج مدخلاً مهيّأً لكرسي متحرك
+                {t({ ar: "أحتاج مدخلاً مهيّأً لكرسي متحرك", en: "I need a wheelchair-accessible entrance" })}
               </label>
             </section>
 

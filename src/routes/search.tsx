@@ -86,10 +86,11 @@ function nodeTypeLabel(value: string, lang: Lang) {
 }
 
 function verificationLabel(level: string | undefined, lang: Lang) {
-  if (!level || !VERIFICATION_LEVELS[level]) {
+  const meta = level ? VERIFICATION_LEVELS[level] : undefined;
+  if (!level || !meta) {
     return lang === "ar" ? "غير موثق" : "Unverified";
   }
-  return lang === "ar" ? VERIFICATION_LEVELS[level].ar : VERIFICATION_EN[level] ?? VERIFICATION_EN["unverified"];
+  return lang === "ar" ? meta.ar : (VERIFICATION_EN[level] ?? "Unverified");
 }
 
 function SearchPage() {

@@ -548,7 +548,7 @@ function AddressCardPage() {
 
         <section className="rounded-xl border border-border bg-background p-4">
           <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-            التوجيه إلى هذا العنوان
+            {t({ ar: "التوجيه إلى هذا العنوان", en: "Directions to this address" })}
           </h2>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {TRAVEL_OPTIONS.map((opt) => (
@@ -556,14 +556,17 @@ function AddressCardPage() {
                 key={opt.mode}
                 code={ok.code}
                 mode={opt.mode}
-                label={opt.ar}
+                label={t({ ar: opt.ar, en: opt.en })}
                 className="flex items-center justify-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-3 text-sm font-bold hover:border-primary/50"
               />
             ))}
           </div>
           <p className="mt-2 flex items-start gap-1.5 text-[11px] text-muted-foreground">
             <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
-            المسارات الخاصة بالشاحنات وكراسي المتحركين والطوارئ تُعرض كتوجيه قياسي ما لم تتوفر بيانات طرق كافية.
+            {t({
+              ar: "المسارات الخاصة بالشاحنات وكراسي المتحركين والطوارئ تُعرض كتوجيه قياسي ما لم تتوفر بيانات طرق كافية.",
+              en: "Truck, wheelchair and emergency routes are shown as standard directions unless enough road data is available.",
+            })}
           </p>
 
           <Link
@@ -572,7 +575,7 @@ function AddressCardPage() {
             className="mt-3 flex items-center justify-center gap-2 rounded-xl border-2 border-primary/40 bg-primary/5 px-4 py-3 text-sm font-bold text-primary"
           >
             <Package className="size-4" />
-            وضع التوصيل — عرض مبسّط للساعي
+            {t({ ar: "وضع التوصيل — عرض مبسّط للساعي", en: "Delivery mode — simplified courier view" })}
           </Link>
 
           <Link
@@ -581,7 +584,7 @@ function AddressCardPage() {
             className="mt-2 flex items-center justify-center gap-2 rounded-xl border-2 border-destructive/40 bg-destructive/5 px-4 py-3 text-sm font-bold text-destructive"
           >
             <AlertTriangle className="size-4" />
-            وضع الطوارئ — معلومات الوصول السريع
+            {t({ ar: "وضع الطوارئ — معلومات الوصول السريع", en: "Emergency mode — rapid access information" })}
           </Link>
 
           <div className="mt-4 flex flex-wrap gap-2">
