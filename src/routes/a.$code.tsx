@@ -32,6 +32,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { resolveAddress } from "@/lib/addresses.functions";
 import { listFavorites, toggleFavorite } from "@/lib/network.functions";
 import { logAddressEvent } from "@/lib/orgs.functions";
+import { rememberAddress } from "@/lib/offline/store";
 import {
   ACCESSIBILITY_LABELS,
   NODE_TYPE_LABELS,
@@ -139,6 +140,20 @@ function AddressCardPage() {
     void logAddressEvent({ data: { code: normalizeCode(rawCode), event: "resolve", source: "card" } }).catch(
       () => undefined,
     );
+    // Keep a local copy so this address stays readable without a connection.
+    rememberAddress({
+      code: ok.code,
+      display_name: ok.site.display_name,
+      governorate: ok.site.governorate,
+      city: ok.site.city,
+      neighborhood: ok.site.neighborhood,
+      street: ok.site.street,
+      landmark: ok.site.landmark,
+      latitude: ok.site.latitude,
+      longitude: ok.site.longitude,
+      verification_level: ok.verification_level,
+      confidence_score: ok.confidence,
+    });
   }, [ok, rawCode]);
 
   useEffect(() => {

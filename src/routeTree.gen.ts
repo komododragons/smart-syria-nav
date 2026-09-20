@@ -20,6 +20,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DevelopersRouteImport } from './routes/developers'
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as MyAddressesRouteImport } from './routes/my-addresses'
+import { Route as OfflineRouteImport } from './routes/offline'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as VaultRouteImport } from './routes/vault'
 import { Route as VerifyRouteImport } from './routes/verify'
@@ -93,6 +94,11 @@ const DocsRoute = DocsRouteImport.update({
 const MyAddressesRoute = MyAddressesRouteImport.update({
   id: '/my-addresses',
   path: '/my-addresses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OfflineRoute = OfflineRouteImport.update({
+  id: '/offline',
+  path: '/offline',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SearchRoute = SearchRouteImport.update({
@@ -203,6 +209,7 @@ export interface FileRoutesByFullPath {
   '/developers': typeof DevelopersRoute
   '/docs': typeof DocsRoute
   '/my-addresses': typeof MyAddressesRoute
+  '/offline': typeof OfflineRoute
   '/search': typeof SearchRoute
   '/vault': typeof VaultRoute
   '/verify': typeof VerifyRoute
@@ -235,6 +242,7 @@ export interface FileRoutesByTo {
   '/developers': typeof DevelopersRoute
   '/docs': typeof DocsRoute
   '/my-addresses': typeof MyAddressesRoute
+  '/offline': typeof OfflineRoute
   '/search': typeof SearchRoute
   '/vault': typeof VaultRoute
   '/verify': typeof VerifyRoute
@@ -268,6 +276,7 @@ export interface FileRoutesById {
   '/developers': typeof DevelopersRoute
   '/docs': typeof DocsRoute
   '/my-addresses': typeof MyAddressesRoute
+  '/offline': typeof OfflineRoute
   '/search': typeof SearchRoute
   '/vault': typeof VaultRoute
   '/verify': typeof VerifyRoute
@@ -302,6 +311,7 @@ export interface FileRouteTypes {
     | '/developers'
     | '/docs'
     | '/my-addresses'
+    | '/offline'
     | '/search'
     | '/vault'
     | '/verify'
@@ -334,6 +344,7 @@ export interface FileRouteTypes {
     | '/developers'
     | '/docs'
     | '/my-addresses'
+    | '/offline'
     | '/search'
     | '/vault'
     | '/verify'
@@ -366,6 +377,7 @@ export interface FileRouteTypes {
     | '/developers'
     | '/docs'
     | '/my-addresses'
+    | '/offline'
     | '/search'
     | '/vault'
     | '/verify'
@@ -399,6 +411,7 @@ export interface RootRouteChildren {
   DevelopersRoute: typeof DevelopersRoute
   DocsRoute: typeof DocsRoute
   MyAddressesRoute: typeof MyAddressesRoute
+  OfflineRoute: typeof OfflineRoute
   SearchRoute: typeof SearchRoute
   VaultRoute: typeof VaultRoute
   VerifyRoute: typeof VerifyRoute
@@ -494,6 +507,13 @@ declare module '@tanstack/react-router' {
       path: '/my-addresses'
       fullPath: '/my-addresses'
       preLoaderRoute: typeof MyAddressesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/offline': {
+      id: '/offline'
+      path: '/offline'
+      fullPath: '/offline'
+      preLoaderRoute: typeof OfflineRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/search': {
@@ -658,6 +678,7 @@ const rootRouteChildren: RootRouteChildren = {
   DevelopersRoute: DevelopersRoute,
   DocsRoute: DocsRoute,
   MyAddressesRoute: MyAddressesRoute,
+  OfflineRoute: OfflineRoute,
   SearchRoute: SearchRoute,
   VaultRoute: VaultRoute,
   VerifyRoute: VerifyRoute,
