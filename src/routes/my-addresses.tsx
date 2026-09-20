@@ -1,6 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { ROUTING_CONTEXTS } from "@/lib/routing-contexts";
+import {
+  deleteAccessPointContext,
+  listAccessPointContexts,
+  saveAccessPointContext,
+} from "@/lib/routing-contexts.functions";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Copy, EyeOff, Globe, Pencil, QrCode, ShieldCheck, Star, Timer, Trash2 } from "lucide-react";
@@ -620,6 +626,7 @@ function MyAddressesPage() {
                       </>
                     ) : null}
                   </div>
+                  {ap?.id ? <ContextInstructionsEditor accessPointId={ap.id} /> : null}
                   <div className="mt-3 flex gap-2">
                     <button
                       type="button"
@@ -982,6 +989,149 @@ function TemporaryLinksList({ smartAddressId }: { smartAddressId: string }) {
                   </button>
                 ) : null}
               </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/** Phase 18 — per-context approach instructions for one entrance. */
+function ContextInstructionsEditor({ accessPointId }: { accessPointId: string }) {
+  const listFn = useServerFn(listAccessPointContexts);
+  const saveFn = useServerFn(saveAccessPointContext);
+  const deleteFn = useServerFn(deleteAccessPointContext);
+  const queryClient = useQueryClient();
+  const [open, setOpen] = useState<string | null>(null);
+  const [draft, setDraft] = useState({
+    approach_ar: "",
+    preferred_road: "",
+    vehicle_note: "",
+    allowed: true,
+  });
+
+  const query = useQuery({
+    queryKey: ["ap-contexts", accessPointId],
+    queryFn: () => listFn({ data: { accessPointId } }),
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: (context: string) =>
+      saveFn({ data: { accessPointId, context, ...draft } }),
+    onSuccess: (res) => {
+      if (!res.ok) {
+        toast.error("تعذر الحفظ");
+        return;
+      }
+      toast.success("تم حفظ تعليمات السياق");
+      setOpen(null);
+      void queryClient.invalidateQueries({ queryKey: ["ap-contexts", accessPointId] });
+    },
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: (context: string) => deleteFn({ data: { accessPointId, context } }),
+    onSuccess: () => {
+      toast.success("تم حذف تعليمات السياق");
+      void queryClient.invalidateQueries({ queryKey: ["ap-contexts", accessPointId] });
+    },
+  });
+
+  const rows = query.data ?? [];
+
+  return (
+    <div className="mt-3 rounded-xl border border-border bg-background p-3">
+      <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+        تعليمات الوصول حسب السياق
+      </p>
+      <p className="mt-1 text-[11px] text-muted-foreground">
+        عرّف كيف يصل كل نوع زائر: الزائر من الباب الرئيسي، الشاحنة من الطريق الصناعي، الإسعاف من
+        البوابة الشرقية.
+      </p>
+      <div className="mt-2 space-y-1.5">
+        {ROUTING_CONTEXTS.map((ctx) => {
+          const row = rows.find((r) => r.context === ctx.value);
+          const isOpen = open === ctx.value;
+          return (
+            <div key={ctx.value} className="rounded-lg border border-border p-2">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-xs font-bold">{ctx.ar}</p>
+                  <p className="truncate text-[11px] text-muted-foreground">
+                    {row
+                      ? row.allowed
+                        ? (row.approach_ar ?? row.preferred_road ?? "معرّف")
+                        : "ممنوع لهذا السياق"
+                      : "غير معرّف — يُستخدم المدخل الافتراضي"}
+                  </p>
+                </div>
+                <div className="flex shrink-0 gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpen(isOpen ? null : ctx.value);
+                      setDraft({
+                        approach_ar: row?.approach_ar ?? "",
+                        preferred_road: row?.preferred_road ?? "",
+                        vehicle_note: row?.vehicle_note ?? "",
+                        allowed: row?.allowed ?? true,
+                      });
+                    }}
+                    className="rounded-md border border-border px-2 py-1 text-[11px] font-bold"
+                  >
+                    {isOpen ? "إغلاق" : row ? "تعديل" : "إضافة"}
+                  </button>
+                  {row ? (
+                    <button
+                      type="button"
+                      onClick={() => removeMutation.mutate(ctx.value)}
+                      className="rounded-md border border-border px-2 py-1 text-[11px] font-bold text-destructive"
+                    >
+                      حذف
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+
+              {isOpen ? (
+                <div className="mt-2 space-y-1.5">
+                  <input
+                    value={draft.approach_ar}
+                    onChange={(e) => setDraft({ ...draft, approach_ar: e.target.value })}
+                    placeholder="تعليمات الوصول لهذا السياق"
+                    className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                  />
+                  <input
+                    value={draft.preferred_road}
+                    onChange={(e) => setDraft({ ...draft, preferred_road: e.target.value })}
+                    placeholder="الطريق المفضل للاقتراب"
+                    className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                  />
+                  <input
+                    value={draft.vehicle_note}
+                    onChange={(e) => setDraft({ ...draft, vehicle_note: e.target.value })}
+                    placeholder="ملاحظة المركبة (مثلاً: شاحنات حتى 12 متراً)"
+                    className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                  />
+                  <label className="flex items-center gap-2 text-[11px] font-medium">
+                    <input
+                      type="checkbox"
+                      checked={draft.allowed}
+                      onChange={(e) => setDraft({ ...draft, allowed: e.target.checked })}
+                    />
+                    هذا المدخل مسموح لهذا السياق
+                  </label>
+                  <button
+                    type="button"
+                    disabled={saveMutation.isPending}
+                    onClick={() => saveMutation.mutate(ctx.value)}
+                    className="w-full rounded-lg bg-primary py-2 text-xs font-bold text-primary-foreground disabled:opacity-60"
+                  >
+                    حفظ
+                  </button>
+                </div>
+              ) : null}
             </div>
           );
         })}

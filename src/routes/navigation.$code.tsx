@@ -53,9 +53,13 @@ import {
   type RouteBundle,
   type TravelMode,
 } from "@/lib/navigation/types";
+import { ROUTING_CONTEXTS, routingContext, type RoutingContext } from "@/lib/routing-contexts";
 
 export const Route = createFileRoute("/navigation/$code")({
   validateSearch: (search: Record<string, unknown>) => ({
+    ctx: ROUTING_CONTEXTS.some((c) => c.value === search["ctx"])
+      ? (search["ctx"] as RoutingContext)
+      : undefined,
     token: typeof search["token"] === "string" ? (search["token"] as string) : undefined,
     mode: TRAVEL_MODES.some((m) => m.value === search["mode"])
       ? (search["mode"] as TravelMode)
@@ -123,6 +127,7 @@ function NavigationWorkspace() {
   }, []);
 
   const [mode, setMode] = useState<TravelMode>(search.mode ?? "driving");
+  const [context, setContext] = useState<RoutingContext>(search.ctx ?? "standard");
   const [entranceId, setEntranceId] = useState<string | null>(null);
   const [wheelchair, setWheelchair] = useState(false);
   const [origin, setOrigin] = useState<Coordinates | null>(null);
@@ -146,12 +151,20 @@ function NavigationWorkspace() {
   const myAddressesFn = useServerFn(listMyAddresses);
 
   const targetQuery = useQuery({
-    queryKey: ["nav-target", code, mode, entranceId, wheelchair, signedIn, search.token ?? null],
+    queryKey: ["nav-target", code, mode, entranceId, wheelchair, context, signedIn, search.token ?? null],
     queryFn: async () =>
       signedIn
-        ? await authedTarget({ data: { code, mode, entranceId, wheelchair, lang: "ar" } })
+        ? await authedTarget({ data: { code, mode, entranceId, wheelchair, context, lang: "ar" } })
         : await publicTarget({
-            data: { code, mode, entranceId, wheelchair, lang: "ar", shareToken: search.token ?? null },
+            data: {
+              code,
+              mode,
+              entranceId,
+              wheelchair,
+              context,
+              lang: "ar",
+              shareToken: search.token ?? null,
+            },
           }),
   });
 
@@ -627,6 +640,51 @@ function NavigationWorkspace() {
               )}
 
               <CoordinateEntry onSubmit={(point) => setOriginPoint(point, "إحداثيات يدوية", "coordinates")} />
+            </section>
+
+            {/* Routing context — Phase 18 */}
+            <section className="space-y-2">
+              <p className="text-xs font-semibold text-muted-foreground">سياق الوصول</p>
+              <div className="flex flex-wrap gap-1.5">
+                {ROUTING_CONTEXTS.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => {
+                      setContext(option.value);
+                      setEntranceId(null);
+                      setMode(
+                        (TRAVEL_MODES.some((m) => m.value === option.travelMode)
+                          ? option.travelMode
+                          : "walking") as TravelMode,
+                      );
+                      if (option.requireWheelchair) setWheelchair(true);
+                    }}
+                    className={`rounded-full border px-2.5 py-1 text-[11px] font-bold ${
+                      context === option.value
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border text-muted-foreground"
+                    }`}
+                  >
+                    {option.ar}
+                  </button>
+                ))}
+              </div>
+              {destination?.context_approach ? (
+                <div className="rounded-md border border-primary/40 bg-primary/10 p-2 text-[12px]">
+                  <p className="font-bold">
+                    تعليمات {routingContext(context).ar}: {destination.context_approach}
+                  </p>
+                  {destination.context_preferred_road ? (
+                    <p className="mt-0.5">الطريق المفضل: {destination.context_preferred_road}</p>
+                  ) : null}
+                  {destination.context_vehicle_note ? (
+                    <p className="mt-0.5">المركبة: {destination.context_vehicle_note}</p>
+                  ) : null}
+                </div>
+              ) : (
+                <p className="text-[11px] text-muted-foreground">{routingContext(context).hintAr}</p>
+              )}
             </section>
 
             {/* Travel mode */}

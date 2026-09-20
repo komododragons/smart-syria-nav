@@ -82,7 +82,7 @@ export async function resolveForNavigation(
     supa
       .from("access_points")
       .select(
-        "id, display_name, access_type, latitude, longitude, is_primary, is_delivery_entrance, is_parking_entrance, is_emergency_entrance, is_loading_entrance, wheelchair_accessible, vehicle_access, temporarily_closed, temporary_status, status_reason, photo_url, instructions_ar, instructions_en, confidence_score, verification_level, sort_order, is_active",
+        "id, display_name, access_type, latitude, longitude, is_primary, is_delivery_entrance, is_parking_entrance, is_emergency_entrance, is_loading_entrance, wheelchair_accessible, vehicle_access, temporarily_closed, temporary_status, status_reason, photo_url, instructions_ar, instructions_en, confidence_score, verification_level, sort_order, is_active, access_point_contexts(context, allowed, approach_ar, approach_en, preferred_road, vehicle_note, note)",
       )
       .eq("node_id", node.id)
       .eq("is_active", true)
@@ -124,6 +124,7 @@ export async function resolveForNavigation(
       latitude: a.latitude,
       longitude: a.longitude,
       is_primary: a.is_primary,
+      contexts: ((a as { access_point_contexts?: unknown }).access_point_contexts ?? []) as NavEntranceOption["contexts"],
       is_delivery_entrance: a.is_delivery_entrance,
       is_parking_entrance: a.is_parking_entrance,
       is_emergency_entrance: a.is_emergency_entrance,
@@ -187,11 +188,20 @@ export type DestinationSelection = {
  */
 export function selectDestination(
   address: ResolvedAddress,
-  opts: { mode: TravelMode; entranceId?: string | null; wheelchair?: boolean; purpose?: string },
+  opts: {
+    mode: TravelMode;
+    entranceId?: string | null;
+    wheelchair?: boolean;
+    purpose?: string;
+    context?: string;
+  },
 ): DestinationSelection {
   const warnings: NavWarning[] = [];
   const entrances = address.entrances;
   const wheelchairOk = (e: NavEntranceOption) => !opts.wheelchair || e.wheelchair_accessible;
+  const ctxName = opts.context ?? null;
+  const ctxEntry = (e: NavEntranceOption) => e.contexts?.find((c) => c.context === ctxName) ?? null;
+  const ctxAllows = (e: NavEntranceOption) => (ctxEntry(e)?.allowed ?? true) !== false;
 
   const pick = (e: NavEntranceOption | undefined, kind: DestinationKind): DestinationSelection | null =>
     e && usable(e) && wheelchairOk(e)
@@ -206,20 +216,31 @@ export function selectDestination(
 
   let chosen: DestinationSelection | null = null;
 
+  // Phase 18 — an entrance the owner mapped to this routing context wins.
+  if (ctxName) {
+    const contextual = entrances
+      .filter((e) => ctxAllows(e) && ctxEntry(e))
+      .sort((a, b) => Number(Boolean(ctxEntry(b)?.approach_ar)) - Number(Boolean(ctxEntry(a)?.approach_ar)));
+    chosen = pick(contextual[0], "mode_preferred_entrance");
+  }
+
   if (opts.entranceId) {
     const requested = entrances.find((e) => e.id === opts.entranceId);
     if (requested && requested.temporarily_closed) warnings.push("entrance_temporarily_closed");
     chosen = pick(requested, "user_selected_entrance");
   }
 
-  chosen ??= pick(entrances.find((e) => modePreferred(e, opts.mode)), "mode_preferred_entrance");
+  chosen ??= pick(
+    entrances.find((e) => ctxAllows(e) && modePreferred(e, opts.mode)),
+    "mode_preferred_entrance",
+  );
 
   if (!chosen && (opts.mode === "delivery" || opts.purpose?.includes("delivery"))) {
-    chosen = pick(entrances.find((e) => e.is_delivery_entrance), "delivery_entrance");
+    chosen = pick(entrances.find((e) => ctxAllows(e) && e.is_delivery_entrance), "delivery_entrance");
   }
 
-  chosen ??= pick(entrances.find((e) => e.is_primary), "main_entrance");
-  chosen ??= pick(entrances.find(usable), "main_entrance");
+  chosen ??= pick(entrances.find((e) => ctxAllows(e) && e.is_primary), "main_entrance");
+  chosen ??= pick(entrances.find((e) => ctxAllows(e) && usable(e)), "main_entrance");
 
   // Road access point / parking point, used both as a destination of last
   // resort and as the vehicle handover point below.
@@ -288,6 +309,7 @@ export function buildDestination(
   address: ResolvedAddress,
   selection: DestinationSelection,
   mode: TravelMode,
+  context = "standard",
 ): NavDestination {
   const warnings = new Set<NavWarning>(selection.warnings);
   if (address.confidence_score < LOW_CONFIDENCE) warnings.add("low_confidence_address");
@@ -323,6 +345,15 @@ export function buildDestination(
     final_leg_on_foot: Boolean(usesRoadHandover),
     final_leg_meters: finalLeg,
     warnings: [...warnings],
+    context,
+    context_approach: (() => {
+      const c = selection.entrance?.contexts?.find((x) => x.context === context);
+      return c?.approach_ar ?? c?.approach_en ?? null;
+    })(),
+    context_preferred_road:
+      selection.entrance?.contexts?.find((x) => x.context === context)?.preferred_road ?? null,
+    context_vehicle_note:
+      selection.entrance?.contexts?.find((x) => x.context === context)?.vehicle_note ?? null,
   };
 }
 

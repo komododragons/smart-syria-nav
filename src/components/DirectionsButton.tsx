@@ -8,6 +8,7 @@ type Props = {
   code: string;
   mode?: TravelMode | undefined;
   token?: string | undefined;
+  context?: string | undefined;
   variant?: "solid" | "outline" | "chip";
   className?: string | undefined;
   label?: string;
@@ -26,6 +27,7 @@ export function DirectionsButton({
   code,
   mode,
   token,
+  context,
   variant = "outline",
   className,
   label = "الحصول على الاتجاهات",
@@ -34,7 +36,11 @@ export function DirectionsButton({
     <Link
       to="/navigation/$code"
       params={{ code }}
-      search={{ mode: mode ?? undefined, token: token ?? undefined }}
+      search={{
+        mode: mode ?? undefined,
+        token: token ?? undefined,
+        ctx: (context ?? undefined) as never,
+      }}
       onClick={(event) => {
         event.stopPropagation();
         void logAddressEvent({

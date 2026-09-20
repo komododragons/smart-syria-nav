@@ -29,6 +29,7 @@ export const getNavigationTarget = createServerFn({ method: "POST" })
         entranceId: z.string().uuid().nullish(),
         wheelchair: z.boolean().default(false),
         purpose: z.string().max(40).default("visitor"),
+        context: z.string().max(40).optional(),
         lang: langSchema,
         shareToken: z.string().max(120).nullish(),
       })
@@ -53,13 +54,16 @@ export const getNavigationTarget = createServerFn({ method: "POST" })
       return { ok: false as const, error: "destination_unavailable" as const };
     }
 
+    const { routingContext } = await import("../routing-contexts");
+    const ctx = routingContext(data.context);
     const selection = nav.selectDestination(address, {
       mode: data.mode,
       entranceId: data.entranceId ?? null,
-      wheelchair: data.wheelchair,
+      wheelchair: data.wheelchair || ctx.requireWheelchair,
       purpose: data.purpose,
+      context: ctx.value,
     });
-    const destination = nav.buildDestination(address, selection, data.mode);
+    const destination = nav.buildDestination(address, selection, data.mode, ctx.value);
     const arrival = await nav.lastMetreCard(
       address,
       destination.entrance_id,
@@ -100,6 +104,7 @@ export const getNavigationTargetAuthed = createServerFn({ method: "POST" })
         entranceId: z.string().uuid().nullish(),
         wheelchair: z.boolean().default(false),
         purpose: z.string().max(40).default("visitor"),
+        context: z.string().max(40).optional(),
         lang: langSchema,
       })
       .parse(input),
@@ -111,13 +116,16 @@ export const getNavigationTargetAuthed = createServerFn({ method: "POST" })
     const address = await nav.resolveForNavigation(data.code, supa);
     if (!address) return { ok: false as const, error: "destination_unavailable" as const };
 
+    const { routingContext } = await import("../routing-contexts");
+    const ctx = routingContext(data.context);
     const selection = nav.selectDestination(address, {
       mode: data.mode,
       entranceId: data.entranceId ?? null,
-      wheelchair: data.wheelchair,
+      wheelchair: data.wheelchair || ctx.requireWheelchair,
       purpose: data.purpose,
+      context: ctx.value,
     });
-    const destination = nav.buildDestination(address, selection, data.mode);
+    const destination = nav.buildDestination(address, selection, data.mode, ctx.value);
     const viewer = await nav.viewerContext(address, context.userId, supa);
     const arrival = await nav.lastMetreCard(address, destination.entrance_id, viewer, supa, data.lang);
 
