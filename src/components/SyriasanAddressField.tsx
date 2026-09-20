@@ -53,7 +53,7 @@ export type SyriasanAddressFieldProps = {
   onClear?: () => void;
   /** Called on every successful resolution, before confirmation. */
   onResolve?: (address: CheckoutAddressPayload) => void;
-  title?: string;
+  title?: string | undefined;
   compact?: boolean;
   lang?: WidgetLang;
   /** Prefilled code, e.g. restored from a saved order. */
@@ -178,7 +178,7 @@ export function SyriasanAddressField({
         } else if (body.status === "private") {
           setError((body as { hint?: string }).hint ?? t.privateAddr);
         } else {
-          setError(t.status[body.status] ?? t.status.fallback);
+          setError(t.status[body.status] ?? t.status["fallback"] ?? "Could not verify this code.");
         }
       } catch {
         setError(t.offline);
