@@ -497,7 +497,7 @@ function SharePanel({
           >
             {QUICK_PURPOSES.map((p) => (
               <option key={p} value={p}>
-                {PURPOSE_LABELS[p]?.ar ?? p}
+                {PURPOSE_LABELS[p] ?? p}
               </option>
             ))}
           </select>

@@ -21,6 +21,7 @@ import { Route as DevelopersRouteImport } from './routes/developers'
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as MyAddressesRouteImport } from './routes/my-addresses'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as VaultRouteImport } from './routes/vault'
 import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as WidgetRouteImport } from './routes/widget'
 import { Route as ACodeRouteImport } from './routes/a.$code'
@@ -96,6 +97,11 @@ const MyAddressesRoute = MyAddressesRouteImport.update({
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VaultRoute = VaultRouteImport.update({
+  id: '/vault',
+  path: '/vault',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VerifyRoute = VerifyRouteImport.update({
@@ -192,6 +198,7 @@ export interface FileRoutesByFullPath {
   '/docs': typeof DocsRoute
   '/my-addresses': typeof MyAddressesRoute
   '/search': typeof SearchRoute
+  '/vault': typeof VaultRoute
   '/verify': typeof VerifyRoute
   '/widget': typeof WidgetRoute
   '/a/$code': typeof ACodeRoute
@@ -222,6 +229,7 @@ export interface FileRoutesByTo {
   '/docs': typeof DocsRoute
   '/my-addresses': typeof MyAddressesRoute
   '/search': typeof SearchRoute
+  '/vault': typeof VaultRoute
   '/verify': typeof VerifyRoute
   '/widget': typeof WidgetRoute
   '/a/$code': typeof ACodeRoute
@@ -253,6 +261,7 @@ export interface FileRoutesById {
   '/docs': typeof DocsRoute
   '/my-addresses': typeof MyAddressesRoute
   '/search': typeof SearchRoute
+  '/vault': typeof VaultRoute
   '/verify': typeof VerifyRoute
   '/widget': typeof WidgetRoute
   '/a/$code': typeof ACodeRoute
@@ -285,6 +294,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/my-addresses'
     | '/search'
+    | '/vault'
     | '/verify'
     | '/widget'
     | '/a/$code'
@@ -315,6 +325,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/my-addresses'
     | '/search'
+    | '/vault'
     | '/verify'
     | '/widget'
     | '/a/$code'
@@ -345,6 +356,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/my-addresses'
     | '/search'
+    | '/vault'
     | '/verify'
     | '/widget'
     | '/a/$code'
@@ -376,6 +388,7 @@ export interface RootRouteChildren {
   DocsRoute: typeof DocsRoute
   MyAddressesRoute: typeof MyAddressesRoute
   SearchRoute: typeof SearchRoute
+  VaultRoute: typeof VaultRoute
   VerifyRoute: typeof VerifyRoute
   WidgetRoute: typeof WidgetRoute
   ACodeRoute: typeof ACodeRoute
@@ -475,6 +488,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vault': {
+      id: '/vault'
+      path: '/vault'
+      fullPath: '/vault'
+      preLoaderRoute: typeof VaultRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/verify': {
@@ -619,6 +639,7 @@ const rootRouteChildren: RootRouteChildren = {
   DocsRoute: DocsRoute,
   MyAddressesRoute: MyAddressesRoute,
   SearchRoute: SearchRoute,
+  VaultRoute: VaultRoute,
   VerifyRoute: VerifyRoute,
   WidgetRoute: WidgetRoute,
   ACodeRoute: ACodeRoute,
