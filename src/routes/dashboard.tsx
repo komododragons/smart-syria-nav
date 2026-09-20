@@ -994,12 +994,17 @@ function AnalyticsTab({ orgId }: { orgId: string }) {
   const cards = useMemo(
     () => [
       { label: "عمليات حلّ العنوان", value: stats.data?.totals.resolve ?? 0 },
+      { label: "مسح رموز QR", value: stats.data?.totals.qr_scan ?? 0 },
       { label: "بدء التوجيه", value: stats.data?.totals.navigate_start ?? 0 },
       { label: "فتح وضع التوصيل", value: stats.data?.totals.delivery_view ?? 0 },
+      { label: "ظهور في البحث", value: stats.data?.totals.search_appearance ?? 0 },
       { label: "عدد المواقع", value: stats.data?.locations_count ?? 0 },
     ],
     [stats.data],
   );
+
+  const series = stats.data?.series ?? [];
+  const peak = Math.max(1, ...series.map((s) => s.count));
 
   return (
     <section className={card}>
@@ -1014,7 +1019,11 @@ function AnalyticsTab({ orgId }: { orgId: string }) {
         </select>
       </div>
 
-      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <p className="mt-2 text-[11px] text-muted-foreground">
+        أرقام مجمّعة فقط — لا تُسجَّل هوية أي زائر أو عميل.
+      </p>
+
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
         {cards.map((item) => (
           <div key={item.label} className="rounded-lg border border-border p-3 text-center">
             <p className="font-mono text-xl font-bold">{item.value}</p>
@@ -1023,13 +1032,32 @@ function AnalyticsTab({ orgId }: { orgId: string }) {
         ))}
       </div>
 
+      {series.length ? (
+        <div className="mt-4">
+          <div className="flex h-24 items-end gap-0.5" dir="ltr">
+            {series.map((point) => (
+              <div
+                key={point.day}
+                title={`${point.day}: ${point.count}`}
+                className="flex-1 rounded-t bg-primary/70"
+                style={{ height: `${Math.max(2, (point.count / peak) * 100)}%` }}
+              />
+            ))}
+          </div>
+          <p className="mt-2 text-[11px] text-muted-foreground">النشاط اليومي · الذروة {peak}</p>
+        </div>
+      ) : null}
+
       <div className="mt-4 flex flex-col gap-2">
         {(stats.data?.per_location ?? []).map((row) => (
           <div key={row.code} className="flex flex-wrap items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs">
             <span className="font-bold">{row.name}</span>
             <span className="font-mono text-muted-foreground" dir="ltr">{row.code}</span>
             <span className="ms-auto">حلّ: {row.resolve}</span>
+            <span>QR: {row.qr_scan}</span>
             <span>توجيه: {row.navigate_start}</span>
+            <span>توصيل: {row.delivery_view}</span>
+            <span>بحث: {row.search_appearance}</span>
           </div>
         ))}
         {stats.data && stats.data.per_location.length === 0 ? (
