@@ -75,3 +75,9 @@
 - [x] /embed/address params (lang ar|en, compact, code, auto, title, origin) + widget protocol v1 messages
 - [x] Bilingual field (Address found / Confirm Address), change-address flow
 - [x] /widget page: live demo, HTML/JS/React/Flutter/native/REST snippets, protocol table, SDK architecture
+
+## Phase 13 — Address Pass / private Address Vault [DONE]
+- [x] /vault private page: saved addresses with categories (home, work, parents, warehouse, office, other), emoji chips, filter
+- [x] Add by smart code with nickname + private note; edit category, copy code, remove
+- [x] Secure sharing from the vault: field-level toggles, purpose, 1h/24h/7d/custom expiry, one-time use, active links with revoke
+- [x] Owner-only sharing check; vault is noindex and readable only by its owner (RLS)
