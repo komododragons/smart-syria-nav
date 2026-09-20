@@ -57,6 +57,13 @@ function MyAddressesPage() {
     longitude: "",
     entrance_name: "",
     entrance_instructions: "",
+    building_number: "",
+    parking_info: "",
+    loading_info: "",
+    wheelchair_accessible: false,
+    has_elevator: false,
+    entrance_parking_info: "",
+    entrance_loading_info: "",
   });
 
   useEffect(() => {
@@ -105,6 +112,13 @@ function MyAddressesPage() {
           longitude: editForm.longitude ? Number(editForm.longitude) : null,
           entrance_name: editForm.entrance_name.trim() || null,
           entrance_instructions: editForm.entrance_instructions.trim() || null,
+          building_number: editForm.building_number.trim() || null,
+          parking_info: editForm.parking_info.trim() || null,
+          loading_info: editForm.loading_info.trim() || null,
+          wheelchair_accessible: editForm.wheelchair_accessible,
+          has_elevator: editForm.has_elevator,
+          entrance_parking_info: editForm.entrance_parking_info.trim() || null,
+          entrance_loading_info: editForm.entrance_loading_info.trim() || null,
         },
       }),
     onSuccess: async () => {
@@ -303,6 +317,13 @@ function MyAddressesPage() {
                         longitude: node.longitude != null ? String(node.longitude) : "",
                         entrance_name: ap?.display_name ?? "",
                         entrance_instructions: ap?.instructions_ar ?? "",
+                        building_number: node.building_number ?? "",
+                        parking_info: node.parking_info ?? "",
+                        loading_info: node.loading_info ?? "",
+                        wheelchair_accessible: node.wheelchair_accessible ?? false,
+                        has_elevator: node.has_elevator ?? false,
+                        entrance_parking_info: ap?.parking_info ?? "",
+                        entrance_loading_info: ap?.loading_info ?? "",
                       });
                     }}
                     className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-bold"
@@ -358,6 +379,54 @@ function MyAddressesPage() {
                         className="rounded-lg border border-border bg-surface px-3 py-2 text-sm"
                       />
                     </label>
+                    <label className="flex flex-col gap-1 text-xs font-medium">
+                      رقم المبنى
+                      <input
+                        value={editForm.building_number}
+                        onChange={(e) => setEditForm({ ...editForm, building_number: e.target.value })}
+                        className="rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1 text-xs font-medium">
+                      معلومات المواقف
+                      <input
+                        value={editForm.parking_info}
+                        onChange={(e) => setEditForm({ ...editForm, parking_info: e.target.value })}
+                        placeholder="موقف أمام المبنى، مجاني بعد الساعة 6"
+                        className="rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1 text-xs font-medium">
+                      التحميل والتنزيل
+                      <input
+                        value={editForm.loading_info}
+                        onChange={(e) => setEditForm({ ...editForm, loading_info: e.target.value })}
+                        placeholder="التنزيل من الجهة الخلفية"
+                        className="rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                      />
+                    </label>
+                    <div className="flex flex-wrap items-center gap-4 self-end text-xs font-medium">
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={editForm.wheelchair_accessible}
+                          onChange={(e) =>
+                            setEditForm({ ...editForm, wheelchair_accessible: e.target.checked })
+                          }
+                          className="size-3.5"
+                        />
+                        مناسب لكرسي متحرك
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={editForm.has_elevator}
+                          onChange={(e) => setEditForm({ ...editForm, has_elevator: e.target.checked })}
+                          className="size-3.5"
+                        />
+                        يوجد مصعد
+                      </label>
+                    </div>
                     <label className="flex items-center gap-2 self-end text-xs font-medium">
                       <input
                         type="checkbox"
@@ -446,6 +515,26 @@ function MyAddressesPage() {
                             value={editForm.entrance_instructions}
                             onChange={(e) =>
                               setEditForm({ ...editForm, entrance_instructions: e.target.value })
+                            }
+                            className="rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                          />
+                        </label>
+                        <label className="flex flex-col gap-1 text-xs font-medium">
+                          مواقف عند المدخل
+                          <input
+                            value={editForm.entrance_parking_info}
+                            onChange={(e) =>
+                              setEditForm({ ...editForm, entrance_parking_info: e.target.value })
+                            }
+                            className="rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                          />
+                        </label>
+                        <label className="flex flex-col gap-1 text-xs font-medium">
+                          تنزيل البضائع عند المدخل
+                          <input
+                            value={editForm.entrance_loading_info}
+                            onChange={(e) =>
+                              setEditForm({ ...editForm, entrance_loading_info: e.target.value })
                             }
                             className="rounded-lg border border-border bg-surface px-3 py-2 text-sm"
                           />

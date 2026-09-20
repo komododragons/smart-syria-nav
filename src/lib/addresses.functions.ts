@@ -365,7 +365,7 @@ export const listMyAddresses = createServerFn({ method: "POST" })
     const { data, error } = await context.supabase
       .from("smart_addresses")
       .select(
-        "id, code, label, is_public, status, created_at, location_nodes(id, display_name, node_type, unit_label, floor_label, neighborhood, city, governorate, street, landmark, public_notes, visibility, latitude, longitude, confidence_score, verification_level), access_points(id, display_name, instructions_ar, access_type, latitude, longitude)",
+        "id, code, label, is_public, status, created_at, location_nodes(id, display_name, node_type, unit_label, floor_label, neighborhood, city, governorate, street, landmark, public_notes, visibility, latitude, longitude, confidence_score, verification_level, building_number, parking_info, loading_info, wheelchair_accessible, has_elevator), access_points(id, display_name, instructions_ar, access_type, latitude, longitude, parking_info, loading_info)",
       )
       .order("created_at", { ascending: false })
       .limit(100);
@@ -393,6 +393,13 @@ export const updateMyAddress = createServerFn({ method: "POST" })
         longitude: z.number().min(-180).max(180).nullable().optional(),
         entrance_name: z.string().max(160).nullable().optional(),
         entrance_instructions: z.string().max(500).nullable().optional(),
+        building_number: z.string().max(40).nullable().optional(),
+        parking_info: z.string().max(300).nullable().optional(),
+        loading_info: z.string().max(300).nullable().optional(),
+        wheelchair_accessible: z.boolean().nullable().optional(),
+        has_elevator: z.boolean().nullable().optional(),
+        entrance_parking_info: z.string().max(300).nullable().optional(),
+        entrance_loading_info: z.string().max(300).nullable().optional(),
       })
       .parse(input),
   )
@@ -417,6 +424,11 @@ export const updateMyAddress = createServerFn({ method: "POST" })
         public_notes: data.public_notes ?? null,
         latitude: data.latitude ?? null,
         longitude: data.longitude ?? null,
+        building_number: data.building_number ?? null,
+        parking_info: data.parking_info ?? null,
+        loading_info: data.loading_info ?? null,
+        wheelchair_accessible: data.wheelchair_accessible ?? null,
+        has_elevator: data.has_elevator ?? null,
       })
       .eq("id", data.node_id);
     if (nodeErr) throw new Error(nodeErr.message);
@@ -427,6 +439,8 @@ export const updateMyAddress = createServerFn({ method: "POST" })
         .update({
           ...(data.entrance_name ? { display_name: data.entrance_name } : {}),
           instructions_ar: data.entrance_instructions ?? null,
+          parking_info: data.entrance_parking_info ?? null,
+          loading_info: data.entrance_loading_info ?? null,
         })
         .eq("id", data.access_point_id);
       if (apErr) throw new Error(apErr.message);
