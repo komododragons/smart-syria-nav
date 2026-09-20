@@ -28,6 +28,7 @@ export const API_SCOPES = [
   "route",
   "qr",
   "keys:manage",
+  "webhooks:manage",
 ] as const;
 export type ApiScope = (typeof API_SCOPES)[number];
 
@@ -78,6 +79,8 @@ type AuthOk = {
   scopes: ApiScope[];
   limit: number;
   used: number;
+  /** `test` keys run in sandbox mode: reads are real, writes are simulated. */
+  environment: "live" | "test";
 };
 
 async function authenticate(request: Request, admin: Admin): Promise<AuthOk | Response> {
@@ -109,7 +112,7 @@ async function authenticate(request: Request, admin: Admin): Promise<AuthOk | Re
 
   const { data: client } = await admin
     .from("api_clients")
-    .select("id, owner_id, scopes, rate_limit_per_minute, is_active")
+    .select("id, owner_id, scopes, rate_limit_per_minute, is_active, environment")
     .eq("id", keyRow.client_id)
     .maybeSingle();
   if (!client || !client.is_active) {
@@ -148,6 +151,7 @@ async function authenticate(request: Request, admin: Admin): Promise<AuthOk | Re
     scopes,
     limit,
     used,
+    environment: client.environment === "test" ? "test" : "live",
   };
 }
 
