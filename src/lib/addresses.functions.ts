@@ -22,67 +22,110 @@ export const resolveAddress = createServerFn({ method: "POST" })
     });
   });
 
+const BIZ_FIELDS =
+  "id, name_ar, name_en, category, place_category, phone, website, opening_hours, verification_level, node_id, visitor_access_point_id, delivery_access_point_id, smart_addresses(code), location_nodes(display_name, governorate, city, district, neighborhood, street, landmark, latitude, longitude, unit_label, floor_label)";
+const NODE_FIELDS =
+  "id, display_name, name_en, node_type, place_category, governorate, city, district, neighborhood, street, landmark, verification_level, confidence_score, latitude, longitude";
+
+const VERIFIED_RANK: Record<string, number> = {
+  syriasan_verified: 40,
+  organization_verified: 32,
+  business_verified: 26,
+  owner_claimed: 18,
+  community_submitted: 8,
+  unverified: 0,
+};
+
 export const searchNetwork = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
-    z.object({ query: z.string().max(120), category: z.string().max(40).optional() }).parse(input),
+    z
+      .object({
+        query: z.string().max(120),
+        category: z.string().max(40).optional(),
+        governorate: z.string().max(80).optional(),
+        latitude: z.number().min(-90).max(90).optional(),
+        longitude: z.number().min(-180).max(180).optional(),
+      })
+      .parse(input),
   )
   .handler(async ({ data }) => {
-    const { serverPublicClient } = await import("./addresses.server");
-    const { normalizeArabic, normalizeCode } = await import("./smart-address");
+    const { serverPublicClient, haversineMeters } = await import("./addresses.server");
+    const { normalizeArabic, normalizeCode, arabicVariants, escapeLike } = await import("./smart-address");
     const { RESIDENTIAL_NODE_TYPES } = await import("./place-categories");
     const supa = serverPublicClient();
     const raw = data.query.trim();
-    if (raw.length < 2) return { businesses: [], places: [], code: null };
+    if (raw.length < 2) return { businesses: [], places: [], code: null, codes: [] };
 
-    const pattern = `%${raw}%`;
     const normalized = normalizeArabic(raw);
+    const variants = arabicVariants(raw);
+    if (!variants.length) variants.push(escapeLike(raw).toLowerCase());
+    const patterns = variants.map((v) => `%${v}%`);
+    const hasOrigin = data.latitude != null && data.longitude != null;
+
+    const orFor = (fields: string[]) =>
+      fields.flatMap((f) => patterns.map((p) => `${f}.ilike.${p}`)).join(",");
 
     let bizQuery = supa
       .from("businesses")
-      .select(
-        "id, name_ar, name_en, category, place_category, phone, website, opening_hours, verification_level, node_id, visitor_access_point_id, delivery_access_point_id, smart_addresses(code), location_nodes(display_name, governorate, city, district, neighborhood, unit_label, floor_label)",
-      )
+      .select(BIZ_FIELDS)
       .eq("is_published", true)
-      .or(`name_ar.ilike.${pattern},name_en.ilike.${pattern},category.ilike.${pattern}`)
-      .limit(20);
+      .eq("is_archived", false)
+      .or(orFor(["name_ar", "name_en", "category", "place_category"]))
+      .limit(40);
     if (data.category) bizQuery = bizQuery.eq("place_category", data.category);
 
     let nodeQuery = supa
       .from("location_nodes")
-      .select(
-        "id, display_name, name_en, node_type, place_category, governorate, city, district, neighborhood, street, landmark, verification_level, confidence_score, latitude, longitude",
-      )
+      .select(NODE_FIELDS)
       .eq("visibility", "public")
       .eq("is_active", true)
       .or(
-        `display_name.ilike.${pattern},name_en.ilike.${pattern},neighborhood.ilike.${pattern},street.ilike.${pattern},landmark.ilike.${pattern}`,
+        orFor([
+          "display_name",
+          "name_en",
+          "district",
+          "neighborhood",
+          "street",
+          "landmark",
+          "city",
+          "governorate",
+          "place_category",
+        ]),
       )
-      .limit(20);
+      .limit(60);
     if (data.category) nodeQuery = nodeQuery.eq("place_category", data.category);
+    if (data.governorate) nodeQuery = nodeQuery.eq("governorate", data.governorate);
 
+    const codeNeedle = normalizeCode(raw);
     const [businessRes, placeRes, aliasRes, codeRes] = await Promise.all([
       bizQuery,
       nodeQuery,
-      supa.from("location_aliases").select("node_id, alias").ilike("alias", pattern).limit(20),
+      supa
+        .from("location_aliases")
+        .select("node_id, alias")
+        .or(patterns.map((p) => `alias.ilike.${p}`).join(","))
+        .limit(30),
       supa
         .from("smart_addresses")
-        .select("code, label")
+        .select("code, label, node_id")
         .eq("is_public", true)
-        .ilike("code", `%${normalizeCode(raw)}%`)
+        .eq("status", "active")
+        .ilike("code", `%${escapeLike(codeNeedle)}%`)
         .limit(5),
     ]);
 
     const aliasNodeIds = (aliasRes.data ?? []).map((a) => a.node_id);
     let aliasPlaces: NonNullable<typeof placeRes.data> = [];
-    if (aliasNodeIds.length && !data.category) {
-      const { data: extra } = await supa
+    if (aliasNodeIds.length) {
+      let aliasQuery = supa
         .from("location_nodes")
-        .select(
-          "id, display_name, name_en, node_type, place_category, governorate, city, district, neighborhood, street, landmark, verification_level, confidence_score, latitude, longitude",
-        )
+        .select(NODE_FIELDS)
         .in("id", aliasNodeIds)
         .eq("visibility", "public")
         .eq("is_active", true);
+      if (data.category) aliasQuery = aliasQuery.eq("place_category", data.category);
+      if (data.governorate) aliasQuery = aliasQuery.eq("governorate", data.governorate);
+      const { data: extra } = await aliasQuery;
       aliasPlaces = extra ?? [];
     }
 
@@ -93,17 +136,90 @@ export const searchNetwork = createServerFn({ method: "POST" })
       placeMap.set(p.id, p);
     }
 
-    const businesses = (businessRes.data ?? []).sort((a, b) => {
-      const exact = (x: typeof a) =>
-        normalizeArabic(x.name_ar) === normalized || (x.name_en ?? "").toLowerCase() === raw.toLowerCase() ? 1 : 0;
-      const verified = (x: typeof a) => (x.verification_level === "unverified" ? 0 : 1);
-      return exact(b) - exact(a) || verified(b) - verified(a);
-    });
+    // Public smart codes for the matching sites, so every result can be navigated to.
+    const placeIds = [...placeMap.keys()];
+    const codeByNode = new Map<string, string>();
+    if (placeIds.length) {
+      const { data: codes } = await supa
+        .from("smart_addresses")
+        .select("code, node_id")
+        .eq("is_public", true)
+        .eq("status", "active")
+        .in("node_id", placeIds);
+      for (const c of codes ?? []) if (c.node_id && !codeByNode.has(c.node_id)) codeByNode.set(c.node_id, c.code);
+    }
+
+    /** Text relevance: exact > prefix > word start > contains. */
+    const textScore = (values: (string | null | undefined)[]) => {
+      let best = 0;
+      for (const value of values) {
+        if (!value) continue;
+        const hay = normalizeArabic(value);
+        if (!hay) continue;
+        if (hay === normalized) best = Math.max(best, 100);
+        else if (hay.startsWith(normalized)) best = Math.max(best, 70);
+        else if (hay.includes(` ${normalized}`)) best = Math.max(best, 55);
+        else if (hay.includes(normalized)) best = Math.max(best, 35);
+      }
+      return best;
+    };
+
+    const distanceOf = (lat?: number | null, lng?: number | null) => {
+      if (!hasOrigin || lat == null || lng == null) return null;
+      return Math.round(haversineMeters(data.latitude!, data.longitude!, lat, lng));
+    };
+
+    /** Nearer is better, with a gentle decay: 0 m → +45, 5 km → ~+9, 25 km → ~+2. */
+    const proximityScore = (meters: number | null) =>
+      meters == null ? 0 : Math.round(45 / (1 + meters / 1200));
+
+    const businesses = (businessRes.data ?? [])
+      .map((biz) => {
+        const node = Array.isArray(biz.location_nodes) ? biz.location_nodes[0] : biz.location_nodes;
+        const distance_m = distanceOf(node?.latitude, node?.longitude);
+        const smart = Array.isArray(biz.smart_addresses) ? biz.smart_addresses[0] : biz.smart_addresses;
+        const score =
+          textScore([biz.name_ar, biz.name_en, biz.category, node?.neighborhood, node?.district]) +
+          (VERIFIED_RANK[biz.verification_level] ?? 0) +
+          proximityScore(distance_m) +
+          // public usefulness: reachable code, category, contact details
+          (smart?.code ? 14 : 0) +
+          (biz.place_category ? 8 : 0) +
+          (biz.phone || biz.opening_hours ? 4 : 0);
+        return { ...biz, distance_m, score };
+      })
+      .sort((a, b) => b.score - a.score || (a.distance_m ?? 1e9) - (b.distance_m ?? 1e9))
+      .slice(0, 20);
+
+    const places = [...placeMap.values()]
+      .map((place) => {
+        const distance_m = distanceOf(place.latitude, place.longitude);
+        const code = codeByNode.get(place.id) ?? null;
+        const score =
+          textScore([
+            place.display_name,
+            place.name_en,
+            place.neighborhood,
+            place.district,
+            place.street,
+            place.landmark,
+            place.city,
+          ]) +
+          (VERIFIED_RANK[place.verification_level] ?? 0) +
+          proximityScore(distance_m) +
+          Math.round(place.confidence_score / 8) +
+          (code ? 14 : 0) +
+          (place.place_category ? 8 : 0);
+        return { ...place, code, distance_m, score };
+      })
+      .sort((a, b) => b.score - a.score || (a.distance_m ?? 1e9) - (b.distance_m ?? 1e9))
+      .slice(0, 25);
 
     return {
       businesses,
-      places: [...placeMap.values()].sort((a, b) => b.confidence_score - a.confidence_score),
+      places,
       code: codeRes.data?.[0] ?? null,
+      codes: codeRes.data ?? [],
     };
   });
 
