@@ -180,6 +180,12 @@ function shapeAccessPoint(ap: AccessPointRow, score: number, allowed: boolean | 
     restrictions: ap.access_restrictions,
     purpose_allowed: allowed,
     score,
+    parking_info: ap.parking_info,
+    loading_info: ap.loading_info,
+    last_verified_at: ap.last_verified_at,
+    wheelchair_accessible: ap.wheelchair_accessible,
+    vehicle_access: ap.vehicle_access,
+    photo_url: ap.photo_url,
   };
 }
 
@@ -281,6 +287,13 @@ export async function resolvePublicCode(
       street: site.street,
       landmark: site.landmark,
       public_notes: site.public_notes,
+      building_number: site.building_number,
+      parking_info: site.parking_info,
+      loading_info: site.loading_info,
+      wheelchair_accessible: site.wheelchair_accessible,
+      has_elevator: site.has_elevator,
+      verification_method: site.verification_method,
+      last_verified_at: site.last_verified_at,
     },
     chain: chain.map((n) => ({
       id: n.id,
