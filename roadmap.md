@@ -9,10 +9,13 @@
 - [ ] Surface/edit new fields in the creation wizard and "my addresses" editing
 - [ ] Business fields (category, opening hours) on the card
 
-## Phase 3 — verification (open)
-- [ ] Verification state labels aligned with the six states
-- [ ] "Claim this address" flow beyond businesses; evidence upload
-- [ ] Admin queue: conflicting edits, suspicious changes
+## Phase 3 — verification (in progress)
+- [x] Claim this Address workflow: /claim/$id form (name, role, contact, method, notes) + private evidence uploads (claim-evidence bucket)
+- [x] Admin review queue /admin/claims: filters, signed evidence links, notes, granted level, approve/reject
+- [x] Conflict handling: competing pending claims flagged; approval supersedes the rest
+- [x] Audit trail: submitted / withdrawn / approved / rejected / ownership transferred
+- [ ] Verification state labels aligned with the six spec states across the app
+- [ ] Claim flow for non-business addresses; suspicious-edit detection
 
 ## Phase 4 — delivery view (open)
 - [ ] Mobile-first courier-only view per code
