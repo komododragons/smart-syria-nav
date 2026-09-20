@@ -9,6 +9,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { planAdminOverview, setAccountPlan, setEntitlementSettings } from "@/lib/plans.functions";
 import { PLANS, PLAN_ORDER, type PlanId } from "@/lib/plans";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/admin/plans")({
   head: () => ({
@@ -28,6 +29,7 @@ const card = "rounded-xl border border-border bg-surface p-4";
 const input = "w-full rounded-lg border border-border bg-background px-3 py-2 text-sm";
 
 function AdminPlansPage() {
+  const { t } = useI18n();
   const qc = useQueryClient();
   const fetchOverview = useServerFn(planAdminOverview);
   const assignPlan = useServerFn(setAccountPlan);
@@ -54,7 +56,7 @@ function AdminPlansPage() {
 
   const submit = async () => {
     if (!subjectId.trim()) {
-      toast.error("أدخل معرّف الحساب أو المؤسسة");
+      toast.error(t({ ar: "أدخل معرّف الحساب أو المؤسسة", en: "Enter the account or organization ID" }));
       return;
     }
     setSaving(true);
@@ -69,12 +71,12 @@ function AdminPlansPage() {
           notes: notes.trim() || null,
         },
       });
-      toast.success("تم حفظ الخطة");
+      toast.success(t({ ar: "تم حفظ الخطة", en: "Plan saved" }));
       setSubjectId("");
       setNotes("");
       await qc.invalidateQueries({ queryKey: ["plan-admin"] });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "تعذّر الحفظ");
+      toast.error(error instanceof Error ? error.message : t({ ar: "تعذّر الحفظ", en: "Could not save" }));
     } finally {
       setSaving(false);
     }
@@ -84,9 +86,9 @@ function AdminPlansPage() {
     try {
       await updateSettings({ data: { [field]: value } });
       await qc.invalidateQueries({ queryKey: ["plan-admin"] });
-      toast.success("تم التحديث");
+      toast.success(t({ ar: "تم التحديث", en: "Updated" }));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "تعذّر التحديث");
+      toast.error(error instanceof Error ? error.message : t({ ar: "تعذّر التحديث", en: "Could not update" }));
     }
   };
 
@@ -95,26 +97,26 @@ function AdminPlansPage() {
       <AppHeader />
       <main className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-6">
         <h1 className="flex items-center gap-2 text-lg font-bold">
-          <CreditCard className="size-4 text-primary" /> إدارة الخطط
+          <CreditCard className="size-4 text-primary" /> {t({ ar: "إدارة الخطط", en: "Plan management" })}
         </h1>
 
         {query.isPending ? (
-          <p className="py-10 text-center text-sm text-muted-foreground">جارٍ التحميل…</p>
+          <p className="py-10 text-center text-sm text-muted-foreground">{t({ ar: "جارٍ التحميل…", en: "Loading…" })}</p>
         ) : !data ? (
           <p className="rounded-xl border border-border bg-surface p-6 text-center text-sm text-muted-foreground">
-            هذه الصفحة للمشرفين فقط.
+            {t({ ar: "هذه الصفحة للمشرفين فقط.", en: "This page is for admins only." })}
           </p>
         ) : (
           <>
             <section className={card}>
-              <h2 className="text-sm font-bold">إعدادات التسعير</h2>
+              <h2 className="text-sm font-bold">{t({ ar: "إعدادات التسعير", en: "Pricing settings" })}</h2>
               <div className="mt-3 flex flex-col gap-2">
                 <button
                   type="button"
                   onClick={() => toggle("enforced", !data.enforced)}
                   className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-xs font-bold"
                 >
-                  <span>تطبيق حدود الخطط على الإجراءات</span>
+                  <span>{t({ ar: "تطبيق حدود الخطط على الإجراءات", en: "Enforce plan limits on actions" })}</span>
                   {data.enforced ? (
                     <ToggleRight className="size-5 text-primary" />
                   ) : (
@@ -126,7 +128,7 @@ function AdminPlansPage() {
                   onClick={() => toggle("pricing_published", !data.pricing_published)}
                   className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-xs font-bold"
                 >
-                  <span>إظهار الأسعار للجمهور</span>
+                  <span>{t({ ar: "إظهار الأسعار للجمهور", en: "Show pricing to the public" })}</span>
                   {data.pricing_published ? (
                     <ToggleRight className="size-5 text-primary" />
                   ) : (
@@ -135,12 +137,15 @@ function AdminPlansPage() {
                 </button>
               </div>
               <p className="mt-2 text-[11px] text-muted-foreground">
-                ما دام التطبيق متوقفاً، تُحسب الحدود وتُعرض دون منع أي إجراء.
+                {t({
+                  ar: "ما دام التطبيق متوقفاً، تُحسب الحدود وتُعرض دون منع أي إجراء.",
+                  en: "As long as enforcement is off, limits are calculated and shown without blocking any action.",
+                })}
               </p>
             </section>
 
             <section className={card}>
-              <h2 className="text-sm font-bold">إسناد خطة</h2>
+              <h2 className="text-sm font-bold">{t({ ar: "إسناد خطة", en: "Assign a plan" })}</h2>
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 <select
                   className={input}
@@ -150,12 +155,12 @@ function AdminPlansPage() {
                     setSubjectId("");
                   }}
                 >
-                  <option value="organization">مؤسسة</option>
-                  <option value="user">مستخدم</option>
+                  <option value="organization">{t({ ar: "مؤسسة", en: "Organization" })}</option>
+                  <option value="user">{t({ ar: "مستخدم", en: "User" })}</option>
                 </select>
                 {subjectType === "organization" ? (
                   <select className={input} value={subjectId} onChange={(e) => setSubjectId(e.target.value)}>
-                    <option value="">اختر المؤسسة…</option>
+                    <option value="">{t({ ar: "اختر المؤسسة…", en: "Select organization…" })}</option>
                     {data.organizations.map((org) => (
                       <option key={org.id} value={org.id}>
                         {org.name_ar}
@@ -166,7 +171,7 @@ function AdminPlansPage() {
                   <input
                     className={input}
                     dir="ltr"
-                    placeholder="معرّف المستخدم (UUID)"
+                    placeholder={t({ ar: "معرّف المستخدم (UUID)", en: "User ID (UUID)" })}
                     value={subjectId}
                     onChange={(e) => setSubjectId(e.target.value)}
                   />
@@ -179,14 +184,14 @@ function AdminPlansPage() {
                   ))}
                 </select>
                 <select className={input} value={status} onChange={(e) => setStatus(e.target.value as never)}>
-                  <option value="active">نشط</option>
-                  <option value="trialing">تجريبي</option>
-                  <option value="past_due">متأخر السداد</option>
-                  <option value="canceled">ملغى</option>
+                  <option value="active">{t({ ar: "نشط", en: "Active" })}</option>
+                  <option value="trialing">{t({ ar: "تجريبي", en: "Trialing" })}</option>
+                  <option value="past_due">{t({ ar: "متأخر السداد", en: "Past due" })}</option>
+                  <option value="canceled">{t({ ar: "ملغى", en: "Canceled" })}</option>
                 </select>
                 <input
                   className={`${input} sm:col-span-2`}
-                  placeholder="ملاحظة داخلية (اختياري)"
+                  placeholder={t({ ar: "ملاحظة داخلية (اختياري)", en: "Internal note (optional)" })}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                 />
@@ -197,13 +202,13 @@ function AdminPlansPage() {
                 onClick={submit}
                 className="mt-3 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground disabled:opacity-60"
               >
-                {saving ? "جارٍ الحفظ…" : "حفظ الخطة"}
+                {saving ? t({ ar: "جارٍ الحفظ…", en: "Saving…" }) : t({ ar: "حفظ الخطة", en: "Save plan" })}
               </button>
             </section>
 
             <section className={card}>
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-sm font-bold">الحسابات والخطط</h2>
+                <h2 className="text-sm font-bold">{t({ ar: "الحسابات والخطط", en: "Accounts and plans" })}</h2>
                 {PLAN_ORDER.map((id) => (
                   <span key={id} className="rounded-full border border-border px-2 py-0.5 text-[10px] font-bold">
                     {PLANS[id].name_ar}: {data.counts[id] ?? 0}
@@ -219,7 +224,9 @@ function AdminPlansPage() {
                       className="flex flex-wrap items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs"
                     >
                       <span className="font-bold">
-                        {row.subject_type === "organization" ? (org?.name_ar ?? "مؤسسة") : "مستخدم"}
+                        {row.subject_type === "organization"
+                          ? (org?.name_ar ?? t({ ar: "مؤسسة", en: "Organization" }))
+                          : t({ ar: "مستخدم", en: "User" })}
                       </span>
                       <span className="font-mono text-[10px] text-muted-foreground" dir="ltr">
                         {row.organization_id ?? row.user_id}
@@ -232,7 +239,9 @@ function AdminPlansPage() {
                   );
                 })}
                 {data.plans.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">لم تُسنَد أي خطة بعد — الجميع على الخطة المجانية.</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t({ ar: "لم تُسنَد أي خطة بعد — الجميع على الخطة المجانية.", en: "No plan has been assigned yet — everyone is on the free plan." })}
+                  </p>
                 ) : null}
               </div>
             </section>

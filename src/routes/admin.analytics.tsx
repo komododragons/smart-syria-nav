@@ -7,6 +7,7 @@ import { BarChart3, ShieldCheck } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { platformAnalytics } from "@/lib/analytics.functions";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/admin/analytics")({
   head: () => ({
@@ -36,6 +37,7 @@ function Stat({ label, value, hint }: { label: string; value: number | string; h
 }
 
 function AnalyticsPage() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const fetchStats = useServerFn(platformAnalytics);
   const [authed, setAuthed] = useState<boolean | null>(null);
@@ -56,13 +58,13 @@ function AnalyticsPage() {
       <div className="min-h-screen bg-background text-foreground">
         <AppHeader />
         <main className="mx-auto max-w-md px-4 py-16 text-center">
-          <h1 className="text-xl font-bold">يلزم تسجيل الدخول</h1>
+          <h1 className="text-xl font-bold">{t({ ar: "يلزم تسجيل الدخول", en: "Sign in required" })}</h1>
           <button
             type="button"
             onClick={() => navigate({ to: "/auth", search: { redirect: "/admin/analytics" } })}
             className="mt-6 rounded-lg bg-primary px-5 py-3 text-sm font-bold text-primary-foreground"
           >
-            الدخول
+            {t({ ar: "الدخول", en: "Sign in" })}
           </button>
         </main>
       </div>
@@ -78,56 +80,77 @@ function AnalyticsPage() {
       <main className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h1 className="flex items-center gap-2 text-lg font-bold">
-            <BarChart3 className="size-4 text-primary" /> تحليلات الشبكة
+            <BarChart3 className="size-4 text-primary" /> {t({ ar: "تحليلات الشبكة", en: "Network analytics" })}
           </h1>
           <select
             className="rounded-lg border border-border bg-surface px-3 py-2 text-xs font-bold"
             value={days}
             onChange={(e) => setDays(Number(e.target.value))}
           >
-            <option value={7}>آخر 7 أيام</option>
-            <option value={30}>آخر 30 يوماً</option>
-            <option value={90}>آخر 90 يوماً</option>
+            <option value={7}>{t({ ar: "آخر 7 أيام", en: "Last 7 days" })}</option>
+            <option value={30}>{t({ ar: "آخر 30 يوماً", en: "Last 30 days" })}</option>
+            <option value={90}>{t({ ar: "آخر 90 يوماً", en: "Last 90 days" })}</option>
           </select>
         </div>
 
         <p className="flex items-start gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-[11px] text-muted-foreground">
           <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-primary" />
-          كل الأرقام مجمّعة ومجهولة الهوية. لا تُسجَّل هوية أي مستخدم، ولا تظهر العناوين السكنية الخاصة في أي تفصيل.
+          {t({
+            ar: "كل الأرقام مجمّعة ومجهولة الهوية. لا تُسجَّل هوية أي مستخدم، ولا تظهر العناوين السكنية الخاصة في أي تفصيل.",
+            en: "All figures are aggregated and anonymized. No user identity is recorded, and no private residential address appears in any breakdown.",
+          })}
         </p>
 
         {query.isPending ? (
-          <p className="py-10 text-center text-sm text-muted-foreground">جارٍ التحميل…</p>
+          <p className="py-10 text-center text-sm text-muted-foreground">{t({ ar: "جارٍ التحميل…", en: "Loading…" })}</p>
         ) : !data ? (
-          <p className="py-10 text-center text-sm text-muted-foreground">هذه الصفحة للمشرفين فقط.</p>
+          <p className="py-10 text-center text-sm text-muted-foreground">{t({ ar: "هذه الصفحة للمشرفين فقط.", en: "This page is for admins only." })}</p>
         ) : (
           <>
             <section className={card}>
-              <h2 className="text-sm font-bold">حالة الشبكة</h2>
+              <h2 className="text-sm font-bold">{t({ ar: "حالة الشبكة", en: "Network status" })}</h2>
               <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                <Stat label="عناوين نشطة" value={data.network.active_addresses} />
-                <Stat label="عناوين موثقة" value={data.network.verified_addresses} />
-                <Stat label="مواقع أعمال" value={data.network.business_locations} />
-                <Stat label="عناوين أُنشئت" value={data.network.addresses_created} hint={`آخر ${data.days} يوماً`} />
-                <Stat label="مواقع أُنشئت" value={data.network.locations_created} hint={`آخر ${data.days} يوماً`} />
-                <Stat label="تصحيحات مُرسَلة" value={data.usage.corrections_submitted} hint={`آخر ${data.days} يوماً`} />
+                <Stat label={t({ ar: "عناوين نشطة", en: "Active addresses" })} value={data.network.active_addresses} />
+                <Stat label={t({ ar: "عناوين موثقة", en: "Verified addresses" })} value={data.network.verified_addresses} />
+                <Stat label={t({ ar: "مواقع أعمال", en: "Business locations" })} value={data.network.business_locations} />
+                <Stat
+                  label={t({ ar: "عناوين أُنشئت", en: "Addresses created" })}
+                  value={data.network.addresses_created}
+                  hint={t({ ar: `آخر ${data.days} يوماً`, en: `Last ${data.days} days` })}
+                />
+                <Stat
+                  label={t({ ar: "مواقع أُنشئت", en: "Locations created" })}
+                  value={data.network.locations_created}
+                  hint={t({ ar: `آخر ${data.days} يوماً`, en: `Last ${data.days} days` })}
+                />
+                <Stat
+                  label={t({ ar: "تصحيحات مُرسَلة", en: "Corrections submitted" })}
+                  value={data.usage.corrections_submitted}
+                  hint={t({ ar: `آخر ${data.days} يوماً`, en: `Last ${data.days} days` })}
+                />
               </div>
             </section>
 
             <section className={card}>
-              <h2 className="text-sm font-bold">الاستخدام خلال آخر {data.days} يوماً</h2>
+              <h2 className="text-sm font-bold">
+                {t({ ar: `الاستخدام خلال آخر ${data.days} يوماً`, en: `Usage over the last ${data.days} days` })}
+              </h2>
               <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                <Stat label="عمليات حلّ العنوان" value={data.usage.resolve} />
-                <Stat label="مسح رموز QR" value={data.usage.qr_scan} />
-                <Stat label="بدء التوجيه" value={data.usage.navigate_start} />
-                <Stat label="فتح وضع التوصيل" value={data.usage.delivery_view} hint={`${data.usage.delivery_share}% من نية التوجيه`} />
-                <Stat label="ظهور في البحث" value={data.usage.search_appearance} />
-                <Stat label="طلبات الواجهة البرمجية" value={data.usage.api_requests} />
+                <Stat label={t({ ar: "عمليات حلّ العنوان", en: "Address resolutions" })} value={data.usage.resolve} />
+                <Stat label={t({ ar: "مسح رموز QR", en: "QR scans" })} value={data.usage.qr_scan} />
+                <Stat label={t({ ar: "بدء التوجيه", en: "Navigation starts" })} value={data.usage.navigate_start} />
+                <Stat
+                  label={t({ ar: "فتح وضع التوصيل", en: "Delivery mode opens" })}
+                  value={data.usage.delivery_view}
+                  hint={t({ ar: `${data.usage.delivery_share}% من نية التوجيه`, en: `${data.usage.delivery_share}% of navigation intent` })}
+                />
+                <Stat label={t({ ar: "ظهور في البحث", en: "Search appearances" })} value={data.usage.search_appearance} />
+                <Stat label={t({ ar: "طلبات الواجهة البرمجية", en: "API requests" })} value={data.usage.api_requests} />
               </div>
             </section>
 
             <section className={card}>
-              <h2 className="text-sm font-bold">النشاط اليومي</h2>
+              <h2 className="text-sm font-bold">{t({ ar: "النشاط اليومي", en: "Daily activity" })}</h2>
               <div className="mt-3 flex h-28 items-end gap-0.5" dir="ltr">
                 {data.series.map((point) => (
                   <div
@@ -139,17 +162,19 @@ function AnalyticsPage() {
                 ))}
               </div>
               <p className="mt-2 text-[11px] text-muted-foreground">
-                الذروة: {peak} حدثاً في اليوم · إجمالي الأحداث المسجّلة في الفترة:{" "}
-                {data.series.reduce((sum, s) => sum + s.count, 0)}
+                {t({
+                  ar: `الذروة: ${peak} حدثاً في اليوم · إجمالي الأحداث المسجّلة في الفترة: ${data.series.reduce((sum, s) => sum + s.count, 0)}`,
+                  en: `Peak: ${peak} events in a day · Total events logged in this period: ${data.series.reduce((sum, s) => sum + s.count, 0)}`,
+                })}
               </p>
             </section>
 
             <section className={card}>
-              <h2 className="text-sm font-bold">الأكثر استخداماً (عناوين عامة فقط)</h2>
+              <h2 className="text-sm font-bold">{t({ ar: "الأكثر استخداماً (عناوين عامة فقط)", en: "Most used (public addresses only)" })}</h2>
               <div className="mt-3 flex flex-col gap-2">
                 {data.top_addresses.map((row) => (
                   <div key={row.code} className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs">
-                    <span className="font-bold">{row.label || "موقع عام"}</span>
+                    <span className="font-bold">{row.label || t({ ar: "موقع عام", en: "Public location" })}</span>
                     <span className="font-mono text-muted-foreground" dir="ltr">
                       {row.code}
                     </span>
@@ -157,7 +182,7 @@ function AnalyticsPage() {
                   </div>
                 ))}
                 {data.top_addresses.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">لا يوجد نشاط كافٍ في هذه الفترة.</p>
+                  <p className="text-sm text-muted-foreground">{t({ ar: "لا يوجد نشاط كافٍ في هذه الفترة.", en: "Not enough activity in this period." })}</p>
                 ) : null}
               </div>
             </section>
