@@ -106,7 +106,10 @@ export const updatePrivacy = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => updateSchema.parse(input))
   .handler(async ({ data, context }) => {
     const current = await readPrivacy(context.supabase, context.userId);
-    const next = { ...current, ...data };
+    const next: PrivacyPreferences = { ...current };
+    for (const [key, value] of Object.entries(data)) {
+      if (value !== undefined) (next as Record<string, unknown>)[key] = value;
+    }
 
     const { error } = await context.supabase
       .from("privacy_preferences")
