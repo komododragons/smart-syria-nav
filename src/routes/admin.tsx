@@ -14,7 +14,7 @@ import {
   reviewDuplicate,
   verifierQueue,
 } from "@/lib/network.functions";
-import { CORRECTION_TYPES, NODE_TYPE_LABELS, PURPOSE_LABELS } from "@/lib/smart-address";
+import { CORRECTION_TYPE_LABELS, NODE_TYPE_LABELS, PURPOSE_LABELS } from "@/lib/smart-address";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -267,8 +267,7 @@ function AdminPage() {
                     <div key={item.id} className="rounded-lg border border-border bg-background p-3">
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-sm font-bold">
-                          {CORRECTION_TYPES.find((t) => t.value === item.issue_type)?.ar ??
-                            item.issue_type}
+                          {CORRECTION_TYPE_LABELS[item.issue_type] ?? item.issue_type}
                         </span>
                         {item.smart_code ? (
                           <span className="font-mono text-[11px]" dir="ltr">
