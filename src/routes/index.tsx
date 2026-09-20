@@ -586,12 +586,13 @@ function ResolverPage() {
                       <QrCard
                         url={
                           typeof window === "undefined"
-                            ? `https://smartaddress.sy/?code=${ok.code}`
-                            : `${window.location.origin}/?code=${ok.code}`
+                            ? `https://syriasan.com/a/${ok.code}`
+                            : `${window.location.origin}/a/${ok.code}`
                         }
                         code={ok.code}
                         title={ok.site.display_name}
                         subtitle={[ok.site.neighborhood, ok.site.city].filter(Boolean).join(" — ")}
+                        logoUrl={ok.business?.logo_url}
                         onClose={() => setShowQr(false)}
                       />
                     ) : null}

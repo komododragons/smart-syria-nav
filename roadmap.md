@@ -24,3 +24,9 @@
 - [x] Field-level share toggles (location/building/entrance/floor/unit/instructions/parking/phone/name)
 - [x] Expiry presets 1h / 24h / 7d + custom hours, one-time use, optional label
 - [x] Active links list with copy + revoke; /t/TOKEN redacts to the shared fields only, noindex
+
+## Phase 6 — QR address system — DONE
+- [x] Canonical public or authorized destination encoded in every QR
+- [x] Download, print, and native share actions
+- [x] Printable A6, A5, A4, sticker, door-plate, and shop-window templates
+- [x] Optional business logo on address plates

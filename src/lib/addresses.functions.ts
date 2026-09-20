@@ -794,7 +794,7 @@ export const getBusinessProfile = createServerFn({ method: "POST" })
     const { data: biz, error } = await supa
       .from("businesses")
       .select(
-        "id, name_ar, name_en, category, phone, website, opening_hours, verification_level, node_id, visitor_access_point_id, delivery_access_point_id, smart_addresses(code), location_nodes(display_name, governorate, city, district, neighborhood, street, landmark, latitude, longitude, confidence_score)",
+        "id, name_ar, name_en, category, phone, website, opening_hours, logo_url, verification_level, node_id, visitor_access_point_id, delivery_access_point_id, smart_addresses(code), location_nodes(display_name, governorate, city, district, neighborhood, street, landmark, latitude, longitude, confidence_score)",
       )
       .eq("id", data.id)
       .eq("is_published", true)
@@ -837,6 +837,7 @@ export const getBusinessProfile = createServerFn({ method: "POST" })
         phone: biz.phone,
         website: biz.website,
         opening_hours: biz.opening_hours,
+        logo_url: biz.logo_url,
         verification_level: biz.verification_level,
       },
       node: Array.isArray(biz.location_nodes) ? biz.location_nodes[0] : biz.location_nodes,

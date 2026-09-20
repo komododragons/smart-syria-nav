@@ -191,8 +191,59 @@
   }
 }
 
-/* Printable QR card: only the sheet is visible when printing. */
+.qr-address-plate {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  width: min(100%, 22rem);
+}
+
+.qr-address-plate.is-plate {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 28rem;
+}
+
+.plate-brand-row {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.plate-logo {
+  height: 3.25rem;
+  max-width: 7rem;
+  object-fit: contain;
+}
+
+.plate-brand { font: 700 1rem/1.2 var(--font-mono); letter-spacing: 0; }
+.plate-brand-ar { color: var(--color-muted-foreground); font-size: 0.65rem; font-weight: 700; }
+.plate-title { font-size: 1.15rem; font-weight: 700; line-height: 1.35; margin-top: 0.8rem; }
+.plate-subtitle { color: var(--color-muted-foreground); font-size: 0.75rem; margin-top: 0.15rem; }
+.plate-qr { color: var(--color-foreground); margin: 1rem auto 0; width: 11rem; }
+.plate-code { font: 700 1.25rem/1.4 var(--font-mono); letter-spacing: 0; margin-top: 0.75rem; }
+.plate-scan-ar { font-size: 0.8rem; font-weight: 700; margin-top: 0.35rem; }
+.plate-scan-en { color: var(--color-muted-foreground); font: 600 0.68rem/1.4 var(--font-sans); letter-spacing: 0; }
+.plate-privacy { color: var(--color-muted-foreground); font-size: 0.62rem; margin-top: 0.55rem; }
+
+.qr-address-plate[data-format="a4"] { aspect-ratio: 210 / 297; width: min(100%, 28rem); }
+.qr-address-plate[data-format="a5"] { aspect-ratio: 148 / 210; width: min(100%, 24rem); }
+.qr-address-plate[data-format="a6"] { aspect-ratio: 105 / 148; width: min(100%, 20rem); }
+.qr-address-plate[data-format="sticker"] { aspect-ratio: 1; min-height: auto; width: min(100%, 20rem); }
+.qr-address-plate[data-format="door"] { aspect-ratio: 2; min-height: auto; width: min(100%, 32rem); }
+.qr-address-plate[data-format="window"] { aspect-ratio: 3 / 2; min-height: auto; width: min(100%, 34rem); }
+.qr-address-plate[data-format="door"] .plate-title,
+.qr-address-plate[data-format="door"] .plate-subtitle { display: none; }
+.qr-address-plate[data-format="door"] .plate-qr { margin-top: 0.5rem; width: 7rem; }
+.qr-address-plate[data-format="door"] .plate-brand-ar,
+.qr-address-plate[data-format="door"] .plate-scan-en { display: none; }
+
+/* Printable QR card or address plate: only the selected sheet is visible. */
 @media print {
+  @page { margin: 0; size: auto; }
   body * {
     visibility: hidden;
   }
@@ -205,8 +256,22 @@
     inset: 0;
     background: #fff !important;
     backdrop-filter: none !important;
+    padding: 0 !important;
   }
   .qr-print-sheet .no-print {
     display: none !important;
   }
+  .qr-address-plate {
+    border: 0;
+    border-radius: 0;
+    color: #0f1b3d !important;
+    height: 100vh;
+    max-width: none;
+    padding: 10mm;
+    width: 100vw;
+  }
+  .qr-address-plate .plate-qr { color: #0f1b3d !important; }
+  .qr-address-plate .plate-brand-ar,
+  .qr-address-plate .plate-subtitle,
+  .qr-address-plate .plate-scan-en { color: #334e68 !important; }
 }

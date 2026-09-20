@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Copy, EyeOff, Globe, Pencil, ShieldCheck, Star, Timer, Trash2 } from "lucide-react";
+import { Copy, EyeOff, Globe, Pencil, QrCode, ShieldCheck, Star, Timer, Trash2 } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
 import { DirectionsButton } from "@/components/DirectionsButton";
@@ -65,6 +65,7 @@ function MyAddressesPage() {
   const tempFn = useServerFn(createTemporaryAddress);
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [openFor, setOpenFor] = useState<string | null>(null);
+  const [qrFor, setQrFor] = useState<string | null>(null);
   const [purpose, setPurpose] = useState<string>("parcel_delivery");
   const [hours, setHours] = useState(24);
   const [oneUse, setOneUse] = useState(true);
@@ -340,6 +341,15 @@ function MyAddressesPage() {
                 >
                   <Copy className="size-3.5" /> نسخ
                 </button>
+                {row.is_public ? (
+                  <button
+                    type="button"
+                    onClick={() => setQrFor(row.id)}
+                    className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-bold"
+                  >
+                    <QrCode className="size-3.5" /> QR ولوحة
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   onClick={() => {
@@ -386,6 +396,20 @@ function MyAddressesPage() {
                   </button>
                 ) : null}
               </div>
+
+              {qrFor === row.id && row.is_public ? (
+                <QrCard
+                  url={
+                    typeof window === "undefined"
+                      ? `https://syriasan.com/a/${row.code}`
+                      : `${window.location.origin}/a/${row.code}`
+                  }
+                  code={row.code}
+                  title={row.label ?? node?.display_name ?? "عنوان ذكي"}
+                  subtitle={[node?.neighborhood, node?.city].filter(Boolean).join(" — ")}
+                  onClose={() => setQrFor(null)}
+                />
+              ) : null}
 
               {editFor === row.id && node?.id ? (
                 <div className="mt-3 rounded-xl border border-border bg-background p-3">
