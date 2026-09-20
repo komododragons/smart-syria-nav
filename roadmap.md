@@ -62,3 +62,10 @@
 - [x] Usage metering (endpoint, method, status, scope, response time) + audit logs for writes/revocations
 - [x] Private residential addresses never exposed (403 private)
 - [x] Arabic API reference page at /api-reference
+
+## Phase 11 — Developer Portal [DONE]
+- [x] /docs portal: Authentication, Sandbox, Resolve, Validate, Search, Create, QR, Navigation, Webhooks, Errors, Rate Limits, Privacy
+- [x] Copyable cURL / JavaScript / TypeScript samples per section (CodeTabs)
+- [x] Live sandbox console (paste key, run real request, shows status + mode + rate-limit headers)
+- [x] Sandbox mode: `test` clients simulate writes, X-Syriasan-Mode header on every response
+- [x] Webhooks: api_webhooks table, create/list/test/delete endpoints, HMAC-SHA256 signed deliveries on address events
