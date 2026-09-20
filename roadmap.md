@@ -17,7 +17,7 @@
 - [ ] Verification state labels aligned with the six spec states across the app
 - [ ] Claim flow for non-business addresses; suspicious-edit detection
 
-## Phase 4 — delivery view (open)
+## Phase 4 — delivery view — DONE (/d/:CODE mobile-first courier view)
 - [ ] Mobile-first courier-only view per code
 
 ## Phase 5 — temporary sharing (open)
