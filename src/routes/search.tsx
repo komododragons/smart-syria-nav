@@ -171,23 +171,23 @@ function SearchPage() {
           </p>
         ) : null}
 
-        {data?.code ? (
-          <Link
-            to="/"
-            search={{ code: data.code.code }}
-            className="animate-entrance rounded-2xl border border-primary/40 bg-primary/5 p-4"
-          >
-            <span className="text-[10px] font-bold uppercase tracking-widest text-primary">
-              عنوان ذكي مطابق
-            </span>
-            <p className="font-mono text-lg" dir="ltr">
-              {data.code.code}
-            </p>
-            <p className="text-xs text-muted-foreground">{data.code.label ?? "حلّل هذا الرمز"}</p>
-            <span className="mt-2 inline-block">
-              <DirectionsButton code={data.code.code} variant="chip" />
-            </span>
-          </Link>
+        {data?.codes.length ? (
+          <section className="animate-entrance space-y-2">
+            {data.codes.map((hit) => (
+              <div key={hit.code} className="rounded-2xl border border-primary/40 bg-primary/5 p-4">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-primary">
+                  عنوان ذكي مطابق
+                </span>
+                <Link to="/a/$code" params={{ code: hit.code }} className="block font-mono text-lg" dir="ltr">
+                  {hit.code}
+                </Link>
+                <p className="text-xs text-muted-foreground">{hit.label ?? "افتح بطاقة العنوان"}</p>
+                <span className="mt-2 inline-block">
+                  <DirectionsButton code={hit.code} variant="chip" />
+                </span>
+              </div>
+            ))}
+          </section>
         ) : null}
 
         {data?.businesses.length ? (
@@ -204,15 +204,19 @@ function SearchPage() {
                   ? biz.smart_addresses[0]
                   : biz.smart_addresses;
                 return (
-                  <Link
+                  <div
                     key={biz.id}
-                    to="/business/$id"
-                    params={{ id: biz.id }}
                     className="block rounded-xl border border-border bg-surface p-4 shadow-sm transition-colors hover:border-primary/50"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="font-bold leading-tight">{biz.name_ar}</p>
+                        <Link
+                          to="/business/$id"
+                          params={{ id: biz.id }}
+                          className="font-bold leading-tight hover:text-primary"
+                        >
+                          {biz.name_ar}
+                        </Link>
                         <p className="text-xs text-muted-foreground">
                           {[
                             PLACE_CATEGORY_META[biz.place_category ?? ""]?.ar ?? biz.category,
@@ -242,7 +246,7 @@ function SearchPage() {
                         <span className="font-mono">{formatDistance(biz.distance_m)}</span>
                       ) : null}
                     </div>
-                  </Link>
+                  </div>
                 );
               })}
             </div>
