@@ -1,5 +1,17 @@
-import { Printer, X } from "lucide-react";
+import { Download, LayoutTemplate, Printer, QrCode, Share2, X } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
+import { useId, useState } from "react";
+
+type PlateFormat = "a6" | "a5" | "a4" | "sticker" | "door" | "window";
+
+const PLATE_FORMATS: { value: PlateFormat; label: string; dimensions: string }[] = [
+  { value: "a6", label: "A6", dimensions: "105 × 148 mm" },
+  { value: "a5", label: "A5", dimensions: "148 × 210 mm" },
+  { value: "a4", label: "A4", dimensions: "210 × 297 mm" },
+  { value: "sticker", label: "ملصق", dimensions: "90 × 90 mm" },
+  { value: "door", label: "لوحة باب", dimensions: "200 × 100 mm" },
+  { value: "window", label: "واجهة محل", dimensions: "300 × 200 mm" },
+];
 
 /**
  * Printable QR card for a smart code. The overlay doubles as the print sheet:
@@ -10,14 +22,60 @@ export function QrCard({
   code,
   title,
   subtitle,
+  logoUrl,
   onClose,
 }: {
   url: string;
   code: string;
   title: string;
   subtitle?: string;
+  logoUrl?: string | null;
   onClose: () => void;
 }) {
+  const qrId = useId().replace(/:/g, "");
+  const [plateMode, setPlateMode] = useState(false);
+  const [format, setFormat] = useState<PlateFormat>("a6");
+
+  const qrSvg = () => document.getElementById(qrId)?.querySelector("svg");
+  const qrBlob = () => {
+    const svg = qrSvg();
+    if (!svg) return null;
+    const copy = svg.cloneNode(true) as SVGElement;
+    copy.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    copy.setAttribute("width", "1024");
+    copy.setAttribute("height", "1024");
+    return new Blob([new XMLSerializer().serializeToString(copy)], { type: "image/svg+xml;charset=utf-8" });
+  };
+
+  const downloadQr = () => {
+    const blob = qrBlob();
+    if (!blob) return;
+    const objectUrl = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = objectUrl;
+    anchor.download = `syriasan-${code}.svg`;
+    anchor.click();
+    URL.revokeObjectURL(objectUrl);
+  };
+
+  const shareQr = async () => {
+    const blob = qrBlob();
+    const file = blob ? new File([blob], `syriasan-${code}.svg`, { type: blob.type }) : null;
+    if (navigator.share) {
+      try {
+        if (file && navigator.canShare?.({ files: [file] })) {
+          await navigator.share({ title: `${code} — ${title}`, text: "امسح للوصول إلى العنوان", url, files: [file] });
+        } else {
+          await navigator.share({ title: `${code} — ${title}`, text: "امسح للوصول إلى العنوان", url });
+        }
+        return;
+      } catch {
+        return;
+      }
+    }
+    await navigator.clipboard.writeText(url);
+  };
+
   return (
     <div
       className="qr-print-sheet fixed inset-0 z-[60] flex items-center justify-center bg-background/85 p-4 backdrop-blur-sm"
@@ -27,42 +85,87 @@ export function QrCard({
       aria-label={`رمز QR للعنوان ${code}`}
     >
       <div
-        className="w-full max-w-xs rounded-2xl border border-border bg-surface p-6 text-center shadow-plate"
+        className="flex max-h-[94vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-plate"
         onClick={(event) => event.stopPropagation()}
       >
-        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-          شبكة العنوان الذكي السورية
-        </p>
-        <h2 className="mt-1 text-base font-bold leading-tight">{title}</h2>
-        {subtitle ? <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p> : null}
+        <header className="no-print flex items-center justify-between border-b border-border px-4 py-3">
+          <div className="flex items-center gap-2">
+            <QrCode className="size-4 text-primary" />
+            <h2 className="text-sm font-bold">نظام QR ولوحة العنوان</h2>
+          </div>
+          <button type="button" onClick={onClose} aria-label="إغلاق" className="grid size-9 place-items-center rounded-lg border border-border">
+            <X className="size-4" />
+          </button>
+        </header>
 
-        <div className="mx-auto mt-4 grid w-fit place-items-center rounded-xl border border-border bg-surface p-3">
-          <QRCodeSVG value={url} size={180} bgColor="transparent" fgColor="currentColor" className="text-foreground" />
-        </div>
-
-        <p className="mt-3 font-mono text-lg font-bold" dir="ltr">
-          {code}
-        </p>
-        <p className="mt-1 text-[10px] text-muted-foreground">
-          امسح الرمز لفتح تفاصيل الوصول — لا يحتوي أي بيانات شخصية.
-        </p>
-
-        <div className="no-print mt-4 flex gap-2">
+        <div className="no-print flex gap-2 border-b border-border p-3">
           <button
             type="button"
-            onClick={() => window.print()}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary px-3 py-2.5 text-sm font-bold text-primary-foreground"
+            onClick={() => setPlateMode(false)}
+            className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold ${!plateMode ? "bg-primary text-primary-foreground" : "border border-border"}`}
           >
-            <Printer className="size-4" />
-            طباعة
+            <QrCode className="size-3.5" /> رمز QR
           </button>
           <button
             type="button"
-            onClick={onClose}
-            className="flex items-center gap-1.5 rounded-xl border border-border px-3 py-2.5 text-sm font-bold"
+            onClick={() => setPlateMode(true)}
+            className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold ${plateMode ? "bg-primary text-primary-foreground" : "border border-border"}`}
           >
-            <X className="size-4" />
-            إغلاق
+            <LayoutTemplate className="size-3.5" /> إنشاء لوحة عنوان
+          </button>
+        </div>
+
+        {plateMode ? (
+          <div className="no-print flex gap-2 overflow-x-auto border-b border-border p-3">
+            {PLATE_FORMATS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setFormat(option.value)}
+                title={option.dimensions}
+                className={`shrink-0 rounded-lg px-3 py-2 text-xs font-bold ${format === option.value ? "bg-foreground text-background" : "border border-border"}`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
+        <div className="overflow-auto bg-secondary p-4 sm:p-6">
+          <div className={`qr-address-plate mx-auto bg-surface text-center text-foreground ${plateMode ? "is-plate" : "is-qr"}`} data-format={format}>
+            <div className="plate-brand-row">
+              {plateMode && logoUrl ? <img src={logoUrl} alt={`شعار ${title}`} className="plate-logo" /> : null}
+              <div>
+                <p className="plate-brand">SYRIASAN</p>
+                <p className="plate-brand-ar">شبكة العنوان الذكي السورية</p>
+              </div>
+            </div>
+            {plateMode ? <h3 className="plate-title">{title}</h3> : null}
+            {plateMode && subtitle ? <p className="plate-subtitle">{subtitle}</p> : null}
+            <div id={qrId} className="plate-qr">
+              <QRCodeSVG value={url} size={240} level="H" bgColor="transparent" fgColor="currentColor" className="size-full text-foreground" />
+            </div>
+            <p className="plate-code" dir="ltr">{code}</p>
+            <p className="plate-scan-ar">امسح للوصول إلى العنوان</p>
+            <p className="plate-scan-en" dir="ltr">Scan to Navigate</p>
+            {!plateMode ? <p className="plate-privacy">يفتح صفحة العنوان المصرّح بها دون إضافة بيانات إلى رمز QR نفسه.</p> : null}
+          </div>
+        </div>
+
+        <div className="no-print grid grid-cols-2 gap-2 border-t border-border p-3 sm:grid-cols-3">
+          <button type="button" onClick={downloadQr} className="flex items-center justify-center gap-1.5 rounded-lg border border-border px-3 py-2.5 text-xs font-bold">
+            <Download className="size-4" /> تنزيل QR
+          </button>
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="flex items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2.5 text-xs font-bold text-primary-foreground"
+          >
+            <Printer className="size-4" />
+            {plateMode ? "طباعة اللوحة" : "طباعة QR"}
+          </button>
+          <button type="button" onClick={() => void shareQr()} className="col-span-2 flex items-center justify-center gap-1.5 rounded-lg border border-border px-3 py-2.5 text-xs font-bold sm:col-span-1">
+            <Share2 className="size-4" /> مشاركة QR
           </button>
         </div>
       </div>

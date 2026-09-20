@@ -315,10 +315,11 @@ function BusinessPage() {
 
             {showQr && ok.smart_code ? (
               <QrCard
-                url={`${window.location.origin}/?code=${ok.smart_code}`}
+                url={`${window.location.origin}/a/${ok.smart_code}`}
                 code={ok.smart_code}
                 title={ok.business!.name_ar}
                 subtitle={[ok.node?.neighborhood, ok.node?.city].filter(Boolean).join(" — ")}
+                logoUrl={ok.business!.logo_url}
                 onClose={() => setShowQr(false)}
               />
             ) : null}

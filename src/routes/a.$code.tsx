@@ -496,6 +496,7 @@ function AddressCardPage() {
               code={ok.code}
               title={ok.site.display_name}
               subtitle={[ok.site.neighborhood, ok.site.city].filter(Boolean).join(" — ")}
+              logoUrl={ok.business?.logo_url}
               onClose={() => setShowQr(false)}
             />
           ) : null}
