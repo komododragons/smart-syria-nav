@@ -177,6 +177,38 @@ export function normalizeArabic(value: string): string {
     .replace(/\s+/g, " ");
 }
 
+const ARABIC_EQUIVALENTS: Record<string, string[]> = {
+  ا: ["ا", "أ", "إ", "آ"],
+  أ: ["ا", "أ", "إ", "آ"],
+  إ: ["ا", "أ", "إ", "آ"],
+  آ: ["ا", "أ", "إ", "آ"],
+  ي: ["ي", "ى"],
+  ى: ["ي", "ى"],
+  ه: ["ه", "ة"],
+  ة: ["ه", "ة"],
+  و: ["و", "ؤ"],
+};
+
+/** Escapes LIKE wildcards so user input can't widen a pattern. */
+export function escapeLike(value: string): string {
+  return value.replace(/[%_\\,]/g, " ").trim();
+}
+
+/**
+ * A LIKE pattern that tolerates Arabic spelling variations (أ/إ/آ/ا, ي/ى,
+ * ه/ة, ؤ/و) by matching those letters with a single-character wildcard, so a
+ * user typing "المزه" still finds "المزة". Results are re-scored afterwards.
+ */
+export function tolerantPatterns(value: string): string[] {
+  const base = escapeLike(value.trim().toLowerCase());
+  if (!base) return [];
+  const loose = (input: string) => input.replace(/[اأإآيىهةوؤ]/g, "_");
+  const out = new Set<string>([loose(base)]);
+  if (base.startsWith("ال") && base.length > 4) out.add(loose(base.slice(2)));
+  out.add(base);
+  return [...out];
+}
+
 export function confidenceBand(score: number): { ar: string; tone: "high" | "medium" | "low" } {
   if (score >= 80) return { ar: "درجة عالية", tone: "high" };
   if (score >= 55) return { ar: "درجة متوسطة", tone: "medium" };

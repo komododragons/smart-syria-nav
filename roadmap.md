@@ -101,3 +101,5 @@
 - src/lib/place-categories.ts (taxonomy + RESIDENTIAL_NODE_TYPES), src/lib/places.functions.ts (listPublicPlaces, placeCategoryCounts), /places directory route.
 - searchNetwork accepts category + drops residential node types; /search has category chips; header links /places.
 - Category pickers in create wizard business step and dashboard branch form.
+
+PHASE 17 — SEARCH IMPROVEMENT — DONE
