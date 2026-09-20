@@ -87,3 +87,11 @@
 - [x] Copy Emergency Address (dispatch-friendly plain text), Share Emergency Location, Navigate
 - [x] Linked from the destination card; noindex; no private residential data
 - [x] Explicit notice: no official ambulance / civil-defense integration exists yet
+
+## Phase 15 — Offline-first support [DONE]
+- [x] Installable app: manifest, icons, theme colour, Add to Home Screen
+- [x] Service worker (vite-plugin-pwa, published site only — never in preview/dev/iframe, ?sw=off kill switch)
+- [x] Cached app shell: NetworkFirst pages, CacheFirst hashed assets, cached OSM tiles
+- [x] Recently opened addresses cached locally and listed on /offline
+- [x] Downloadable regional address packages per governorate (Damascus, Aleppo, Homs, Latakia, Tartous, …) — public addresses only; architecture leaves room for full map/routing payloads later
+- [x] Offline banner warning that verification and route data may be outdated
