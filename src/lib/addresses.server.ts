@@ -6,6 +6,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
 import { normalizeCode, type Purpose } from "./smart-address";
+import { routingContext, type RoutingContext } from "./routing-contexts";
 
 export type PublicClient = SupabaseClient<Database>;
 
@@ -30,6 +31,15 @@ export function serverPublicClient(): PublicClient {
 export type NodeRow = Database["public"]["Tables"]["location_nodes"]["Row"];
 export type AccessPointRow = Database["public"]["Tables"]["access_points"]["Row"] & {
   access_point_purposes: { purpose: string; allowed: boolean; note: string | null }[];
+  access_point_contexts: {
+    context: string;
+    allowed: boolean;
+    approach_ar: string | null;
+    approach_en: string | null;
+    preferred_road: string | null;
+    vehicle_note: string | null;
+    note: string | null;
+  }[];
   access_restrictions: { restriction: string; note_ar: string | null }[];
 };
 
@@ -55,6 +65,13 @@ export type ResolvedAccessPoint = {
   wheelchair_accessible: boolean;
   vehicle_access: boolean;
   photo_url: string | null;
+  /** Context-specific approach for the requested routing context. */
+  context: string;
+  context_approach: string | null;
+  context_preferred_road: string | null;
+  context_vehicle_note: string | null;
+  context_note: string | null;
+  context_defined: boolean;
 };
 
 export type ResolveResult =
@@ -66,6 +83,7 @@ export type ResolveResult =
       code: string;
       redirected_from?: string | undefined;
       purpose: Purpose;
+      context: RoutingContext;
       label: string | null;
       site: { id: string; display_name: string; node_type: string; latitude: number | null; longitude: number | null; governorate: string | null; city: string | null; district: string | null; neighborhood: string | null; street: string | null; landmark: string | null; public_notes: string | null; building_number: string | null; parking_info: string | null; loading_info: string | null; wheelchair_accessible: boolean | null; has_elevator: boolean | null; verification_method: string | null; last_verified_at: string | null };
       chain: { id: string; node_type: string; display_name: string; name_en: string | null; unit_label: string | null; floor_label: string | null; description: string | null }[];
@@ -147,7 +165,15 @@ async function subtreeIds(supa: PublicClient, rootId: string): Promise<string[]>
   return ids;
 }
 
-function scoreAccessPoint(ap: AccessPointRow, purpose: Purpose): { score: number; allowed: boolean | null; reason: string | null } {
+function scoreAccessPoint(
+  ap: AccessPointRow,
+  purpose: Purpose,
+  context: RoutingContext,
+): { score: number; allowed: boolean | null; reason: string | null } {
+  const ctx = ap.access_point_contexts.find((c) => c.context === context);
+  if (ctx && !ctx.allowed) {
+    return { score: -1, allowed: false, reason: ctx.note ?? "هذا المدخل غير مخصص لهذا السياق" };
+  }
   const record = ap.access_point_purposes.find((p) => p.purpose === purpose);
   if (record && !record.allowed) {
     return { score: -1, allowed: false, reason: record.note ?? "هذا الغرض ممنوع من هذا المدخل" };
@@ -167,6 +193,17 @@ function scoreAccessPoint(ap: AccessPointRow, purpose: Purpose): { score: number
 
   let score = record?.allowed ? 100 : 25;
   if ((ACCESS_TYPE_AFFINITY[ap.access_type] ?? []).includes(purpose)) score += 30;
+  // An explicit context entry is the strongest signal an owner can give.
+  if (ctx) score += ctx.approach_ar || ctx.approach_en ? 70 : 45;
+  if (routingContext(context).preferredAccessTypes.includes(ap.access_type)) score += 20;
+  if (context === "heavy_freight" && !ap.vehicle_access) score -= 40;
+  if (context === "heavy_freight" && ap.is_loading_entrance) score += 25;
+  if ((context === "parcel" || context === "commercial_delivery") && ap.is_delivery_entrance) score += 25;
+  if ((context === "parcel" || context === "commercial_delivery") && !ap.delivery_allowed) score -= 35;
+  if (context === "emergency" && ap.is_emergency_entrance) score += 45;
+  if (context === "visitor" && ap.is_pedestrian_entrance) score += 20;
+  if (context === "accessible") score += ap.wheelchair_accessible ? 45 : -35;
+  if (context === "standard" && ap.is_primary) score += 20;
   score += Math.round(ap.confidence_score * 0.2);
   if (ap.temporarily_closed) score -= 60;
   else if (isOpenNow(ap)) score += 15;
@@ -174,7 +211,13 @@ function scoreAccessPoint(ap: AccessPointRow, purpose: Purpose): { score: number
   return { score, allowed: record?.allowed ?? null, reason: null };
 }
 
-function shapeAccessPoint(ap: AccessPointRow, score: number, allowed: boolean | null): ResolvedAccessPoint {
+function shapeAccessPoint(
+  ap: AccessPointRow,
+  score: number,
+  allowed: boolean | null,
+  context: RoutingContext,
+): ResolvedAccessPoint {
+  const ctx = ap.access_point_contexts.find((c) => c.context === context);
   return {
     id: ap.id,
     display_name: ap.display_name,
@@ -197,16 +240,25 @@ function shapeAccessPoint(ap: AccessPointRow, score: number, allowed: boolean | 
     wheelchair_accessible: ap.wheelchair_accessible,
     vehicle_access: ap.vehicle_access,
     photo_url: ap.photo_url,
+    context,
+    context_approach: ctx?.approach_ar ?? ctx?.approach_en ?? null,
+    context_preferred_road: ctx?.preferred_road ?? null,
+    context_vehicle_note: ctx?.vehicle_note ?? null,
+    context_note: ctx?.note ?? null,
+    context_defined: Boolean(ctx),
   };
 }
 
 export async function resolvePublicCode(
   rawCode: string,
   purpose: Purpose,
-  options: { requireWheelchair?: boolean } = {},
+  options: { requireWheelchair?: boolean; context?: RoutingContext } = {},
 ): Promise<ResolveResult> {
   const supa = serverPublicClient();
   const code = normalizeCode(rawCode);
+  const ctxDef = routingContext(options.context);
+  const context = ctxDef.value;
+  const wantsWheelchair = options.requireWheelchair || ctxDef.requireWheelchair;
 
   let redirectedFrom: string | undefined;
   let record = (
@@ -244,7 +296,9 @@ export async function resolvePublicCode(
 
   const { data: apsRaw } = await supa
     .from("access_points")
-    .select("*, access_point_purposes(purpose, allowed, note), access_restrictions(restriction, note_ar)")
+    .select(
+      "*, access_point_purposes(purpose, allowed, note), access_restrictions(restriction, note_ar), access_point_contexts(context, allowed, approach_ar, approach_en, preferred_road, vehicle_note, note)",
+    )
     .in("node_id", ids)
     .eq("is_active", true)
     .order("sort_order", { ascending: true });
@@ -264,23 +318,29 @@ export async function resolvePublicCode(
   const prohibited: { display_name: string; reason: string }[] = [];
 
   for (const ap of aps) {
-    const { score, allowed, reason } = scoreAccessPoint(ap, purpose);
+    const { score, allowed, reason } = scoreAccessPoint(ap, purpose, context);
     if (score < 0) {
       prohibited.push({ display_name: ap.display_name, reason: reason ?? "غير مسموح" });
       continue;
     }
     let adjusted = score;
-    if (options.requireWheelchair) {
+    if (wantsWheelchair) {
       adjusted += (ap.accessibility ?? []).includes("wheelchair_accessible") ? 40 : -30;
     }
     if (record.default_access_point_id === ap.id) adjusted += 5;
-    allowedList.push(shapeAccessPoint(ap, adjusted, allowed));
+    allowedList.push(shapeAccessPoint(ap, adjusted, allowed, context));
   }
 
   allowedList.sort((a, b) => b.score - a.score);
   const recommended = allowedList[0] ?? null;
 
   const notes: string[] = [];
+  if (recommended?.context_approach) {
+    notes.push(`تعليمات ${ctxDef.ar}: ${recommended.context_approach}`);
+  }
+  if (recommended?.context_preferred_road) {
+    notes.push(`الطريق المفضل: ${recommended.context_preferred_road}`);
+  }
   if (redirectedFrom) notes.push(`تم تحويل الرمز القديم ${redirectedFrom} إلى ${record.code}`);
   for (const p of prohibited) notes.push(`لا تستخدم ${p.display_name}: ${p.reason}`);
   if (recommended && !recommended.open_now) {
