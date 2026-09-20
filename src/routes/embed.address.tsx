@@ -6,11 +6,11 @@ import { SyriasanAddressField, type CheckoutAddressPayload } from "@/components/
 
 const searchSchema = z.object({
   lang: z.enum(["ar", "en"]).catch("ar").optional(),
-  compact: z.coerce.string().catch("1").optional(),
-  code: z.coerce.string().max(40).catch("").optional(),
-  auto: z.coerce.string().catch("0").optional(),
-  title: z.coerce.string().max(80).catch("").optional(),
-  origin: z.coerce.string().max(200).catch("").optional(),
+  compact: z.string().optional(),
+  code: z.string().max(40).optional(),
+  auto: z.string().optional(),
+  title: z.string().max(80).optional(),
+  origin: z.string().max(200).optional(),
 });
 
 /**
