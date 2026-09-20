@@ -45,3 +45,10 @@
 - [x] Preview table with per-row status + downloadable error report
 - [x] Confirmation step creates nodes, entrances and Syriasan codes in batches of 100
 - [x] Export of codes, QR URLs, delivery URLs and full address info as CSV
+
+## Phase 9 — E-commerce address component [DONE]
+- [x] Public checkout endpoint /api/public/checkout (smart code or SY-TMP token, CORS, no-store)
+- [x] Reusable SyriasanAddressField React component: resolve, show summary, explicit customer confirmation
+- [x] Iframe widget /embed/address with postMessage `syriasan:address` for any store
+- [x] Developer page /checkout-component: live demo, JSON contract, HTML/React/WooCommerce/Shopify snippets
+- [x] Private units never disclosed without an owner-approved temporary link
