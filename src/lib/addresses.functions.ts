@@ -10,15 +10,20 @@ export const resolveAddress = createServerFn({ method: "POST" })
     z
       .object({
         code: z.string().min(4).max(32),
-        purpose: purposeSchema.default("visitor"),
+        purpose: purposeSchema.optional(),
+        context: z.string().max(40).optional(),
         wheelchair: z.boolean().optional(),
       })
       .parse(input),
   )
   .handler(async ({ data }) => {
     const { resolvePublicCode } = await import("./addresses.server");
-    return resolvePublicCode(data.code, data.purpose as never, {
+    const { routingContext, contextForPurpose } = await import("./routing-contexts");
+    // A caller may pass either a routing context (phase 18) or a legacy purpose.
+    const ctx = routingContext(data.context ?? contextForPurpose(data.purpose));
+    return resolvePublicCode(data.code, (data.purpose ?? ctx.purpose) as never, {
       requireWheelchair: data.wheelchair ?? false,
+      context: ctx.value,
     });
   });
 
