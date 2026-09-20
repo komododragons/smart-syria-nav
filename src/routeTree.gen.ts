@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as ApiReferenceRouteImport } from './routes/api-reference'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CheckoutComponentRouteImport } from './routes/checkout-component'
 import { Route as CourierRouteImport } from './routes/courier'
@@ -32,6 +33,8 @@ import { Route as NavigationCodeRouteImport } from './routes/navigation.$code'
 import { Route as TTokenRouteImport } from './routes/t.$token'
 import { Route as ApiPublicCheckoutRouteImport } from './routes/api.public.checkout'
 import { Route as ApiPublicResolveRouteImport } from './routes/api.public.resolve'
+import { Route as ApiV1SplatRouteImport } from './routes/api.v1.$'
+import { Route as ApiPublicV1SplatRouteImport } from './routes/api.public.v1.$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -41,6 +44,11 @@ const IndexRoute = IndexRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiReferenceRoute = ApiReferenceRouteImport.update({
+  id: '/api-reference',
+  path: '/api-reference',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -148,10 +156,21 @@ const ApiPublicResolveRoute = ApiPublicResolveRouteImport.update({
   path: '/api/public/resolve',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiV1SplatRoute = ApiV1SplatRouteImport.update({
+  id: '/api/v1/$',
+  path: '/api/v1/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicV1SplatRoute = ApiPublicV1SplatRouteImport.update({
+  id: '/api/public/v1/$',
+  path: '/api/public/v1/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/api-reference': typeof ApiReferenceRoute
   '/auth': typeof AuthRoute
   '/checkout-component': typeof CheckoutComponentRoute
   '/courier': typeof CourierRoute
@@ -173,10 +192,13 @@ export interface FileRoutesByFullPath {
   '/t/$token': typeof TTokenRoute
   '/api/public/checkout': typeof ApiPublicCheckoutRoute
   '/api/public/resolve': typeof ApiPublicResolveRoute
+  '/api/v1/$': typeof ApiV1SplatRoute
+  '/api/public/v1/$': typeof ApiPublicV1SplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/api-reference': typeof ApiReferenceRoute
   '/auth': typeof AuthRoute
   '/checkout-component': typeof CheckoutComponentRoute
   '/courier': typeof CourierRoute
@@ -198,11 +220,14 @@ export interface FileRoutesByTo {
   '/t/$token': typeof TTokenRoute
   '/api/public/checkout': typeof ApiPublicCheckoutRoute
   '/api/public/resolve': typeof ApiPublicResolveRoute
+  '/api/v1/$': typeof ApiV1SplatRoute
+  '/api/public/v1/$': typeof ApiPublicV1SplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/api-reference': typeof ApiReferenceRoute
   '/auth': typeof AuthRoute
   '/checkout-component': typeof CheckoutComponentRoute
   '/courier': typeof CourierRoute
@@ -224,12 +249,15 @@ export interface FileRoutesById {
   '/t/$token': typeof TTokenRoute
   '/api/public/checkout': typeof ApiPublicCheckoutRoute
   '/api/public/resolve': typeof ApiPublicResolveRoute
+  '/api/v1/$': typeof ApiV1SplatRoute
+  '/api/public/v1/$': typeof ApiPublicV1SplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/admin'
+    | '/api-reference'
     | '/auth'
     | '/checkout-component'
     | '/courier'
@@ -251,10 +279,13 @@ export interface FileRouteTypes {
     | '/t/$token'
     | '/api/public/checkout'
     | '/api/public/resolve'
+    | '/api/v1/$'
+    | '/api/public/v1/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/admin'
+    | '/api-reference'
     | '/auth'
     | '/checkout-component'
     | '/courier'
@@ -276,10 +307,13 @@ export interface FileRouteTypes {
     | '/t/$token'
     | '/api/public/checkout'
     | '/api/public/resolve'
+    | '/api/v1/$'
+    | '/api/public/v1/$'
   id:
     | '__root__'
     | '/'
     | '/admin'
+    | '/api-reference'
     | '/auth'
     | '/checkout-component'
     | '/courier'
@@ -301,11 +335,14 @@ export interface FileRouteTypes {
     | '/t/$token'
     | '/api/public/checkout'
     | '/api/public/resolve'
+    | '/api/v1/$'
+    | '/api/public/v1/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
+  ApiReferenceRoute: typeof ApiReferenceRoute
   AuthRoute: typeof AuthRoute
   CheckoutComponentRoute: typeof CheckoutComponentRoute
   CourierRoute: typeof CourierRoute
@@ -324,6 +361,8 @@ export interface RootRouteChildren {
   TTokenRoute: typeof TTokenRoute
   ApiPublicCheckoutRoute: typeof ApiPublicCheckoutRoute
   ApiPublicResolveRoute: typeof ApiPublicResolveRoute
+  ApiV1SplatRoute: typeof ApiV1SplatRoute
+  ApiPublicV1SplatRoute: typeof ApiPublicV1SplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -340,6 +379,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api-reference': {
+      id: '/api-reference'
+      path: '/api-reference'
+      fullPath: '/api-reference'
+      preLoaderRoute: typeof ApiReferenceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -489,6 +535,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicResolveRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/v1/$': {
+      id: '/api/v1/$'
+      path: '/api/v1/$'
+      fullPath: '/api/v1/$'
+      preLoaderRoute: typeof ApiV1SplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/$': {
+      id: '/api/public/v1/$'
+      path: '/api/public/v1/$'
+      fullPath: '/api/public/v1/$'
+      preLoaderRoute: typeof ApiPublicV1SplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -509,6 +569,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
+  ApiReferenceRoute: ApiReferenceRoute,
   AuthRoute: AuthRoute,
   CheckoutComponentRoute: CheckoutComponentRoute,
   CourierRoute: CourierRoute,
@@ -527,6 +588,8 @@ const rootRouteChildren: RootRouteChildren = {
   TTokenRoute: TTokenRoute,
   ApiPublicCheckoutRoute: ApiPublicCheckoutRoute,
   ApiPublicResolveRoute: ApiPublicResolveRoute,
+  ApiV1SplatRoute: ApiV1SplatRoute,
+  ApiPublicV1SplatRoute: ApiPublicV1SplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

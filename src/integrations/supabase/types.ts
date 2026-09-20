@@ -270,26 +270,38 @@ export type Database = {
         Row: {
           client_id: string
           created_at: string
+          expires_at: string | null
           id: string
           key_hash: string
           key_prefix: string
+          last_used_at: string | null
+          name: string
           revoked: boolean
+          scopes: string[]
         }
         Insert: {
           client_id: string
           created_at?: string
+          expires_at?: string | null
           id?: string
           key_hash: string
           key_prefix: string
+          last_used_at?: string | null
+          name?: string
           revoked?: boolean
+          scopes?: string[]
         }
         Update: {
           client_id?: string
           created_at?: string
+          expires_at?: string | null
           id?: string
           key_hash?: string
           key_prefix?: string
+          last_used_at?: string | null
+          name?: string
           revoked?: boolean
+          scopes?: string[]
         }
         Relationships: [
           {
@@ -307,6 +319,9 @@ export type Database = {
           created_at: string
           endpoint: string
           id: string
+          method: string
+          response_ms: number | null
+          scope: string | null
           status_code: number | null
         }
         Insert: {
@@ -314,6 +329,9 @@ export type Database = {
           created_at?: string
           endpoint: string
           id?: string
+          method?: string
+          response_ms?: number | null
+          scope?: string | null
           status_code?: number | null
         }
         Update: {
@@ -321,6 +339,9 @@ export type Database = {
           created_at?: string
           endpoint?: string
           id?: string
+          method?: string
+          response_ms?: number | null
+          scope?: string | null
           status_code?: number | null
         }
         Relationships: [
