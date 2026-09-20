@@ -168,7 +168,7 @@ export function QrCard({
                 title={option.dimensions}
                 className={`shrink-0 rounded-lg px-3 py-2 text-xs font-bold ${format === option.value ? "bg-foreground text-background" : "border border-border"}`}
               >
-                {option.label}
+                {t({ ar: option.label, en: option.labelEn })}
               </button>
             ))}
           </div>
