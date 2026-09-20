@@ -1,15 +1,16 @@
 /**
- * Reusable Syriasan checkout address field.
+ * Reusable Syriasan address field.
  *
- * Drop-in component for e-commerce checkouts: the customer types a Syriasan
- * smart code (SY-DAM-K7X4) or a temporary share token (SY-TMP-XXXXX) instead of
- * a long Syrian address. The code is resolved through the public checkout API
- * and the customer must confirm before anything is handed to the store.
+ * Drop-in component for e-commerce checkouts and delivery apps: the customer
+ * types a Syriasan smart code (SY-DAM-K7X4) or a temporary share token
+ * (SY-TMP-XXXXX) instead of a long Syrian address. The code is resolved through
+ * the public checkout API and the customer must confirm before anything is
+ * handed to the store.
  *
  * Private unit information is never revealed unless the owner shared it through
  * a temporary link.
  */
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AlertCircle, CheckCircle2, Loader2, MapPin, Search, ShieldCheck } from "lucide-react";
 
 export type CheckoutAddressPayload = {
@@ -41,6 +42,8 @@ export type CheckoutAddressPayload = {
 
 type Resolved = CheckoutAddressPayload | { status: string; hint?: string; reference?: string };
 
+export type WidgetLang = "ar" | "en";
+
 export type SyriasanAddressFieldProps = {
   /** Origin that serves the Syriasan public API. Defaults to the current origin. */
   apiBase?: string;
@@ -48,15 +51,82 @@ export type SyriasanAddressFieldProps = {
   onConfirm?: (address: CheckoutAddressPayload) => void;
   /** Called whenever the customer clears or edits the confirmed address. */
   onClear?: () => void;
+  /** Called on every successful resolution, before confirmation. */
+  onResolve?: (address: CheckoutAddressPayload) => void;
   title?: string;
   compact?: boolean;
+  lang?: WidgetLang;
+  /** Prefilled code, e.g. restored from a saved order. */
+  initialCode?: string;
+  /** Resolve the prefilled code immediately. */
+  autoResolve?: boolean;
 };
 
-const STATUS_TEXT: Record<string, string> = {
-  not_found: "لم يُعثر على هذا الرمز — تأكد من كتابته بشكل صحيح.",
-  expired: "انتهت صلاحية الرابط المؤقت — اطلب رابطاً جديداً من العميل.",
-  revoked: "تم إلغاء هذا الرابط المؤقت.",
-  invalid_request: "الرمز غير صالح.",
+const T = {
+  ar: {
+    title: "العنوان الذكي",
+    hint: "بدلاً من كتابة العنوان بالكامل، أدخل الرمز الذكي أو رابط المشاركة المؤقت.",
+    check: "تحقق",
+    found: "تم العثور على العنوان",
+    confirm: "تأكيد العنوان",
+    confirmed: "تم تأكيد العنوان",
+    change: "تغيير",
+    short: "اكتب رمزاً مثل SY-DAM-K7X4",
+    offline: "تعذر الاتصال بخدمة سيرياسان — حاول مجدداً.",
+    privateAddr: "هذا عنوان خاص — اطلب من صاحبه رابط مشاركة مؤقت.",
+    rows: {
+      governorate: "المحافظة",
+      city: "المدينة",
+      district: "المنطقة",
+      neighborhood: "الحي",
+      street: "الشارع",
+      building: "البناء",
+      entrance: "المدخل",
+      floor: "الطابق",
+      unit: "الشقة",
+      landmark: "معلم قريب",
+      instructions: "تعليمات التسليم",
+    },
+    status: {
+      not_found: "لم يُعثر على هذا الرمز — تأكد من كتابته بشكل صحيح.",
+      expired: "انتهت صلاحية الرابط المؤقت — اطلب رابطاً جديداً من العميل.",
+      revoked: "تم إلغاء هذا الرابط المؤقت.",
+      invalid_request: "الرمز غير صالح.",
+      fallback: "تعذر التحقق من الرمز.",
+    } as Record<string, string>,
+  },
+  en: {
+    title: "Syriasan Address",
+    hint: "Instead of typing a full Syrian address, enter the smart code or a temporary share link.",
+    check: "Check",
+    found: "Address found",
+    confirm: "Confirm Address",
+    confirmed: "Address confirmed",
+    change: "Change",
+    short: "Enter a code such as SY-DAM-K7X4",
+    offline: "Could not reach Syriasan — please try again.",
+    privateAddr: "This address is private — ask the owner for a temporary share link.",
+    rows: {
+      governorate: "Governorate",
+      city: "City",
+      district: "District",
+      neighborhood: "Neighborhood",
+      street: "Street",
+      building: "Building",
+      entrance: "Entrance",
+      floor: "Floor",
+      unit: "Unit",
+      landmark: "Landmark",
+      instructions: "Delivery instructions",
+    },
+    status: {
+      not_found: "This code was not found — please check the spelling.",
+      expired: "This temporary link has expired — ask the customer for a new one.",
+      revoked: "This temporary link was revoked.",
+      invalid_request: "Invalid code.",
+      fallback: "Could not verify this code.",
+    } as Record<string, string>,
+  },
 };
 
 function Row({ label, value }: { label: string; value: string | null }) {
@@ -73,62 +143,73 @@ export function SyriasanAddressField({
   apiBase,
   onConfirm,
   onClear,
-  title = "أدخل عنوانك الذكي",
+  onResolve,
+  title,
   compact = false,
+  lang = "ar",
+  initialCode = "",
+  autoResolve = false,
 }: SyriasanAddressFieldProps) {
-  const [value, setValue] = useState("");
+  const t = T[lang] ?? T.ar;
+  const [value, setValue] = useState(initialCode.toUpperCase());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resolved, setResolved] = useState<CheckoutAddressPayload | null>(null);
   const [confirmed, setConfirmed] = useState(false);
 
-  const lookup = useCallback(async () => {
-    const reference = value.trim().toUpperCase();
-    if (reference.length < 4) {
-      setError("اكتب رمزاً مثل SY-DAM-K7X4");
-      return;
-    }
-    setBusy(true);
-    setError(null);
-    setResolved(null);
-    setConfirmed(false);
-    try {
-      const base = apiBase ?? (typeof window === "undefined" ? "https://syriasan.com" : window.location.origin);
-      const res = await fetch(`${base}/api/public/checkout?reference=${encodeURIComponent(reference)}`);
-      const body = (await res.json()) as Resolved;
-      if (body.status === "ok") {
-        setResolved(body as CheckoutAddressPayload);
-      } else if (body.status === "private") {
-        setError(
-          (body as { hint?: string }).hint ??
-            "هذا عنوان خاص — اطلب من صاحبه رابط مشاركة مؤقت.",
-        );
-      } else {
-        setError(STATUS_TEXT[body.status] ?? "تعذر التحقق من الرمز.");
+  const lookup = useCallback(
+    async (raw?: string) => {
+      const reference = (raw ?? value).trim().toUpperCase();
+      if (reference.length < 4) {
+        setError(t.short);
+        return;
       }
-    } catch {
-      setError("تعذر الاتصال بخدمة سيرياسان — حاول مجدداً.");
-    } finally {
-      setBusy(false);
-    }
-  }, [apiBase, value]);
+      setBusy(true);
+      setError(null);
+      setResolved(null);
+      setConfirmed(false);
+      try {
+        const base = apiBase ?? (typeof window === "undefined" ? "https://syriasan.com" : window.location.origin);
+        const res = await fetch(`${base}/api/public/checkout?reference=${encodeURIComponent(reference)}`);
+        const body = (await res.json()) as Resolved;
+        if (body.status === "ok") {
+          setResolved(body as CheckoutAddressPayload);
+          onResolve?.(body as CheckoutAddressPayload);
+        } else if (body.status === "private") {
+          setError((body as { hint?: string }).hint ?? t.privateAddr);
+        } else {
+          setError(t.status[body.status] ?? t.status.fallback);
+        }
+      } catch {
+        setError(t.offline);
+      } finally {
+        setBusy(false);
+      }
+    },
+    [apiBase, onResolve, t, value],
+  );
+
+  useEffect(() => {
+    if (autoResolve && initialCode.trim().length >= 4) void lookup(initialCode);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const dir = lang === "en" ? "ltr" : "rtl";
+  const align = lang === "en" ? "text-left" : "text-right";
 
   return (
-    <div dir="rtl" className="w-full rounded-2xl border border-border bg-surface p-4 text-right shadow-sm">
+    <div dir={dir} className={`w-full rounded-2xl border border-border bg-surface p-4 shadow-sm ${align}`}>
       <h3 className="flex items-center gap-2 text-sm font-bold">
-        <MapPin className="size-4 text-primary" /> {title}
+        <MapPin className="size-4 text-primary" /> {title ?? t.title}
       </h3>
-      {!compact ? (
-        <p className="mt-1 text-xs text-muted-foreground">
-          بدلاً من كتابة العنوان بالكامل، أدخل الرمز الذكي أو رابط المشاركة المؤقت.
-        </p>
-      ) : null}
+      {!compact ? <p className="mt-1 text-xs text-muted-foreground">{t.hint}</p> : null}
 
       <div className="mt-3 flex gap-2">
         <input
           dir="ltr"
           value={value}
           placeholder="SY-DAM-K7X4"
+          aria-label={title ?? t.title}
           onChange={(e) => {
             setValue(e.target.value.toUpperCase());
             if (confirmed) {
@@ -152,7 +233,7 @@ export function SyriasanAddressField({
           className="flex shrink-0 items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground disabled:opacity-50"
         >
           {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Search className="size-3.5" />}
-          تحقق
+          {t.check}
         </button>
       </div>
 
@@ -164,19 +245,22 @@ export function SyriasanAddressField({
 
       {resolved ? (
         <div className="mt-3 rounded-xl border border-border bg-background p-3">
-          <p className="text-sm font-bold">{resolved.summary}</p>
+          <p className="flex items-center gap-1.5 text-xs font-bold text-success">
+            <CheckCircle2 className="size-3.5" /> {t.found}
+          </p>
+          <p className="mt-1 text-sm font-bold">{resolved.summary}</p>
           <div className="mt-2">
-            <Row label="المحافظة" value={resolved.fields.governorate} />
-            <Row label="المدينة" value={resolved.fields.city} />
-            <Row label="المنطقة" value={resolved.fields.district} />
-            <Row label="الحي" value={resolved.fields.neighborhood} />
-            <Row label="الشارع" value={resolved.fields.street} />
-            <Row label="البناء" value={resolved.fields.building} />
-            <Row label="المدخل" value={resolved.fields.entrance} />
-            <Row label="الطابق" value={resolved.fields.floor} />
-            <Row label="الشقة" value={resolved.fields.unit} />
-            <Row label="معلم قريب" value={resolved.fields.landmark} />
-            <Row label="تعليمات التسليم" value={resolved.delivery.instructions} />
+            <Row label={t.rows.governorate} value={resolved.fields.governorate} />
+            <Row label={t.rows.city} value={resolved.fields.city} />
+            <Row label={t.rows.district} value={resolved.fields.district} />
+            <Row label={t.rows.neighborhood} value={resolved.fields.neighborhood} />
+            <Row label={t.rows.street} value={resolved.fields.street} />
+            <Row label={t.rows.building} value={resolved.fields.building} />
+            <Row label={t.rows.entrance} value={resolved.fields.entrance} />
+            <Row label={t.rows.floor} value={resolved.fields.floor} />
+            <Row label={t.rows.unit} value={resolved.fields.unit} />
+            <Row label={t.rows.landmark} value={resolved.fields.landmark} />
+            <Row label={t.rows.instructions} value={resolved.delivery.instructions} />
           </div>
 
           <p className="mt-2 flex items-start gap-1.5 text-[11px] text-muted-foreground">
@@ -184,9 +268,23 @@ export function SyriasanAddressField({
           </p>
 
           {confirmed ? (
-            <p className="mt-3 flex items-center gap-1.5 rounded-lg bg-success/10 p-2 text-xs font-bold text-success">
-              <CheckCircle2 className="size-3.5" /> تم تأكيد العنوان ({resolved.reference})
-            </p>
+            <div className="mt-3 flex items-center justify-between gap-2 rounded-lg bg-success/10 p-2">
+              <span className="flex items-center gap-1.5 text-xs font-bold text-success">
+                <CheckCircle2 className="size-3.5" /> {t.confirmed} ({resolved.reference})
+              </span>
+              <button
+                type="button"
+                className="rounded-md border border-border px-2 py-1 text-[11px] font-bold"
+                onClick={() => {
+                  setConfirmed(false);
+                  setResolved(null);
+                  setValue("");
+                  onClear?.();
+                }}
+              >
+                {t.change}
+              </button>
+            </div>
           ) : (
             <button
               type="button"
@@ -196,7 +294,7 @@ export function SyriasanAddressField({
                 onConfirm?.(resolved);
               }}
             >
-              تأكيد هذا العنوان
+              {t.confirm}
             </button>
           )}
         </div>

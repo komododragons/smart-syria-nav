@@ -1,12 +1,29 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useRef } from "react";
+import { z } from "zod";
 
 import { SyriasanAddressField, type CheckoutAddressPayload } from "@/components/SyriasanAddressField";
 
+const searchSchema = z.object({
+  lang: z.enum(["ar", "en"]).optional(),
+  compact: z.union([z.literal("1"), z.literal("0")]).optional(),
+  code: z.string().max(40).optional(),
+  auto: z.union([z.literal("1"), z.literal("0")]).optional(),
+  title: z.string().max(80).optional(),
+  origin: z.string().max(200).optional(),
+});
+
 /**
- * Iframe-embeddable checkout widget. Any store (WooCommerce, Shopify, custom)
- * can embed this page and listen for the `syriasan:address` postMessage event.
+ * Iframe-embeddable address widget. Any host (WooCommerce, Shopify, custom
+ * store, Flutter/native WebView) embeds this page and talks to it over the
+ * documented postMessage protocol:
+ *
+ *   widget -> host : syriasan:ready | syriasan:resize | syriasan:resolved
+ *                    syriasan:address | syriasan:address-cleared
+ *   host  -> widget: syriasan:set-code { code, resolve }
  */
 export const Route = createFileRoute("/embed/address")({
+  validateSearch: searchSchema,
   head: () => ({
     meta: [
       { title: "حقل العنوان الذكي | سيرياسان" },
@@ -25,15 +42,37 @@ export const Route = createFileRoute("/embed/address")({
 });
 
 function EmbedAddressPage() {
+  const search = Route.useSearch();
+  const targetOrigin = search.origin && /^https?:\/\//.test(search.origin) ? search.origin : "*";
+  const boxRef = useRef<HTMLDivElement | null>(null);
+
   function post(type: string, payload: unknown) {
     if (typeof window === "undefined" || window.parent === window) return;
-    window.parent.postMessage({ type, payload }, "*");
+    window.parent.postMessage({ type, payload }, targetOrigin);
   }
 
+  // Announce readiness and keep the host iframe sized to the content.
+  useEffect(() => {
+    post("syriasan:ready", { version: 1 });
+    const el = boxRef.current;
+    if (!el) return;
+    const send = () => post("syriasan:resize", { height: Math.ceil(el.getBoundingClientRect().height) + 8 });
+    send();
+    const ro = new ResizeObserver(send);
+    ro.observe(el);
+    return () => ro.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
-    <div className="bg-transparent p-2">
+    <div ref={boxRef} className="bg-transparent p-2">
       <SyriasanAddressField
-        compact
+        compact={search.compact !== "0"}
+        lang={search.lang ?? "ar"}
+        title={search.title}
+        initialCode={search.code ?? ""}
+        autoResolve={search.auto === "1"}
+        onResolve={(address: CheckoutAddressPayload) => post("syriasan:resolved", address)}
         onConfirm={(address: CheckoutAddressPayload) => post("syriasan:address", address)}
         onClear={() => post("syriasan:address-cleared", null)}
       />
