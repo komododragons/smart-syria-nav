@@ -37,26 +37,32 @@ export const searchNetwork = createServerFn({ method: "POST" })
     const pattern = `%${raw}%`;
     const normalized = normalizeArabic(raw);
 
+    let bizQuery = supa
+      .from("businesses")
+      .select(
+        "id, name_ar, name_en, category, place_category, phone, website, opening_hours, verification_level, node_id, visitor_access_point_id, delivery_access_point_id, smart_addresses(code), location_nodes(display_name, governorate, city, district, neighborhood, unit_label, floor_label)",
+      )
+      .eq("is_published", true)
+      .or(`name_ar.ilike.${pattern},name_en.ilike.${pattern},category.ilike.${pattern}`)
+      .limit(20);
+    if (data.category) bizQuery = bizQuery.eq("place_category", data.category);
+
+    let nodeQuery = supa
+      .from("location_nodes")
+      .select(
+        "id, display_name, name_en, node_type, place_category, governorate, city, district, neighborhood, street, landmark, verification_level, confidence_score, latitude, longitude",
+      )
+      .eq("visibility", "public")
+      .eq("is_active", true)
+      .or(
+        `display_name.ilike.${pattern},name_en.ilike.${pattern},neighborhood.ilike.${pattern},street.ilike.${pattern},landmark.ilike.${pattern}`,
+      )
+      .limit(20);
+    if (data.category) nodeQuery = nodeQuery.eq("place_category", data.category);
+
     const [businessRes, placeRes, aliasRes, codeRes] = await Promise.all([
-      supa
-        .from("businesses")
-        .select(
-          "id, name_ar, name_en, category, phone, website, opening_hours, verification_level, node_id, visitor_access_point_id, delivery_access_point_id, smart_addresses(code), location_nodes(display_name, governorate, city, district, neighborhood, unit_label, floor_label)",
-        )
-        .eq("is_published", true)
-        .or(`name_ar.ilike.${pattern},name_en.ilike.${pattern},category.ilike.${pattern}`)
-        .limit(20),
-      supa
-        .from("location_nodes")
-        .select(
-          "id, display_name, name_en, node_type, governorate, city, district, neighborhood, street, landmark, verification_level, confidence_score, latitude, longitude",
-        )
-        .eq("visibility", "public")
-        .eq("is_active", true)
-        .or(
-          `display_name.ilike.${pattern},name_en.ilike.${pattern},neighborhood.ilike.${pattern},street.ilike.${pattern},landmark.ilike.${pattern}`,
-        )
-        .limit(20),
+      bizQuery,
+      nodeQuery,
       supa.from("location_aliases").select("node_id, alias").ilike("alias", pattern).limit(20),
       supa
         .from("smart_addresses")
