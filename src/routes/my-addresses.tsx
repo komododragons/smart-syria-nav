@@ -519,6 +519,26 @@ function MyAddressesPage() {
                             className="rounded-lg border border-border bg-surface px-3 py-2 text-sm"
                           />
                         </label>
+                        <label className="flex flex-col gap-1 text-xs font-medium">
+                          مواقف عند المدخل
+                          <input
+                            value={editForm.entrance_parking_info}
+                            onChange={(e) =>
+                              setEditForm({ ...editForm, entrance_parking_info: e.target.value })
+                            }
+                            className="rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                          />
+                        </label>
+                        <label className="flex flex-col gap-1 text-xs font-medium">
+                          تنزيل البضائع عند المدخل
+                          <input
+                            value={editForm.entrance_loading_info}
+                            onChange={(e) =>
+                              setEditForm({ ...editForm, entrance_loading_info: e.target.value })
+                            }
+                            className="rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                          />
+                        </label>
                       </>
                     ) : null}
                   </div>
