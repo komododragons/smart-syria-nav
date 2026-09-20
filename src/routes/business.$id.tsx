@@ -22,7 +22,8 @@ import { QrCard } from "@/components/QrCard";
 import { DirectionsButton } from "@/components/DirectionsButton";
 import { CadastralMap, type MapPin as CadMapPin } from "@/components/CadastralMap";
 import { supabase } from "@/integrations/supabase/client";
-import { claimBusiness, getBusinessProfile } from "@/lib/addresses.functions";
+import { getBusinessProfile } from "@/lib/addresses.functions";
+import { myClaims } from "@/lib/claims.functions";
 import {
   ACCESSIBILITY_LABELS,
   VERIFICATION_LEVELS,
@@ -53,13 +54,10 @@ function BusinessPage() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const fetchProfile = useServerFn(getBusinessProfile);
-  const claim = useServerFn(claimBusiness);
+  const fetchMyClaims = useServerFn(myClaims);
 
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [showQr, setShowQr] = useState(false);
-  const [claimOpen, setClaimOpen] = useState(false);
-  const [evidence, setEvidence] = useState("");
-  const [claimState, setClaimState] = useState<"idle" | "pending" | "owner">("idle");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setAuthed(Boolean(data.session)));
@@ -70,23 +68,19 @@ function BusinessPage() {
     queryFn: () => fetchProfile({ data: { id } }),
   });
 
-  const claimMutation = useMutation({
-    mutationFn: () => claim({ data: { business_id: id, evidence: evidence.trim() || undefined } }),
-    onSuccess: (result) => {
-      if (result.status === "submitted") {
-        setClaimState("pending");
-        setClaimOpen(false);
-        toast.success("أُرسل طلب المطالبة — سيراجعه فريق التوثيق");
-      } else if (result.status === "already_pending") {
-        setClaimState("pending");
-        toast.info("لديك طلب مطالبة معلّق لهذا العمل");
-      } else {
-        setClaimState("owner");
-        toast.info("أنت مالك هذا العمل بالفعل");
-      }
-    },
-    onError: () => toast.error("تعذّر إرسال المطالبة"),
+  const claimsQuery = useQuery({
+    queryKey: ["my-claims", id],
+    queryFn: () => fetchMyClaims({ data: undefined as never }),
+    enabled: authed === true,
   });
+
+  const mine = (claimsQuery.data?.claims ?? []).filter((c) => c.business_id === id);
+  const claimState: "idle" | "pending" | "owner" = mine.some((c) => c.status === "approved")
+    ? "owner"
+    : mine.some((c) => c.status === "pending")
+      ? "pending"
+      : "idle";
+
 
   const data = query.data;
   const ok = data?.status === "ok" && data.business ? data : null;
@@ -304,36 +298,17 @@ function BusinessPage() {
                           void navigate({ to: "/auth", search: { redirect: `/business/${id}` } });
                           return;
                         }
-                        setClaimOpen((v) => !v);
+                        void navigate({ to: "/claim/$id", params: { id } });
                       }}
                       className="shrink-0 rounded-lg bg-foreground px-4 py-2 text-xs font-bold text-background"
                     >
                       {authed === false ? "سجّل الدخول للمطالبة" : "طالب بالملكية"}
                     </button>
                   </div>
-                  {claimOpen ? (
-                    <div className="mt-3 rounded-xl border border-border bg-background p-3">
-                      <label className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-                        إثبات الملكية (اختياري)
-                      </label>
-                      <textarea
-                        value={evidence}
-                        onChange={(event) => setEvidence(event.target.value)}
-                        rows={3}
-                        maxLength={600}
-                        placeholder="مثال: رقم السجل التجاري، هاتف العمل، أو وثيقة إيجار…"
-                        className="mt-1 w-full rounded-lg border border-border bg-surface p-2.5 text-sm focus:border-primary focus:outline-none"
-                      />
-                      <button
-                        type="button"
-                        disabled={claimMutation.isPending}
-                        onClick={() => claimMutation.mutate()}
-                        className="mt-2 w-full rounded-lg bg-primary py-2.5 text-xs font-bold text-primary-foreground disabled:opacity-60"
-                      >
-                        إرسال طلب المطالبة
-                      </button>
-                    </div>
-                  ) : null}
+                  <p className="mt-2 text-[11px] text-muted-foreground">
+                    ستطلب منك الخطوة التالية اسمك وصفتك ووسيلة تواصل ووثيقة إثبات (سجل تجاري، عقد، أو
+                    فاتورة) لمراجعتها من فريق التوثيق.
+                  </p>
                 </>
               )}
             </section>

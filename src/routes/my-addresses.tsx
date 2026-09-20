@@ -1,9 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Copy, EyeOff, Globe, Pencil, Star, Timer, Trash2 } from "lucide-react";
+import { Copy, EyeOff, Globe, Pencil, ShieldCheck, Star, Timer, Trash2 } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
 import { DirectionsButton } from "@/components/DirectionsButton";
@@ -11,6 +11,7 @@ import { CadastralMap } from "@/components/CadastralMap";
 import { QrCard } from "@/components/QrCard";
 import { supabase } from "@/integrations/supabase/client";
 import { createTemporaryAddress, listMyAddresses, updateMyAddress } from "@/lib/addresses.functions";
+import { CLAIM_STATUS_LABELS, myClaims, withdrawClaim } from "@/lib/claims.functions";
 import { listFavorites, toggleFavorite } from "@/lib/network.functions";
 import { NODE_TYPE_LABELS, PURPOSE_LABELS, QUICK_PURPOSES, VERIFICATION_LEVELS } from "@/lib/smart-address";
 
@@ -157,6 +158,9 @@ function MyAddressesPage() {
       <AppHeader />
       <main className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-6">
         <h1 className="text-lg font-bold">عناويني الذكية</h1>
+
+        <MyClaimsSection />
+
 
         {favQuery.data && favQuery.data.length ? (
           <section className="rounded-2xl border border-border bg-surface p-4">
@@ -646,5 +650,83 @@ function MyAddressesPage() {
         })}
       </main>
     </div>
+  );
+}
+
+function MyClaimsSection() {
+  const queryClient = useQueryClient();
+  const listClaims = useServerFn(myClaims);
+  const withdrawFn = useServerFn(withdrawClaim);
+
+  const claimsQuery = useQuery({
+    queryKey: ["my-claims"],
+    queryFn: () => listClaims({ data: undefined as never }),
+  });
+
+  const claims = claimsQuery.data?.claims ?? [];
+  if (!claims.length) return null;
+
+  const withdraw = async (id: string) => {
+    try {
+      const res = await withdrawFn({ data: { id } });
+      if (res.ok) {
+        toast.success("تم سحب الطلب");
+        await queryClient.invalidateQueries({ queryKey: ["my-claims"] });
+      } else {
+        toast.error("الطلب لم يعد معلّقاً");
+      }
+    } catch {
+      toast.error("تعذّر سحب الطلب");
+    }
+  };
+
+  return (
+    <section className="rounded-2xl border border-border bg-surface p-4">
+      <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+        <ShieldCheck className="size-3.5" /> مطالبات الملكية ({claims.length})
+      </h2>
+      <div className="mt-3 space-y-2">
+        {claims.map((claim) => {
+          const biz = Array.isArray(claim.businesses) ? claim.businesses[0] : claim.businesses;
+          return (
+            <div key={claim.id} className="rounded-lg border border-border bg-background p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-sm font-bold">{biz?.name_ar ?? "عمل"}</span>
+                <span className="text-xs text-muted-foreground">
+                  {CLAIM_STATUS_LABELS[claim.status] ?? claim.status} ·{" "}
+                  {new Date(claim.created_at).toLocaleDateString("ar-SY")}
+                </span>
+              </div>
+              {claim.granted_level ? (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  المستوى الممنوح: {VERIFICATION_LEVELS[claim.granted_level]?.ar ?? claim.granted_level}
+                </p>
+              ) : null}
+              {claim.review_notes ? (
+                <p className="mt-1 text-xs text-muted-foreground">ملاحظة المراجع: {claim.review_notes}</p>
+              ) : null}
+              <div className="mt-2 flex gap-2">
+                <Link
+                  to="/business/$id"
+                  params={{ id: claim.business_id }}
+                  className="rounded-lg border border-border px-3 py-1.5 text-xs font-bold"
+                >
+                  ملف العمل
+                </Link>
+                {claim.status === "pending" ? (
+                  <button
+                    type="button"
+                    onClick={() => withdraw(claim.id)}
+                    className="rounded-lg border border-border px-3 py-1.5 text-xs font-bold text-destructive"
+                  >
+                    سحب الطلب
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
