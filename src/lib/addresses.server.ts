@@ -76,6 +76,17 @@ export type ResolveResult =
       verification_level: string;
       confidence: number;
       notes: string[];
+      business: {
+        id: string;
+        name_ar: string;
+        name_en: string | null;
+        category: string | null;
+        phone: string | null;
+        website: string | null;
+        opening_hours: string | null;
+        logo_url: string | null;
+        verification_level: string;
+      } | null;
     };
 
 const ACCESS_TYPE_AFFINITY: Record<string, Purpose[]> = {
