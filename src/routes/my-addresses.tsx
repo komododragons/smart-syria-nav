@@ -158,6 +158,9 @@ function MyAddressesPage() {
       <main className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-6">
         <h1 className="text-lg font-bold">عناويني الذكية</h1>
 
+        <MyClaimsSection />
+
+
         {favQuery.data && favQuery.data.length ? (
           <section className="rounded-2xl border border-border bg-surface p-4">
             <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
