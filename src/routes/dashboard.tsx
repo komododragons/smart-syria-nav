@@ -25,6 +25,8 @@ import {
 
 import { AppHeader } from "@/components/AppHeader";
 import { PLACE_CATEGORIES } from "@/lib/place-categories";
+import { myEntitlements } from "@/lib/plans.functions";
+import { LIMIT_LABELS_AR, PLANS, formatLimit, type LimitKey } from "@/lib/plans";
 import { BulkImportTab } from "@/components/BulkImportTab";
 import { CadastralMap } from "@/components/CadastralMap";
 import { QrCard } from "@/components/QrCard";
@@ -1106,6 +1108,8 @@ function SettingsTab({
   }, [organization]);
 
   return (
+    <div className="flex flex-col gap-4">
+    <PlanCard orgId={organization.id} />
     <section className={card}>
       <h2 className="flex items-center gap-2 text-sm font-bold">
         <Settings className="size-4 text-primary" /> إعدادات الشركة
@@ -1159,6 +1163,59 @@ function SettingsTab({
       ) : (
         <p className="mt-3 text-xs text-muted-foreground">تحتاج صلاحية مدير لتعديل الإعدادات.</p>
       )}
+    </section>
+    </div>
+  );
+}
+
+/** Current plan + usage for this organization. No pricing is shown yet. */
+function PlanCard({ orgId }: { orgId: string }) {
+  const fetchEntitlements = useServerFn(myEntitlements);
+  const query = useQuery({
+    queryKey: ["org-entitlements", orgId],
+    queryFn: () => fetchEntitlements({ data: { organization_id: orgId } }),
+  });
+  const data = query.data;
+  if (!data) return null;
+  const def = PLANS[data.plan];
+
+  return (
+    <section className={card}>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-sm font-bold">الخطة الحالية</h2>
+        <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-bold text-primary">
+          {def.name_ar}
+        </span>
+      </div>
+      <p className="mt-1 text-xs text-muted-foreground">{def.tagline_ar}</p>
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {(
+          [
+            ["locations", data.usage.locations],
+            ["team_members", data.usage.team_members],
+            ["api_keys", data.usage.api_keys],
+            ["webhooks", data.usage.webhooks],
+          ] as [LimitKey, number][]
+        ).map(([key, used]) => (
+          <div key={key} className="rounded-lg border border-border p-3 text-center">
+            <p className="font-mono text-lg font-bold">
+              {used}
+              <span className="text-xs text-muted-foreground"> / {formatLimit(def.limits[key])}</span>
+            </p>
+            <p className="mt-1 text-[11px] text-muted-foreground">{LIMIT_LABELS_AR[key]}</p>
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <Link to="/plans" className="rounded-lg border border-border px-3 py-2 text-xs font-bold">
+          مقارنة الخطط
+        </Link>
+        {!data.enforced ? (
+          <span className="text-[11px] text-muted-foreground">
+            الحدود للاطلاع فقط حالياً — لم تُعلَن الأسعار بعد.
+          </span>
+        ) : null}
+      </div>
     </section>
   );
 }

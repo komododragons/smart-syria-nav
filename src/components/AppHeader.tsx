@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   Truck,
   Landmark,
+  Layers,
 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -63,6 +64,13 @@ export function AppHeader() {
             aria-label="العمل دون اتصال"
           >
             <CloudDownload className="size-4" />
+          </Link>
+          <Link
+            to="/plans"
+            className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
+            aria-label="الخطط"
+          >
+            <Layers className="size-4" />
           </Link>
           <Link
             to="/create"

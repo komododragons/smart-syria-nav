@@ -127,3 +127,10 @@ PHASE 21 — ANALYTICS — DONE
 - orgAnalytics extended: qr_scan / delivery_view / search_appearance totals, daily series, richer per-location rows.
 - src/lib/analytics.functions.ts → platformAnalytics (staff-only via has_role admin/moderator/verifier): active + verified addresses, business locations, addresses/locations created, resolutions, QR scans, navigation starts, delivery views + share, search appearances, API requests (api_usage), corrections submitted, daily series, top public addresses (residential node types and non-public nodes excluded).
 - /admin/analytics dashboard (noindex) + link from /admin. No individual residential behaviour is exposed anywhere.
+
+PHASE 22 — MONETIZATION ARCHITECTURE — DONE (no pricing)
+- Tables: account_plans (user OR organization, plan free/business/developer/enterprise, status active/trialing/past_due/canceled, source, started_at, expires_at, notes, updated_by; one row per subject; RLS own/org-member/admin read, admin write) and platform_settings (entitlements = {enforced:false, pricing_published:false}) + set_updated_at() trigger fn.
+- src/lib/plans.ts: plan catalogue, entitlement keys, per-plan limits (-1 = unlimited), Arabic labels, effectivePlan/hasEntitlement/limitFor/withinLimit. No prices anywhere.
+- src/lib/plans.server.ts: userPlan/organizationPlan/resolvedPlan/strongerPlan, requireEntitlement + requireCapacity gated behind the entitlements.enforced flag (advisory until pricing launches), EntitlementError.
+- src/lib/plans.functions.ts: myEntitlements (effective plan + usage counters), planAdminOverview, setAccountPlan (admin, audit-logged), setEntitlementSettings (admin, audit-logged).
+- /plans public comparison page (free tier explicitly permanent), /admin/plans console (assign plans, enforcement + pricing toggles), plan card in dashboard settings, header link.
