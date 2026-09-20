@@ -25,6 +25,7 @@ export const myEntitlements = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const supa = context.supabase;
+    const { supabaseAdmin: settingsClient } = await import("@/integrations/supabase/client.server");
     const personal = await userPlan(supa, context.userId);
     let organization = null as Awaited<ReturnType<typeof organizationPlan>> | null;
     if (data.organization_id) organization = await organizationPlan(supa, data.organization_id);
