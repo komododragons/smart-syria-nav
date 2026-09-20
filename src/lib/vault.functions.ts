@@ -137,7 +137,12 @@ export const updateVaultEntry = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const patch: Record<string, unknown> = {};
+    const patch: {
+      label?: string;
+      category?: string;
+      note?: string | null;
+      sort_order?: number;
+    } = {};
     if (data.label !== undefined) patch['label'] = data.label.trim();
     if (data.category !== undefined) patch['category'] = data.category;
     if (data.note !== undefined) patch['note'] = data.note?.trim() || null;
