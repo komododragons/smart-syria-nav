@@ -950,28 +950,38 @@ function NavigationWorkspace() {
             {/* Last-metre card */}
             {arrival && (
               <section className="space-y-1 rounded-lg border border-primary/40 bg-primary/5 p-3 text-xs">
-                <p className="text-sm font-semibold">الأمتار الأخيرة</p>
+                <p className="text-sm font-semibold">{t({ ar: "الأمتار الأخيرة", en: "Final metres" })}</p>
                 {arrival.instruction_text && <p>{arrival.instruction_text}</p>}
                 {arrival.entrance_photo && (
                   <img
                     src={arrival.entrance_photo}
-                    alt={`صورة ${arrival.entrance_name ?? "المدخل"}`}
+                    alt={t({
+                      ar: `صورة ${arrival.entrance_name ?? "المدخل"}`,
+                      en: `Photo of ${arrival.entrance_name ?? "the entrance"}`,
+                    })}
                     loading="lazy"
                     className="mt-1 max-h-40 w-full rounded-md object-cover"
                   />
                 )}
-                <Detail label="المبنى" value={arrival.building_name} />
-                <Detail label="المدخل" value={arrival.entrance_name} />
-                <Detail label="المَعلم" value={arrival.landmark} />
-                <Detail label="وصف الباب" value={arrival.door_description} />
-                <Detail label="الطابق" value={arrival.floor} />
-                <Detail label="الوحدة" value={arrival.unit_number} />
-                <Detail label="الاتصال الداخلي" value={arrival.intercom_name} />
+                <Detail label={t({ ar: "المبنى", en: "Building" })} value={arrival.building_name} />
+                <Detail label={t({ ar: "المدخل", en: "Entrance" })} value={arrival.entrance_name} />
+                <Detail label={t({ ar: "المَعلم", en: "Landmark" })} value={arrival.landmark} />
+                <Detail label={t({ ar: "وصف الباب", en: "Door description" })} value={arrival.door_description} />
+                <Detail label={t({ ar: "الطابق", en: "Floor" })} value={arrival.floor} />
+                <Detail label={t({ ar: "الوحدة", en: "Unit" })} value={arrival.unit_number} />
+                <Detail label={t({ ar: "الاتصال الداخلي", en: "Intercom" })} value={arrival.intercom_name} />
                 {arrival.elevator_available != null && (
-                  <Detail label="المصعد" value={arrival.elevator_available ? "متوفر" : "غير متوفر"} />
+                  <Detail
+                    label={t({ ar: "المصعد", en: "Elevator" })}
+                    value={arrival.elevator_available ? t({ ar: "متوفر", en: "Available" }) : t({ ar: "غير متوفر", en: "Not available" })}
+                  />
                 )}
-                <Detail label="ملاحظات الوصول" value={arrival.accessibility_notes} />
-                {arrival.call_on_arrival && <p className="font-medium">اتصل بالمستلم عند الوصول.</p>}
+                <Detail label={t({ ar: "ملاحظات الوصول", en: "Access notes" })} value={arrival.accessibility_notes} />
+                {arrival.call_on_arrival && (
+                  <p className="font-medium">
+                    {t({ ar: "اتصل بالمستلم عند الوصول.", en: "Call the recipient on arrival." })}
+                  </p>
+                )}
                 {arrival.delivery_notes && (
                   <p className="rounded border border-border bg-background p-2">
                     {arrival.delivery_notes}
@@ -979,7 +989,10 @@ function NavigationWorkspace() {
                 )}
                 {!arrival.private_fields_visible && (
                   <p className="text-muted-foreground">
-                    تفاصيل الوحدة الخاصة مخفية — تظهر فقط لصاحب العنوان أو عبر رابط توصيل مصرّح.
+                    {t({
+                      ar: "تفاصيل الوحدة الخاصة مخفية — تظهر فقط لصاحب العنوان أو عبر رابط توصيل مصرّح.",
+                      en: "Private unit details are hidden — visible only to the address owner or via an authorised delivery link.",
+                    })}
                   </p>
                 )}
               </section>
@@ -995,17 +1008,29 @@ function NavigationWorkspace() {
                 <div>
                   <p className="text-sm font-semibold">
                     {arrived
-                      ? "وصلت إلى نقطة الوصول"
-                      : instructionWithDistance(activeRoute.steps[0] ?? { index: 0, manoeuvre: "straight", road_name: null, distance_m: 0, duration_s: 0, exit_number: null, way_points: null }, "ar")}
+                      ? t({ ar: "وصلت إلى نقطة الوصول", en: "You've arrived" })
+                      : instructionWithDistance(
+                          activeRoute.steps[0] ?? {
+                            index: 0,
+                            manoeuvre: "straight",
+                            road_name: null,
+                            distance_m: 0,
+                            duration_s: 0,
+                            exit_number: null,
+                            way_points: null,
+                          },
+                          lang,
+                        )}
                   </p>
                   {activeRoute.steps[1] && !arrived && (
                     <p className="text-xs text-muted-foreground">
-                      ثم: {instructionWithDistance(activeRoute.steps[1], "ar")}
+                      {t({ ar: "ثم:", en: "Then:" })} {instructionWithDistance(activeRoute.steps[1], lang)}
                     </p>
                   )}
                   {remaining && (
                     <p className="mt-1 font-mono text-xs text-muted-foreground">
-                      متبقٍ {formatDistance(remaining.distance)} · {formatDuration(remaining.duration)}
+                      {t({ ar: "متبقٍ", en: "Remaining" })} {formatDistance(remaining.distance, lang)} ·{" "}
+                      {formatDuration(remaining.duration, lang)}
                     </p>
                   )}
                 </div>
@@ -1017,7 +1042,7 @@ function NavigationWorkspace() {
                     }
                     className="rounded-md border border-border px-2 py-1 text-xs"
                   >
-                    إعادة الحساب
+                    {t({ ar: "إعادة الحساب", en: "Recalculate" })}
                   </button>
                   <button
                     type="button"
@@ -1027,7 +1052,7 @@ function NavigationWorkspace() {
                     }}
                     className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs"
                   >
-                    <X className="size-3.5" /> إنهاء
+                    <X className="size-3.5" /> {t({ ar: "إنهاء", en: "End" })}
                   </button>
                 </div>
               </div>
@@ -1036,11 +1061,11 @@ function NavigationWorkspace() {
                   type="button"
                   onClick={() => {
                     setNavigating(false);
-                    toast.success("تم تأكيد الوصول");
+                    toast.success(t({ ar: "تم تأكيد الوصول", en: "Arrival confirmed" }));
                   }}
                   className="mt-2 w-full rounded-md bg-primary px-3 py-1.5 text-xs text-primary-foreground"
                 >
-                  تأكيد الوصول
+                  {t({ ar: "تأكيد الوصول", en: "Confirm arrival" })}
                 </button>
               )}
             </div>
@@ -1061,7 +1086,14 @@ function Detail({ label, value }: { label: string; value: string | null | undefi
   );
 }
 
-function CoordinateEntry({ onSubmit }: { onSubmit: (point: Coordinates) => void }) {
+function CoordinateEntry({
+  onSubmit,
+  lang,
+}: {
+  onSubmit: (point: Coordinates) => void;
+  lang: "ar" | "en";
+}) {
+  const { t } = useI18n();
   const [value, setValue] = useState("");
   return (
     <div className="flex gap-1.5">
@@ -1079,14 +1111,14 @@ function CoordinateEntry({ onSubmit }: { onSubmit: (point: Coordinates) => void 
           const lat = parts[0] ?? NaN;
           const lng = parts[1] ?? NaN;
           if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-            toast.error("صيغة الإحداثيات غير صحيحة");
+            toast.error(t({ ar: "صيغة الإحداثيات غير صحيحة", en: "Invalid coordinate format" }));
             return;
           }
           onSubmit({ latitude: lat, longitude: lng });
         }}
         className="shrink-0 rounded-md border border-border px-2 py-1.5 text-xs"
       >
-        استخدام
+        {t({ ar: "استخدام", en: "Use" })}
       </button>
     </div>
   );
