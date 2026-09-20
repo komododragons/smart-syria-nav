@@ -618,7 +618,7 @@ function AddressCardPage() {
 
           {showQr ? (
             <QrCard
-              url={shareUrl}
+              url={`${shareUrl}?s=qr`}
               code={ok.code}
               title={ok.site.display_name}
               subtitle={[ok.site.neighborhood, ok.site.city].filter(Boolean).join(" — ")}
