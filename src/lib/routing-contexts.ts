@@ -20,6 +20,7 @@ export type RoutingContextDef = {
   ar: string;
   en: string;
   hintAr: string;
+  hintEn: string;
   /** Purpose used by the access-point scoring engine. */
   purpose: Purpose;
   /** Default travel mode suggested for this context. */
@@ -35,6 +36,7 @@ export const ROUTING_CONTEXTS: RoutingContextDef[] = [
     ar: "قياسي",
     en: "Standard",
     hintAr: "أفضل مدخل متاح بشكل عام",
+    hintEn: "Best generally available entrance",
     purpose: "visitor",
     travelMode: "driving",
     requireWheelchair: false,
@@ -45,6 +47,7 @@ export const ROUTING_CONTEXTS: RoutingContextDef[] = [
     ar: "زائر",
     en: "Visitor",
     hintAr: "المدخل الرئيسي واستقبال المراجعين",
+    hintEn: "Main entrance and visitor reception",
     purpose: "visitor",
     travelMode: "walking",
     requireWheelchair: false,
@@ -55,6 +58,7 @@ export const ROUTING_CONTEXTS: RoutingContextDef[] = [
     ar: "طرد بريدي",
     en: "Parcel",
     hintAr: "تسليم طرد صغير أو بريد",
+    hintEn: "Small parcel or postal delivery",
     purpose: "parcel_delivery",
     travelMode: "delivery",
     requireWheelchair: false,
@@ -65,6 +69,7 @@ export const ROUTING_CONTEXTS: RoutingContextDef[] = [
     ar: "توصيل تجاري",
     en: "Commercial delivery",
     hintAr: "مركبة توصيل وبضائع للمحال",
+    hintEn: "Delivery vehicle and shop goods",
     purpose: "food_delivery",
     travelMode: "delivery",
     requireWheelchair: false,
@@ -75,6 +80,7 @@ export const ROUTING_CONTEXTS: RoutingContextDef[] = [
     ar: "شحن ثقيل",
     en: "Heavy freight",
     hintAr: "شاحنات ومقطورات ورصيف تحميل",
+    hintEn: "Trucks, trailers and loading docks",
     purpose: "freight",
     travelMode: "driving",
     requireWheelchair: false,
@@ -85,6 +91,7 @@ export const ROUTING_CONTEXTS: RoutingContextDef[] = [
     ar: "طوارئ",
     en: "Emergency",
     hintAr: "إسعاف وإطفاء ودفاع مدني",
+    hintEn: "Ambulance, fire and civil defence",
     purpose: "emergency",
     travelMode: "driving",
     requireWheelchair: false,
@@ -95,6 +102,7 @@ export const ROUTING_CONTEXTS: RoutingContextDef[] = [
     ar: "وصول ميسّر",
     en: "Wheelchair / accessible",
     hintAr: "منحدر وكرسي متحرك ومصعد",
+    hintEn: "Ramp, wheelchair and lift access",
     purpose: "wheelchair_access",
     travelMode: "wheelchair",
     requireWheelchair: true,
@@ -107,6 +115,18 @@ export const ROUTING_CONTEXT_VALUES = ROUTING_CONTEXTS.map((c) => c.value);
 export const ROUTING_CONTEXT_LABELS: Record<string, string> = Object.fromEntries(
   ROUTING_CONTEXTS.map((c) => [c.value, c.ar]),
 );
+
+/** Localized routing-context label. */
+export function routingContextLabel(value: string | null | undefined, lang: "ar" | "en"): string {
+  const def = routingContext(value);
+  return lang === "ar" ? def.ar : def.en;
+}
+
+/** Localized routing-context hint. */
+export function routingContextHint(value: string | null | undefined, lang: "ar" | "en"): string {
+  const def = routingContext(value);
+  return lang === "ar" ? def.hintAr : def.hintEn;
+}
 
 export function routingContext(value: string | null | undefined): RoutingContextDef {
   return ROUTING_CONTEXTS.find((c) => c.value === value) ?? ROUTING_CONTEXTS[0]!;

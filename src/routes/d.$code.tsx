@@ -18,8 +18,19 @@ import {
 import { CadastralMap, type MapPin as Pin } from "@/components/CadastralMap";
 import { DirectionsButton } from "@/components/DirectionsButton";
 import { resolveAddress } from "@/lib/addresses.functions";
+import { useI18n } from "@/lib/i18n";
 import { logAddressEvent } from "@/lib/orgs.functions";
 import { normalizeCode, VERIFICATION_LEVELS } from "@/lib/smart-address";
+
+const VERIFICATION_LABELS_EN: Record<string, string> = {
+  unverified: "Unverified",
+  user_confirmed: "Confirmed by owner",
+  community_confirmed: "Community confirmed",
+  courier_verified: "Verified by courier company",
+  business_verified: "Verified business",
+  organization_verified: "Verified organization",
+  official_verified: "Officially verified",
+};
 
 export const Route = createFileRoute("/d/$code")({
   loader: ({ params }) =>
@@ -44,17 +55,39 @@ export const Route = createFileRoute("/d/$code")({
   }),
   errorComponent: () => (
     <Shell>
-      <p className="text-center text-lg font-bold">تعذر تحميل عنوان التوصيل</p>
-      <p className="mt-2 text-center text-sm text-muted-foreground">أعد المحاولة بعد قليل.</p>
+      <ErrorBody />
     </Shell>
   ),
   notFoundComponent: () => (
     <Shell>
-      <p className="text-center text-lg font-bold">لا يوجد عنوان بهذا الرمز</p>
+      <NotFoundBody />
     </Shell>
   ),
   component: DeliveryPage,
 });
+
+function ErrorBody() {
+  const { t } = useI18n();
+  return (
+    <>
+      <p className="text-center text-lg font-bold">
+        {t({ ar: "تعذر تحميل عنوان التوصيل", en: "We couldn't load this delivery address" })}
+      </p>
+      <p className="mt-2 text-center text-sm text-muted-foreground">
+        {t({ ar: "أعد المحاولة بعد قليل.", en: "Please try again in a moment." })}
+      </p>
+    </>
+  );
+}
+
+function NotFoundBody() {
+  const { t } = useI18n();
+  return (
+    <p className="text-center text-lg font-bold">
+      {t({ ar: "لا يوجد عنوان بهذا الرمز", en: "No address matches this code" })}
+    </p>
+  );
+}
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
@@ -101,6 +134,7 @@ function BigRow({
 }
 
 function DeliveryPage() {
+  const { t, name } = useI18n();
   const result = Route.useLoaderData();
   const { code: rawCode } = Route.useParams();
   const ok = result.status === "ok" ? result : null;
@@ -117,19 +151,22 @@ function DeliveryPage() {
       <Shell>
         <p className="text-center text-lg font-bold">
           {result.status === "not_found"
-            ? "لا يوجد عنوان ذكي عام بهذا الرمز"
+            ? t({ ar: "لا يوجد عنوان ذكي عام بهذا الرمز", en: "No public smart address matches this code" })
             : result.status === "retired"
-              ? "هذا الرمز مُتقاعد"
-              : "هذا العنوان خاص ولا يمكن عرضه علناً"}
+              ? t({ ar: "هذا الرمز مُتقاعد", en: "This code has been retired" })
+              : t({ ar: "هذا العنوان خاص ولا يمكن عرضه علناً", en: "This address is private and can't be shown publicly" })}
         </p>
         <p className="mt-2 text-center text-sm text-muted-foreground">
-          العناوين السكنية خاصة افتراضياً — يحتاج الساعي رابطاً مؤقتاً من صاحب العنوان.
+          {t({
+            ar: "العناوين السكنية خاصة افتراضياً — يحتاج الساعي رابطاً مؤقتاً من صاحب العنوان.",
+            en: "Residential addresses are private by default — the courier needs a temporary link from the address owner.",
+          })}
         </p>
         <p className="mt-4 text-center font-mono text-xs text-muted-foreground" dir="ltr">
           {normalizeCode(rawCode)}
         </p>
         <Link to="/" className="mt-5 block text-center text-sm font-bold text-primary">
-          العودة إلى البحث
+          {t({ ar: "العودة إلى البحث", en: "Back to search" })}
         </Link>
       </Shell>
     );
@@ -160,10 +197,13 @@ function DeliveryPage() {
   const contactPhone = ok.business?.phone ?? null;
 
   const vehicleApproach = ap?.vehicle_access
-    ? "وصول مركبات حتى المدخل"
+    ? t({ ar: "وصول مركبات حتى المدخل", en: "Vehicle access right to the entrance" })
     : ap && !ap.vehicle_access
-      ? "توقّف بالمركبة خارجاً — أكمل مشياً"
+      ? t({ ar: "توقّف بالمركبة خارجاً — أكمل مشياً", en: "Park outside — continue on foot" })
       : null;
+
+  const verificationLabel =
+    t({ ar: VERIFICATION_LEVELS[ok.verification_level]?.ar ?? "غير موثق", en: VERIFICATION_LABELS_EN[ok.verification_level] ?? "Unverified" });
 
   return (
     <div className="min-h-screen bg-secondary">
@@ -181,7 +221,7 @@ function DeliveryPage() {
           </div>
           <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-surface px-2 py-1 text-[10px] font-bold">
             <BadgeCheck className="size-3.5 text-primary" />
-            {VERIFICATION_LEVELS[ok.verification_level]?.ar ?? "غير موثق"}
+            {verificationLabel}
           </span>
         </div>
       </header>
@@ -201,55 +241,67 @@ function DeliveryPage() {
         <DirectionsButton
           code={ok.code}
           mode="delivery"
-          label="ابدأ التوجيه إلى المدخل"
+          label={t({ ar: "ابدأ التوجيه إلى المدخل", en: "Start directions to the entrance" })}
           className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-4 text-lg font-bold text-primary-foreground shadow-plate"
         />
 
         {/* Delivery-relevant facts only */}
         <div className="space-y-2">
-          <BigRow icon={Truck} label="أفضل وصول للمركبة" value={vehicleApproach} />
+          <BigRow
+            icon={Truck}
+            label={t({ ar: "أفضل وصول للمركبة", en: "Best vehicle access" })}
+            value={vehicleApproach}
+          />
           <BigRow
             icon={DoorOpen}
-            label="مدخل المبنى"
+            label={t({ ar: "مدخل المبنى", en: "Building entrance" })}
             value={ap?.display_name ?? null}
             highlight
           />
           <BigRow
             icon={ArrowUpFromLine}
-            label="نقطة التوقف / التحميل"
+            label={t({ ar: "نقطة التوقف / التحميل", en: "Stopping / loading point" })}
             value={ap?.loading_info ?? ok.site.loading_info}
           />
           <BigRow
             icon={ParkingSquare}
-            label="المواقف"
+            label={t({ ar: "المواقف", en: "Parking" })}
             value={ap?.parking_info ?? ok.site.parking_info}
           />
           <BigRow
             icon={Building2}
-            label="المبنى"
+            label={t({ ar: "المبنى", en: "Building" })}
             value={
               building
-                ? `${building.display_name}${ok.site.building_number ? ` · رقم ${ok.site.building_number}` : ""}`
+                ? `${building.display_name}${
+                    ok.site.building_number
+                      ? ` · ${t({ ar: "رقم", en: "No." })} ${ok.site.building_number}`
+                      : ""
+                  }`
                 : ok.site.building_number
-                  ? `رقم ${ok.site.building_number}`
+                  ? `${t({ ar: "رقم", en: "No." })} ${ok.site.building_number}`
                   : null
             }
           />
-          <BigRow icon={Layers} label="الطابق" value={floor?.floor_label ?? null} />
+          <BigRow icon={Layers} label={t({ ar: "الطابق", en: "Floor" })} value={floor?.floor_label ?? null} />
           {/* Unit only when the recipient shared it publicly via the address */}
-          <BigRow icon={Layers} label="الوحدة / الشقة" value={unit?.unit_label ?? null} />
+          <BigRow
+            icon={Layers}
+            label={t({ ar: "الوحدة / الشقة", en: "Unit / apartment" })}
+            value={unit?.unit_label ?? null}
+          />
           <BigRow
             icon={Accessibility}
-            label="المصعد"
-            value={ok.site.has_elevator ? "يوجد مصعد" : null}
+            label={t({ ar: "المصعد", en: "Elevator" })}
+            value={ok.site.has_elevator ? t({ ar: "يوجد مصعد", en: "Elevator available" }) : null}
           />
-          <BigRow icon={MapPin} label="أقرب معلم" value={ok.site.landmark} />
+          <BigRow icon={MapPin} label={t({ ar: "أقرب معلم", en: "Nearest landmark" })} value={ok.site.landmark} />
         </div>
 
         {ap?.instructions ? (
           <div className="rounded-xl border border-primary/40 bg-primary/5 p-4">
             <span className="text-[11px] font-bold uppercase tracking-widest text-primary">
-              تعليمات التوصيل
+              {t({ ar: "تعليمات التوصيل", en: "Delivery instructions" })}
             </span>
             <p className="mt-1 text-base font-bold leading-snug">{ap.instructions}</p>
           </div>
@@ -276,12 +328,16 @@ function DeliveryPage() {
             className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-primary/40 bg-primary/5 px-4 py-4 text-lg font-bold text-primary"
           >
             <Phone className="size-5" />
-            اتصل بـ {ok.business?.name_ar ?? "المستلم"}
+            {t({ ar: "اتصل بـ", en: "Call" })}{" "}
+            {ok.business ? name(ok.business) : t({ ar: "المستلم", en: "the recipient" })}
           </a>
         ) : (
           <p className="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-surface p-3 text-center text-xs text-muted-foreground">
             <ShieldAlert className="size-3.5 shrink-0" />
-            بيانات المستلم الشخصية لا تُعرض في وضع التوصيل.
+            {t({
+              ar: "بيانات المستلم الشخصية لا تُعرض في وضع التوصيل.",
+              en: "The recipient's personal details aren't shown in delivery mode.",
+            })}
           </p>
         )}
 
@@ -291,7 +347,7 @@ function DeliveryPage() {
           className="flex items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 py-3 text-sm font-bold"
         >
           <Package className="size-4" />
-          عرض بطاقة العنوان الكاملة
+          {t({ ar: "عرض بطاقة العنوان الكاملة", en: "View the full address card" })}
         </Link>
       </main>
     </div>

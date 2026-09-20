@@ -6,10 +6,11 @@ import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Check, LocateFixed } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
-import { PLACE_CATEGORIES } from "@/lib/place-categories";
+import { PLACE_CATEGORIES, placeCategoryLabel } from "@/lib/place-categories";
 import { CadastralMap } from "@/components/CadastralMap";
 import { supabase } from "@/integrations/supabase/client";
 import { createSmartAddress, nearbySites } from "@/lib/addresses.functions";
+import { useI18n } from "@/lib/i18n";
 import {
   ACCESSIBILITY_LABELS,
   ACCESS_TYPES,
@@ -40,21 +41,77 @@ export const Route = createFileRoute("/create")({
 
 type Intent = "home" | "business" | "office" | "shop" | "building" | "warehouse" | "farm" | "other";
 
-const INTENTS: { value: Intent; ar: string; node_type: string; is_public: boolean }[] = [
-  { value: "home", ar: "منزلي / شقتي", node_type: "building", is_public: false },
-  { value: "shop", ar: "متجر أو صيدلية", node_type: "building", is_public: true },
-  { value: "business", ar: "منشأة أو عيادة", node_type: "building", is_public: true },
-  { value: "office", ar: "مكتب في مبنى", node_type: "building", is_public: true },
-  { value: "building", ar: "مبنى كامل", node_type: "building", is_public: true },
-  { value: "warehouse", ar: "مستودع أو مصنع", node_type: "warehouse", is_public: true },
-  { value: "farm", ar: "مزرعة أو أرض", node_type: "farm", is_public: true },
-  { value: "other", ar: "غير ذلك", node_type: "property", is_public: false },
+const INTENTS: { value: Intent; ar: string; en: string; node_type: string; is_public: boolean }[] = [
+  { value: "home", ar: "منزلي / شقتي", en: "Home / apartment", node_type: "building", is_public: false },
+  { value: "shop", ar: "متجر أو صيدلية", en: "Shop or pharmacy", node_type: "building", is_public: true },
+  { value: "business", ar: "منشأة أو عيادة", en: "Business or clinic", node_type: "building", is_public: true },
+  { value: "office", ar: "مكتب في مبنى", en: "Office in a building", node_type: "building", is_public: true },
+  { value: "building", ar: "مبنى كامل", en: "Entire building", node_type: "building", is_public: true },
+  { value: "warehouse", ar: "مستودع أو مصنع", en: "Warehouse or factory", node_type: "warehouse", is_public: true },
+  { value: "farm", ar: "مزرعة أو أرض", en: "Farm or land", node_type: "farm", is_public: true },
+  { value: "other", ar: "غير ذلك", en: "Something else", node_type: "property", is_public: false },
 ];
 
-const STEPS = ["الغرض", "الموقع", "المدخل", "الطابق والوحدة", "الخصوصية"];
+const STEPS: { ar: string; en: string }[] = [
+  { ar: "الغرض", en: "Purpose" },
+  { ar: "الموقع", en: "Location" },
+  { ar: "المدخل", en: "Entrance" },
+  { ar: "الطابق والوحدة", en: "Floor & unit" },
+  { ar: "الخصوصية", en: "Privacy" },
+];
+
+/** English labels for domain lookups that only carry Arabic in shared modules. */
+const GOVERNORATE_EN: Record<string, string> = {
+  DAM: "Damascus",
+  RDA: "Damascus Countryside",
+  ALE: "Aleppo",
+  HOM: "Homs",
+  HAM: "Hama",
+  LAT: "Latakia",
+  TAR: "Tartus",
+  IDL: "Idlib",
+  DAR: "Daraa",
+  SUW: "As-Suwayda",
+  QUN: "Quneitra",
+  RAQ: "Raqqa",
+  DEZ: "Deir ez-Zor",
+  HAS: "Al-Hasakah",
+};
+
+const ACCESS_TYPE_EN: Record<string, string> = {
+  entrance: "Entrance",
+  gate: "Gate",
+  delivery_point: "Delivery entrance",
+  loading_dock: "Loading dock",
+  service_entrance: "Service entrance",
+  parking_entrance: "Parking entrance",
+  emergency_entrance: "Emergency entrance",
+  staff_entrance: "Staff entrance",
+};
+
+const RESTRICTION_EN: Record<string, string> = {
+  no_deliveries: "No deliveries",
+  residents_only: "Residents only",
+  staff_only: "Staff only",
+  closed_after_hours: "Closes after business hours",
+  trucks_prohibited: "Trucks prohibited",
+  pedestrian_only: "Pedestrians only",
+  vehicle_only: "Vehicles only",
+  emergency_only: "Emergency use only",
+  temporary_closure: "Temporarily closed",
+};
+
+const ACCESSIBILITY_EN: Record<string, string> = {
+  wheelchair_accessible: "Wheelchair accessible",
+  ramp: "Ramp",
+  elevator: "Elevator",
+  stairs: "Stairs",
+  accessible_parking: "Accessible parking",
+};
 
 function CreatePage() {
   const navigate = useNavigate();
+  const { t, lang } = useI18n();
   const create = useServerFn(createSmartAddress);
   const nearby = useServerFn(nearbySites);
 
@@ -169,10 +226,15 @@ function CreatePage() {
       });
     },
     onSuccess: (result) => {
-      toast.success(`تم إنشاء العنوان الذكي ${result.code}`);
+      toast.success(
+        t({ ar: `تم إنشاء العنوان الذكي ${result.code}`, en: `Smart address ${result.code} created` }),
+      );
       navigate({ to: "/my-addresses" });
     },
-    onError: (error) => toast.error(error instanceof Error ? error.message : "تعذر الإنشاء"),
+    onError: (error) =>
+      toast.error(
+        error instanceof Error ? error.message : t({ ar: "تعذر الإنشاء", en: "Couldn't create the address" }),
+      ),
   });
 
   if (authed === false) {
@@ -180,16 +242,19 @@ function CreatePage() {
       <div className="min-h-screen bg-background text-foreground">
         <AppHeader />
         <main className="mx-auto max-w-md px-4 py-16 text-center">
-          <h1 className="text-xl font-bold">يلزم تسجيل الدخول</h1>
+          <h1 className="text-xl font-bold">{t({ ar: "يلزم تسجيل الدخول", en: "Sign in required" })}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            إنشاء عنوان ذكي مرتبط بحسابك حتى تتمكن من إدارة خصوصيته والعناوين المؤقتة.
+            {t({
+              ar: "إنشاء عنوان ذكي مرتبط بحسابك حتى تتمكن من إدارة خصوصيته والعناوين المؤقتة.",
+              en: "A smart address is tied to your account, so you can manage its privacy and any temporary addresses.",
+            })}
           </p>
           <button
             type="button"
             onClick={() => navigate({ to: "/auth", search: { redirect: "/create" } })}
             className="mt-6 rounded-lg bg-primary px-5 py-3 text-sm font-bold text-primary-foreground"
           >
-            الدخول
+            {t({ ar: "الدخول", en: "Sign in" })}
           </button>
         </main>
       </div>
@@ -207,14 +272,14 @@ function CreatePage() {
       <div className="border-b border-border bg-surface/70 px-4 py-3">
         <div className="mx-auto flex max-w-3xl items-center gap-1.5">
           {STEPS.map((label, index) => (
-            <div key={label} className="flex flex-1 flex-col gap-1">
+            <div key={label.ar} className="flex flex-1 flex-col gap-1">
               <span
                 className={`h-1 rounded-full ${index <= step ? "bg-primary" : "bg-border"}`}
               />
               <span
                 className={`text-[10px] ${index === step ? "font-bold text-foreground" : "text-muted-foreground"}`}
               >
-                {label}
+                {t(label)}
               </span>
             </div>
           ))}
@@ -224,9 +289,12 @@ function CreatePage() {
       <main className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-6">
         {step === 0 ? (
           <section className="animate-entrance space-y-2">
-            <h1 className="text-lg font-bold">ما الذي تسجّله؟</h1>
+            <h1 className="text-lg font-bold">{t({ ar: "ما الذي تسجّله؟", en: "What are you registering?" })}</h1>
             <p className="text-sm text-muted-foreground">
-              نستخدم هذا لتحديد عمق التسلسل: موقع، مبنى، طابق أو وحدة.
+              {t({
+                ar: "نستخدم هذا لتحديد عمق التسلسل: موقع، مبنى، طابق أو وحدة.",
+                en: "This tells us how deep the hierarchy goes: a site, a building, a floor, or a unit.",
+              })}
             </p>
             <div className="mt-3 grid grid-cols-2 gap-2">
               {INTENTS.map((item) => (
@@ -240,7 +308,7 @@ function CreatePage() {
                       : "border-border bg-surface text-muted-foreground"
                   }`}
                 >
-                  {item.ar}
+                  {t({ ar: item.ar, en: item.en })}
                 </button>
               ))}
             </div>
@@ -249,27 +317,38 @@ function CreatePage() {
 
         {step === 1 ? (
           <section className="animate-entrance space-y-3">
-            <h1 className="text-lg font-bold">أين يقع بالضبط؟</h1>
+            <h1 className="text-lg font-bold">{t({ ar: "أين يقع بالضبط؟", en: "Where exactly is it?" })}</h1>
             <CadastralMap
               center={coords}
-              pins={[{ id: "draft", ...coords, label: siteName || "الموقع", tone: "draft" }]}
+              pins={[
+                {
+                  id: "draft",
+                  ...coords,
+                  label: siteName || t({ ar: "الموقع", en: "Location" }),
+                  tone: "draft",
+                },
+              ]}
               onPick={setCoords}
               onLocate={() => {
                 navigator.geolocation?.getCurrentPosition(
                   (pos) =>
                     setCoords({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
-                  () => toast.error("تعذر تحديد الموقع"),
+                  () => toast.error(t({ ar: "تعذر تحديد الموقع", en: "Couldn't detect your location" })),
                 );
               }}
             />
             <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-              <LocateFixed className="size-3" /> اضغط على المخطط لتحريك النقطة بدقة.
+              <LocateFixed className="size-3" />{" "}
+              {t({ ar: "اضغط على المخطط لتحريك النقطة بدقة.", en: "Tap the map to place the pin precisely." })}
             </p>
 
             {nearbyList.length ? (
               <div className="rounded-xl border border-border bg-surface p-3">
                 <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-                  مواقع مسجلة قريبة — اربط بها لتجنّب التكرار
+                  {t({
+                    ar: "مواقع مسجلة قريبة — اربط بها لتجنّب التكرار",
+                    en: "Nearby registered sites — link one to avoid duplicates",
+                  })}
                 </p>
                 <div className="mt-2 space-y-1.5">
                   {nearbyList.map((item) => (
@@ -287,7 +366,7 @@ function CreatePage() {
                     >
                       <span>{item.display_name}</span>
                       <span className="font-mono text-[11px] text-muted-foreground">
-                        {item.distance_meters} م
+                        {t({ ar: `${item.distance_meters} م`, en: `${item.distance_meters} m` })}
                       </span>
                     </button>
                   ))}
@@ -303,32 +382,35 @@ function CreatePage() {
               >
                 {GOVERNORATES.map((gov) => (
                   <option key={gov.code} value={gov.code}>
-                    {gov.ar}
+                    {t({ ar: gov.ar, en: GOVERNORATE_EN[gov.code] ?? gov.ar })}
                   </option>
                 ))}
               </select>
               <input
                 value={siteName}
                 onChange={(event) => setSiteName(event.target.value)}
-                placeholder="اسم المبنى أو الموقع"
+                placeholder={t({ ar: "اسم المبنى أو الموقع", en: "Building or site name" })}
                 className="rounded-lg border border-border bg-surface px-3 py-2.5 text-sm"
               />
               <input
                 value={neighborhood}
                 onChange={(event) => setNeighborhood(event.target.value)}
-                placeholder="الحي"
+                placeholder={t({ ar: "الحي", en: "Neighborhood" })}
                 className="rounded-lg border border-border bg-surface px-3 py-2.5 text-sm"
               />
               <input
                 value={street}
                 onChange={(event) => setStreet(event.target.value)}
-                placeholder="الشارع"
+                placeholder={t({ ar: "الشارع", en: "Street" })}
                 className="rounded-lg border border-border bg-surface px-3 py-2.5 text-sm"
               />
               <input
                 value={landmark}
                 onChange={(event) => setLandmark(event.target.value)}
-                placeholder="معلم قريب (مثال: مقابل جامع الروضة)"
+                placeholder={t({
+                  ar: "معلم قريب (مثال: مقابل جامع الروضة)",
+                  en: "Nearby landmark (e.g. across from Al-Rawda Mosque)",
+                })}
                 className="rounded-lg border border-border bg-surface px-3 py-2.5 text-sm"
               />
             </div>
@@ -337,9 +419,9 @@ function CreatePage() {
 
         {step === 2 ? (
           <section className="animate-entrance space-y-3">
-            <h1 className="text-lg font-bold">المدخل والأغراض</h1>
+            <h1 className="text-lg font-bold">{t({ ar: "المدخل والأغراض", en: "Entrance & purposes" })}</h1>
             <label className="flex items-center justify-between rounded-xl border border-border bg-surface p-3 text-sm font-bold">
-              تسجيل مدخل لهذا الموقع
+              {t({ ar: "تسجيل مدخل لهذا الموقع", en: "Register an entrance for this site" })}
               <input
                 type="checkbox"
                 checked={addEntrance}
@@ -358,28 +440,34 @@ function CreatePage() {
                   >
                     {ACCESS_TYPES.map((type) => (
                       <option key={type.value} value={type.value}>
-                        {type.ar}
+                        {t({ ar: type.ar, en: ACCESS_TYPE_EN[type.value] ?? type.ar })}
                       </option>
                     ))}
                   </select>
                   <input
                     value={entranceName}
                     onChange={(event) => setEntranceName(event.target.value)}
-                    placeholder="اسم المدخل (مثال: المدخل A — الزوار)"
+                    placeholder={t({
+                      ar: "اسم المدخل (مثال: المدخل A — الزوار)",
+                      en: "Entrance name (e.g. Entrance A — Visitors)",
+                    })}
                     className="rounded-lg border border-border bg-surface px-3 py-2.5 text-sm"
                   />
                   <textarea
                     value={instructions}
                     onChange={(event) => setInstructions(event.target.value)}
                     rows={3}
-                    placeholder="تعليمات الوصول: البوابة الحديدية السوداء، الجرس الثاني…"
+                    placeholder={t({
+                      ar: "تعليمات الوصول: البوابة الحديدية السوداء، الجرس الثاني…",
+                      en: "Access instructions: the black iron gate, second doorbell…",
+                    })}
                     className="rounded-lg border border-border bg-surface px-3 py-2.5 text-sm"
                   />
                 </div>
 
                 <div className="rounded-xl border border-border bg-surface p-3">
                   <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-                    أغراض مسموحة
+                    {t({ ar: "أغراض مسموحة", en: "Allowed purposes" })}
                   </p>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {PURPOSES.map((purpose) => (
@@ -393,12 +481,12 @@ function CreatePage() {
                             : "border border-border text-muted-foreground"
                         }`}
                       >
-                        {purpose.ar}
+                        {t({ ar: purpose.ar, en: purpose.en })}
                       </button>
                     ))}
                   </div>
                   <p className="mt-3 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-                    أغراض ممنوعة
+                    {t({ ar: "أغراض ممنوعة", en: "Prohibited purposes" })}
                   </p>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {PURPOSES.map((purpose) => (
@@ -412,7 +500,7 @@ function CreatePage() {
                             : "border border-border text-muted-foreground"
                         }`}
                       >
-                        {purpose.ar}
+                        {t({ ar: purpose.ar, en: purpose.en })}
                       </button>
                     ))}
                   </div>
@@ -420,7 +508,7 @@ function CreatePage() {
 
                 <div className="rounded-xl border border-border bg-surface p-3">
                   <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-                    قيود
+                    {t({ ar: "قيود", en: "Restrictions" })}
                   </p>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {Object.entries(RESTRICTION_LABELS).map(([value, label]) => (
@@ -434,12 +522,12 @@ function CreatePage() {
                             : "border border-border text-muted-foreground"
                         }`}
                       >
-                        {label}
+                        {t({ ar: label, en: RESTRICTION_EN[value] ?? label })}
                       </button>
                     ))}
                   </div>
                   <p className="mt-3 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-                    إمكانية الوصول
+                    {t({ ar: "إمكانية الوصول", en: "Accessibility" })}
                   </p>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {Object.entries(ACCESSIBILITY_LABELS).map(([value, label]) => (
@@ -453,7 +541,7 @@ function CreatePage() {
                             : "border border-border text-muted-foreground"
                         }`}
                       >
-                        {label}
+                        {t({ ar: label, en: ACCESSIBILITY_EN[value] ?? label })}
                       </button>
                     ))}
                   </div>
@@ -461,7 +549,7 @@ function CreatePage() {
 
                 <div className="rounded-xl border border-border bg-surface p-3">
                   <label className="flex items-center justify-between text-sm font-bold">
-                    مفتوح 24/7
+                    {t({ ar: "مفتوح 24/7", en: "Open 24/7" })}
                     <input
                       type="checkbox"
                       checked={alwaysOpen}
@@ -493,27 +581,33 @@ function CreatePage() {
 
         {step === 3 ? (
           <section className="animate-entrance space-y-3">
-            <h1 className="text-lg font-bold">الطابق والوحدة</h1>
+            <h1 className="text-lg font-bold">{t({ ar: "الطابق والوحدة", en: "Floor & unit" })}</h1>
             <p className="text-sm text-muted-foreground">
-              اتركها فارغة إن كان العنوان يشير إلى الموقع أو المبنى كاملاً.
+              {t({
+                ar: "اتركها فارغة إن كان العنوان يشير إلى الموقع أو المبنى كاملاً.",
+                en: "Leave these blank if the address refers to the whole site or building.",
+              })}
             </p>
             <input
               value={floorLabel}
               onChange={(event) => setFloorLabel(event.target.value)}
-              placeholder="الطابق (مثال: 3 أو أرضي)"
+              placeholder={t({ ar: "الطابق (مثال: 3 أو أرضي)", en: "Floor (e.g. 3 or ground)" })}
               className="w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm"
             />
             <input
               value={unitLabel}
               onChange={(event) => setUnitLabel(event.target.value)}
-              placeholder="الوحدة / الشقة (مثال: 12)"
+              placeholder={t({ ar: "الوحدة / الشقة (مثال: 12)", en: "Unit / apartment (e.g. 12)" })}
               className="w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm"
             />
             <textarea
               value={unitNote}
               onChange={(event) => setUnitNote(event.target.value)}
               rows={2}
-              placeholder="ملاحظة داخلية (تظهر فقط لمن تشاركه العنوان)"
+              placeholder={t({
+                ar: "ملاحظة داخلية (تظهر فقط لمن تشاركه العنوان)",
+                en: "Internal note (visible only to people you share the address with)",
+              })}
               className="w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm"
             />
           </section>
@@ -521,7 +615,7 @@ function CreatePage() {
 
         {step === 4 ? (
           <section className="animate-entrance space-y-3">
-            <h1 className="text-lg font-bold">الخصوصية والنشر</h1>
+            <h1 className="text-lg font-bold">{t({ ar: "الخصوصية والنشر", en: "Privacy & publishing" })}</h1>
             <div className="space-y-2">
               <button
                 type="button"
@@ -530,9 +624,12 @@ function CreatePage() {
                   !isPublic ? "border-primary bg-primary/5" : "border-border bg-surface"
                 }`}
               >
-                <p className="text-sm font-bold">خاص (موصى به للسكني)</p>
+                <p className="text-sm font-bold">{t({ ar: "خاص (موصى به للسكني)", en: "Private (recommended for homes)" })}</p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  لا يظهر في البحث ولا يُحلّ عبر الـ API العام. تشارك الوصول عبر عنوان مؤقت ينتهي تلقائياً.
+                  {t({
+                    ar: "لا يظهر في البحث ولا يُحلّ عبر الـ API العام. تشارك الوصول عبر عنوان مؤقت ينتهي تلقائياً.",
+                    en: "Won't appear in search or resolve through the public API. Share access with a temporary address that expires automatically.",
+                  })}
                 </p>
               </button>
               <button
@@ -542,9 +639,12 @@ function CreatePage() {
                   isPublic ? "border-primary bg-primary/5" : "border-border bg-surface"
                 }`}
               >
-                <p className="text-sm font-bold">عام</p>
+                <p className="text-sm font-bold">{t({ ar: "عام", en: "Public" })}</p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  مناسب للأعمال والمرافق: يظهر في البحث ويُحلّ للجميع حسب الغرض.
+                  {t({
+                    ar: "مناسب للأعمال والمرافق: يظهر في البحث ويُحلّ للجميع حسب الغرض.",
+                    en: "Suited to businesses and facilities: appears in search and resolves for everyone, per purpose.",
+                  })}
                 </p>
               </button>
             </div>
@@ -552,18 +652,18 @@ function CreatePage() {
             {isPublic ? (
               <div className="grid gap-2 rounded-xl border border-border bg-surface p-3">
                 <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-                  بطاقة العمل (اختياري)
+                  {t({ ar: "بطاقة العمل (اختياري)", en: "Business card (optional)" })}
                 </p>
                 <input
                   value={businessName}
                   onChange={(event) => setBusinessName(event.target.value)}
-                  placeholder="اسم النشاط"
+                  placeholder={t({ ar: "اسم النشاط", en: "Business name" })}
                   className="rounded-lg border border-border bg-background px-3 py-2.5 text-sm"
                 />
                 <input
                   value={businessCategory}
                   onChange={(event) => setBusinessCategory(event.target.value)}
-                  placeholder="التصنيف (صيدلية، مطعم…)"
+                  placeholder={t({ ar: "التصنيف (صيدلية، مطعم…)", en: "Category (pharmacy, restaurant…)" })}
                   className="rounded-lg border border-border bg-background px-3 py-2.5 text-sm"
                 />
                 <select
@@ -571,10 +671,10 @@ function CreatePage() {
                   onChange={(event) => setBusinessPlaceCategory(event.target.value)}
                   className="rounded-lg border border-border bg-background px-3 py-2.5 text-sm"
                 >
-                  <option value="">تصنيف الدليل العام (اختياري)</option>
+                  <option value="">{t({ ar: "تصنيف الدليل العام (اختياري)", en: "Public directory category (optional)" })}</option>
                   {PLACE_CATEGORIES.map((c) => (
                     <option key={c.value} value={c.value}>
-                      {c.emoji} {c.ar}
+                      {c.emoji} {placeCategoryLabel(c.value, lang)}
                     </option>
                   ))}
                 </select>
@@ -589,8 +689,10 @@ function CreatePage() {
             ) : null}
 
             <p className="rounded-xl bg-secondary p-3 text-[11px] text-muted-foreground">
-              العنوان الجديد يبدأ بمستوى توثيق «مؤكد من المستخدم» وثقة 60%. يرتفع بعد تأكيدات
-              التسليم أو التوثيق البلدي.
+              {t({
+                ar: "العنوان الجديد يبدأ بمستوى توثيق «مؤكد من المستخدم» وثقة 60%. يرتفع بعد تأكيدات التسليم أو التوثيق البلدي.",
+                en: "New addresses start at the \"user-confirmed\" verification level with 60% confidence. It rises after delivery confirmations or municipal verification.",
+              })}
             </p>
           </section>
         ) : null}
@@ -604,7 +706,7 @@ function CreatePage() {
               onClick={() => setStep(step - 1)}
               className="flex items-center gap-1.5 rounded-xl border border-border px-4 py-3 text-sm font-bold"
             >
-              <ArrowRight className="size-4" /> السابق
+              <ArrowRight className="size-4" /> {t({ ar: "السابق", en: "Back" })}
             </button>
           ) : null}
           {step < STEPS.length - 1 ? (
@@ -613,7 +715,7 @@ function CreatePage() {
               onClick={() => setStep(step + 1)}
               className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-foreground px-4 py-3 text-sm font-bold text-background"
             >
-              التالي <ArrowLeft className="size-4" />
+              {t({ ar: "التالي", en: "Next" })} <ArrowLeft className="size-4" />
             </button>
           ) : (
             <button
@@ -623,7 +725,9 @@ function CreatePage() {
               className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground disabled:opacity-60"
             >
               <Check className="size-4" />
-              {mutation.isPending ? "جارٍ الإنشاء…" : "إنشاء العنوان الذكي"}
+              {mutation.isPending
+                ? t({ ar: "جارٍ الإنشاء…", en: "Creating…" })
+                : t({ ar: "إنشاء العنوان الذكي", en: "Create smart address" })}
             </button>
           )}
         </div>

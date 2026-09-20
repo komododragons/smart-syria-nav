@@ -285,3 +285,170 @@ export function osmDirectionsUrl(lat?: number | null, lng?: number | null): stri
   if (lat == null || lng == null) return "https://www.openstreetmap.org/";
   return `https://www.openstreetmap.org/directions?to=${lat}%2C${lng}`;
 }
+
+// ============================================================================
+// Bilingual label layer (ar | en). Arabic stays the primary voice; English is
+// proper civic/logistics terminology, not literal translation.
+// ============================================================================
+
+export type LabelLang = "ar" | "en";
+
+const pick = (lang: LabelLang, ar: string, en: string) => (lang === "ar" ? ar : en);
+
+export const NODE_TYPE_EN: Record<string, string> = {
+  property: "Property / site",
+  land: "Land",
+  building: "Building",
+  floor: "Floor",
+  apartment: "Apartment",
+  office: "Office",
+  shop: "Shop",
+  clinic: "Clinic",
+  warehouse: "Warehouse",
+  farm: "Farm",
+  field: "Field",
+  factory: "Factory",
+  school: "School",
+  hospital: "Hospital",
+  hotel: "Hotel",
+  government_office: "Government office",
+  pickup_point: "Pickup point",
+  poi: "Point of interest",
+  custom: "Other",
+};
+
+export const ACCESS_TYPE_EN: Record<string, string> = {
+  entrance: "Entrance",
+  gate: "Gate",
+  delivery_point: "Delivery entrance",
+  loading_dock: "Loading dock",
+  service_entrance: "Service entrance",
+  parking_entrance: "Parking entrance",
+  emergency_entrance: "Emergency entrance",
+  staff_entrance: "Staff entrance",
+};
+
+export const RESTRICTION_EN: Record<string, string> = {
+  no_deliveries: "No deliveries",
+  residents_only: "Residents only",
+  staff_only: "Staff only",
+  closed_after_hours: "Closed after hours",
+  trucks_prohibited: "No trucks",
+  pedestrian_only: "Pedestrians only",
+  vehicle_only: "Vehicles only",
+  emergency_only: "Emergency only",
+  temporary_closure: "Temporarily closed",
+};
+
+export const VERIFICATION_EN: Record<string, string> = {
+  unverified: "Unverified",
+  user_confirmed: "Confirmed by owner",
+  community_confirmed: "Community-confirmed",
+  courier_verified: "Verified by a courier company",
+  business_verified: "Verified business",
+  organization_verified: "Verified organisation",
+  official_verified: "Officially verified",
+};
+
+export const ACCESSIBILITY_EN: Record<string, string> = {
+  wheelchair_accessible: "Wheelchair accessible",
+  ramp: "Ramp",
+  elevator: "Lift",
+  stairs: "Stairs",
+  accessible_parking: "Accessible parking",
+};
+
+export const GOVERNORATE_EN: Record<string, string> = {
+  DAM: "Damascus",
+  RDA: "Rif Dimashq",
+  ALE: "Aleppo",
+  HOM: "Homs",
+  HAM: "Hama",
+  LAT: "Latakia",
+  TAR: "Tartus",
+  IDL: "Idlib",
+  DAR: "Daraa",
+  SUW: "As-Suwayda",
+  QUN: "Quneitra",
+  RAQ: "Raqqa",
+  DEZ: "Deir ez-Zor",
+  HAS: "Al-Hasakah",
+};
+
+export const CORRECTION_TYPE_EN: Record<string, string> = {
+  wrong_location: "Map location is wrong",
+  wrong_business_name: "Business name is wrong",
+  business_closed: "Business permanently closed",
+  entrance_changed: "Entrance has changed",
+  duplicate_location: "Duplicate location",
+  incorrect_category: "Wrong category",
+  access_issue: "Access problem",
+  other: "Other",
+  wrong_building_pin: "Building pin is wrong",
+  wrong_entrance: "Wrong entrance",
+  entrance_closed: "Entrance is closed",
+  delivery_prohibited: "Deliveries not allowed at this entrance",
+  wrong_floor: "Wrong floor",
+  business_moved: "Business has moved",
+  incorrect_name: "Incorrect name",
+  incorrect_hours: "Incorrect opening hours",
+  unsafe_access: "Unsafe access",
+};
+
+export const CORRECTION_FIELD_EN: Record<string, { valueLabel: string | null; placeholder: string | null }> = {
+  wrong_location: { valueLabel: "Correct coordinates (latitude, longitude)", placeholder: "33.5102, 36.2913" },
+  wrong_business_name: { valueLabel: "Correct name", placeholder: "Al-Nour Pharmacy" },
+  business_closed: { valueLabel: null, placeholder: null },
+  entrance_changed: { valueLabel: "Describe the correct entrance", placeholder: "Rear entrance on Al-Thawra Street" },
+  duplicate_location: { valueLabel: "Code of the duplicate address (if known)", placeholder: "SY-DAM-XXXX" },
+  incorrect_category: { valueLabel: "Correct category", placeholder: "pharmacy" },
+  access_issue: { valueLabel: "What is the problem?", placeholder: "Gate is locked after 6 pm" },
+  other: { valueLabel: "Your suggestion", placeholder: null },
+};
+
+export const CORRECTION_DECISION_EN: Record<string, string> = {
+  approved: "Approved",
+  rejected: "Rejected",
+  needs_more_info: "More information needed",
+};
+
+export function purposeLabel(value: string, lang: LabelLang = "ar") {
+  const p = PURPOSES.find((item) => item.value === value);
+  if (!p) return value;
+  return pick(lang, p.ar, p.en);
+}
+
+export function nodeTypeLabel(value: string, lang: LabelLang = "ar") {
+  return pick(lang, NODE_TYPE_LABELS[value] ?? value, NODE_TYPE_EN[value] ?? value);
+}
+
+export function accessTypeLabel(value: string, lang: LabelLang = "ar") {
+  return pick(lang, ACCESS_TYPE_LABELS[value] ?? value, ACCESS_TYPE_EN[value] ?? value);
+}
+
+export function restrictionLabel(value: string, lang: LabelLang = "ar") {
+  return pick(lang, RESTRICTION_LABELS[value] ?? value, RESTRICTION_EN[value] ?? value);
+}
+
+export function verificationLabel(value: string | null | undefined, lang: LabelLang = "ar") {
+  const key = value ?? "unverified";
+  return pick(lang, VERIFICATION_LEVELS[key]?.ar ?? "غير موثق", VERIFICATION_EN[key] ?? "Unverified");
+}
+
+export function accessibilityLabel(value: string, lang: LabelLang = "ar") {
+  return pick(lang, ACCESSIBILITY_LABELS[value] ?? value, ACCESSIBILITY_EN[value] ?? value);
+}
+
+export function governorateLabel(code: string, lang: LabelLang = "ar") {
+  const gov = GOVERNORATES.find((g) => g.code === code);
+  if (!gov) return code;
+  return pick(lang, gov.ar, GOVERNORATE_EN[code] ?? gov.ar);
+}
+
+export function correctionTypeLabel(value: string, lang: LabelLang = "ar") {
+  return pick(lang, CORRECTION_TYPE_LABELS[value] ?? value, CORRECTION_TYPE_EN[value] ?? value);
+}
+
+export function correctionDecisionLabel(value: string, lang: LabelLang = "ar") {
+  return pick(lang, CORRECTION_DECISION_LABELS[value] ?? value, CORRECTION_DECISION_EN[value] ?? value);
+}

@@ -11,25 +11,32 @@ import { useEffect, type ReactNode } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { registerOfflineWorker } from "@/lib/offline/register-sw";
+import { LocaleProvider, useI18n } from "@/lib/i18n";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
+  const { t } = useI18n();
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="font-mono text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">الصفحة غير موجودة</h2>
+        <h2 className="mt-4 text-xl font-semibold text-foreground">
+          {t({ ar: "الصفحة غير موجودة", en: "Page not found" })}
+        </h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          الرابط الذي تحاول الوصول إليه غير موجود أو تم نقله.
+          {t({
+            ar: "الرابط الذي تحاول الوصول إليه غير موجود أو تم نقله.",
+            en: "The link you followed does not exist or has been moved.",
+          })}
         </p>
         <div className="mt-6">
           <Link
             to="/"
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            العودة إلى المحلّل
+            {t({ ar: "العودة إلى المحلّل", en: "Back to the resolver" })}
           </Link>
         </div>
       </div>
@@ -40,6 +47,7 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+  const { t } = useI18n();
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
@@ -48,10 +56,13 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          تعذر تحميل هذه الصفحة
+          {t({ ar: "تعذر تحميل هذه الصفحة", en: "This page could not be loaded" })}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          حدث خطأ غير متوقع. يمكنك إعادة المحاولة أو العودة إلى الصفحة الرئيسية.
+          {t({
+            ar: "حدث خطأ غير متوقع. يمكنك إعادة المحاولة أو العودة إلى الصفحة الرئيسية.",
+            en: "An unexpected error occurred. Try again or go back to the home page.",
+          })}
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
@@ -61,13 +72,13 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
             }}
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            إعادة المحاولة
+            {t({ ar: "إعادة المحاولة", en: "Try again" })}
           </button>
           <a
             href="/"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
-            الصفحة الرئيسية
+            {t({ ar: "الصفحة الرئيسية", en: "Home page" })}
           </a>
         </div>
       </div>
@@ -133,10 +144,12 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <OfflineBanner />
+      <LocaleProvider>
+        <OfflineBanner />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
-      <Toaster position="top-center" />
+        <Outlet />
+        <Toaster position="top-center" />
+      </LocaleProvider>
     </QueryClientProvider>
   );
 }

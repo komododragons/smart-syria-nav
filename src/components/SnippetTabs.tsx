@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
 
+import { useI18n } from "@/lib/i18n";
+
 export type Snippet = { id: string; label: string; code: string };
 
 /** Copyable tabbed code block with arbitrary language/platform tabs. */
 export function SnippetTabs({ snippets }: { snippets: Snippet[] }) {
+  const { t } = useI18n();
   const [active, setActive] = useState(snippets[0]?.id ?? "");
   const [copied, setCopied] = useState(false);
   const current = snippets.find((s) => s.id === active) ?? snippets[0];
@@ -39,7 +42,7 @@ export function SnippetTabs({ snippets }: { snippets: Snippet[] }) {
           className="flex shrink-0 items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-bold text-muted-foreground"
         >
           {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
-          {copied ? "تم النسخ" : "نسخ"}
+          {copied ? t({ ar: "تم النسخ", en: "Copied" }) : t({ ar: "نسخ", en: "Copy" })}
         </button>
       </div>
       <pre

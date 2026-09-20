@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
 
+import { useI18n } from "@/lib/i18n";
+
 export type CodeSamples = {
   curl: string;
   javascript: string;
@@ -15,6 +17,7 @@ const LANGS: { id: keyof CodeSamples; label: string }[] = [
 
 /** Copyable, language-tabbed code block used across the developer portal. */
 export function CodeTabs({ samples }: { samples: CodeSamples }) {
+  const { t } = useI18n();
   const [lang, setLang] = useState<keyof CodeSamples>("curl");
   const [copied, setCopied] = useState(false);
 
@@ -47,7 +50,7 @@ export function CodeTabs({ samples }: { samples: CodeSamples }) {
           className="flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-bold text-muted-foreground"
         >
           {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
-          {copied ? "تم النسخ" : "نسخ"}
+          {copied ? t({ ar: "تم النسخ", en: "Copied" }) : t({ ar: "نسخ", en: "Copy" })}
         </button>
       </div>
       <pre

@@ -30,7 +30,7 @@ import { DirectionsButton } from "@/components/DirectionsButton";
 import { QrCard } from "@/components/QrCard";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveAddress } from "@/lib/addresses.functions";
-import { ROUTING_CONTEXTS, type RoutingContext } from "@/lib/routing-contexts";
+import { ROUTING_CONTEXTS, routingContextHint, routingContextLabel, type RoutingContext } from "@/lib/routing-contexts";
 import { listFavorites, toggleFavorite } from "@/lib/network.functions";
 import { logAddressEvent } from "@/lib/orgs.functions";
 import { rememberAddress } from "@/lib/offline/store";
@@ -43,6 +43,7 @@ import {
   normalizeCode,
 } from "@/lib/smart-address";
 import type { TravelMode } from "@/lib/navigation/types";
+import { formatAddressLine, formatLocality, useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/a/$code")({
   loader: ({ params }) =>
@@ -64,17 +65,29 @@ export const Route = createFileRoute("/a/$code")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  errorComponent: () => (
-    <Shell>
-      <p className="text-center font-bold">تعذر تحميل بطاقة العنوان</p>
-      <p className="mt-2 text-center text-sm text-muted-foreground">أعد المحاولة بعد قليل.</p>
-    </Shell>
-  ),
-  notFoundComponent: () => (
-    <Shell>
-      <p className="text-center font-bold">لا يوجد عنوان بهذا الرمز</p>
-    </Shell>
-  ),
+  errorComponent: () => {
+    const { t } = useI18n();
+    return (
+      <Shell>
+        <p className="text-center font-bold">
+          {t({ ar: "تعذر تحميل بطاقة العنوان", en: "We couldn't load this address card" })}
+        </p>
+        <p className="mt-2 text-center text-sm text-muted-foreground">
+          {t({ ar: "أعد المحاولة بعد قليل.", en: "Please try again in a moment." })}
+        </p>
+      </Shell>
+    );
+  },
+  notFoundComponent: () => {
+    const { t } = useI18n();
+    return (
+      <Shell>
+        <p className="text-center font-bold">
+          {t({ ar: "لا يوجد عنوان بهذا الرمز", en: "No address exists with this code" })}
+        </p>
+      </Shell>
+    );
+  },
   component: AddressCardPage,
 });
 
@@ -89,11 +102,11 @@ function Shell({ children }: { children: React.ReactNode }) {
   );
 }
 
-const TRAVEL_OPTIONS: { mode: TravelMode; ar: string; icon: typeof Car }[] = [
-  { mode: "driving", ar: "سيارة", icon: Car },
-  { mode: "walking", ar: "مشياً", icon: Footprints },
-  { mode: "delivery", ar: "توصيل", icon: Package },
-  { mode: "heavy", ar: "شاحنة", icon: Truck },
+const TRAVEL_OPTIONS: { mode: TravelMode; ar: string; en: string; icon: typeof Car }[] = [
+  { mode: "driving", ar: "سيارة", en: "Driving", icon: Car },
+  { mode: "walking", ar: "مشياً", en: "Walking", icon: Footprints },
+  { mode: "delivery", ar: "توصيل", en: "Delivery", icon: Package },
+  { mode: "heavy", ar: "شاحنة", en: "Truck", icon: Truck },
 ];
 
 function Row({
@@ -129,6 +142,7 @@ function Row({
 const CONTEXT_KEY = "ssan.routing.context";
 
 function AddressCardPage() {
+  const { t, lang, date } = useI18n();
   const loaded = Route.useLoaderData();
   const { code: rawCode } = Route.useParams();
   const [showQr, setShowQr] = useState(false);
@@ -228,19 +242,22 @@ function AddressCardPage() {
       <Shell>
         <p className="text-center font-bold">
           {result.status === "not_found"
-            ? "لا يوجد عنوان ذكي عام بهذا الرمز"
+            ? t({ ar: "لا يوجد عنوان ذكي عام بهذا الرمز", en: "No public smart address exists with this code" })
             : result.status === "retired"
-              ? "هذا الرمز مُتقاعد"
-              : "هذا العنوان خاص ولا يمكن عرضه علناً"}
+              ? t({ ar: "هذا الرمز مُتقاعد", en: "This code has been retired" })
+              : t({ ar: "هذا العنوان خاص ولا يمكن عرضه علناً", en: "This address is private and can't be shown publicly" })}
         </p>
         <p className="mt-2 text-center text-sm text-muted-foreground">
-          العناوين السكنية خاصة افتراضياً — يحتاج المُرسل رابطاً مؤقتاً من صاحب العنوان.
+          {t({
+            ar: "العناوين السكنية خاصة افتراضياً — يحتاج المُرسل رابطاً مؤقتاً من صاحب العنوان.",
+            en: "Residential addresses are private by default — senders need a temporary link from the address owner.",
+          })}
         </p>
         <p className="mt-4 text-center font-mono text-xs text-muted-foreground" dir="ltr">
           {normalizeCode(rawCode)}
         </p>
         <Link to="/" className="mt-5 block text-center text-sm font-bold text-primary">
-          العودة إلى البحث
+          {t({ ar: "العودة إلى البحث", en: "Back to search" })}
         </Link>
       </Shell>
     );
@@ -275,9 +292,16 @@ function AddressCardPage() {
                 </span>
                 <h1 className="mt-1 text-xl font-bold leading-tight">{ok.site.display_name}</h1>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {[ok.site.governorate, ok.site.city, ok.site.district, ok.site.neighborhood, ok.site.street]
-                    .filter(Boolean)
-                    .join(" — ")}
+                  {formatAddressLine(
+                    {
+                      street: ok.site.street,
+                      neighborhood: ok.site.neighborhood,
+                      district: ok.site.district,
+                      city: ok.site.city,
+                      governorate: ok.site.governorate,
+                    },
+                    lang,
+                  )}
                 </p>
               </div>
               <span className="shrink-0 rounded-md bg-surface px-2 py-1 text-[10px] font-bold">
@@ -288,7 +312,7 @@ function AddressCardPage() {
             <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px]">
               <span className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-1 font-bold">
                 <BadgeCheck className="size-3.5 text-primary" />
-                {VERIFICATION_LEVELS[ok.verification_level]?.ar ?? "غير موثق"}
+                {VERIFICATION_LEVELS[ok.verification_level]?.ar ?? t({ ar: "غير موثق", en: "Not verified" })}
               </span>
               <span className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-1">
                 <span
@@ -298,11 +322,11 @@ function AddressCardPage() {
               </span>
               {verifiedAt ? (
                 <span className="rounded-md border border-border bg-surface px-2 py-1 text-muted-foreground">
-                  آخر توثيق: {new Date(verifiedAt).toLocaleDateString("ar-SY")}
+                  {t({ ar: "آخر توثيق:", en: "Last verified:" })} {date(verifiedAt, { dateStyle: "medium" })}
                 </span>
               ) : (
                 <span className="rounded-md border border-border bg-surface px-2 py-1 text-muted-foreground">
-                  لم يُوثق ميدانياً بعد
+                  {t({ ar: "لم يُوثق ميدانياً بعد", en: "Not field-verified yet" })}
                 </span>
               )}
             </div>
@@ -328,7 +352,7 @@ function AddressCardPage() {
                     </p>
                   </div>
                   <span className="shrink-0 rounded-md bg-background px-2 py-1 text-[10px] font-bold">
-                    {VERIFICATION_LEVELS[ok.business.verification_level]?.ar ?? "غير موثق"}
+                    {VERIFICATION_LEVELS[ok.business.verification_level]?.ar ?? t({ ar: "غير موثق", en: "Not verified" })}
                   </span>
                 </div>
                 {ok.business.opening_hours ? (
@@ -353,7 +377,7 @@ function AddressCardPage() {
                       rel="noreferrer"
                       className="rounded-lg border border-border px-3 py-1.5"
                     >
-                      الموقع الإلكتروني
+                      {t({ ar: "الموقع الإلكتروني", en: "Website" })}
                     </a>
                   ) : null}
                   <Link
@@ -361,42 +385,50 @@ function AddressCardPage() {
                     params={{ id: ok.business.id }}
                     className="rounded-lg border border-border px-3 py-1.5"
                   >
-                    صفحة النشاط
+                    {t({ ar: "صفحة النشاط", en: "Business page" })}
                   </Link>
                 </div>
               </div>
             ) : null}
 
             <div className="grid gap-2 sm:grid-cols-2">
-              <Row icon={MapPin} label="الإحداثيات" value={formatCoords(lat, lng)} mono />
+              <Row icon={MapPin} label={t({ ar: "الإحداثيات", en: "Coordinates" })} value={formatCoords(lat, lng)} mono />
               <Row
                 icon={Building2}
-                label="المبنى"
+                label={t({ ar: "المبنى", en: "Building" })}
                 value={
                   building
-                    ? `${building.display_name}${ok.site.building_number ? ` · رقم ${ok.site.building_number}` : ""}`
+                    ? `${building.display_name}${
+                        ok.site.building_number
+                          ? ` · ${t({ ar: "رقم", en: "No." })} ${ok.site.building_number}`
+                          : ""
+                      }`
                     : ok.site.building_number
-                      ? `رقم ${ok.site.building_number}`
+                      ? `${t({ ar: "رقم", en: "No." })} ${ok.site.building_number}`
                       : null
                 }
               />
-              <Row icon={DoorOpen} label="المدخل" value={ap?.display_name ?? null} />
-              <Row icon={Layers} label="الطابق" value={floor?.floor_label ?? null} />
-              <Row icon={Layers} label="الوحدة / الشقة" value={unit?.unit_label ?? null} />
-              <Row icon={MapPin} label="أقرب معلم" value={ok.site.landmark} />
+              <Row icon={DoorOpen} label={t({ ar: "المدخل", en: "Entrance" })} value={ap?.display_name ?? null} />
+              <Row icon={Layers} label={t({ ar: "الطابق", en: "Floor" })} value={floor?.floor_label ?? null} />
+              <Row icon={Layers} label={t({ ar: "الوحدة / الشقة", en: "Unit / apartment" })} value={unit?.unit_label ?? null} />
+              <Row icon={MapPin} label={t({ ar: "أقرب معلم", en: "Nearest landmark" })} value={ok.site.landmark} />
               <Row
                 icon={ParkingSquare}
-                label="المواقف"
+                label={t({ ar: "المواقف", en: "Parking" })}
                 value={ap?.parking_info ?? ok.site.parking_info}
               />
-              <Row icon={Truck} label="التحميل والتنزيل" value={ap?.loading_info ?? ok.site.loading_info} />
+              <Row
+                icon={Truck}
+                label={t({ ar: "التحميل والتنزيل", en: "Loading and unloading" })}
+                value={ap?.loading_info ?? ok.site.loading_info}
+              />
               <Row
                 icon={Clock}
-                label="ساعات المدخل"
+                label={t({ ar: "ساعات المدخل", en: "Entrance hours" })}
                 value={
                   ap
                     ? ap.hours.always_open
-                      ? "مفتوح 24/7"
+                      ? t({ ar: "مفتوح 24/7", en: "Open 24/7" })
                       : `${ap.hours.opens_at?.slice(0, 5) ?? "—"} – ${ap.hours.closes_at?.slice(0, 5) ?? "—"}`
                     : null
                 }
@@ -404,14 +436,14 @@ function AddressCardPage() {
               />
               <Row
                 icon={Accessibility}
-                label="إمكانية الوصول"
+                label={t({ ar: "إمكانية الوصول", en: "Accessibility" })}
                 value={
                   ap && ap.accessibility.length
-                    ? ap.accessibility.map((a) => ACCESSIBILITY_LABELS[a] ?? a).join("، ")
+                    ? ap.accessibility.map((a) => ACCESSIBILITY_LABELS[a] ?? a).join(lang === "ar" ? "، " : ", ")
                     : ok.site.wheelchair_accessible
-                      ? "مناسب لكرسي متحرك"
+                      ? t({ ar: "مناسب لكرسي متحرك", en: "Wheelchair accessible" })
                       : ok.site.has_elevator
-                        ? "يوجد مصعد"
+                        ? t({ ar: "يوجد مصعد", en: "Elevator available" })
                         : null
                 }
               />
@@ -419,7 +451,7 @@ function AddressCardPage() {
 
             <div>
               <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                سياق الوصول
+                {t({ ar: "سياق الوصول", en: "Routing context" })}
               </span>
               <div className="mt-1.5 flex flex-wrap gap-1.5">
                 {ROUTING_CONTEXTS.map((c) => (
@@ -436,28 +468,32 @@ function AddressCardPage() {
                         : "border-border bg-surface hover:border-primary/50"
                     }`}
                   >
-                    {c.ar}
+                    {routingContextLabel(c.value, lang)}
                   </button>
                 ))}
               </div>
               <p className="mt-1.5 text-[11px] text-muted-foreground">
                 {switching
-                  ? "جارٍ تحديث المدخل الموصى به…"
-                  : (ROUTING_CONTEXTS.find((c) => c.value === context)?.hintAr ?? "")}
+                  ? t({ ar: "جارٍ تحديث المدخل الموصى به…", en: "Updating the recommended entrance…" })
+                  : routingContextHint(context, lang)}
               </p>
             </div>
 
             {ap?.context_approach ? (
               <div className="rounded-lg border border-primary/40 bg-primary/10 p-3">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-primary">
-                  تعليمات {ROUTING_CONTEXTS.find((c) => c.value === context)?.ar}
+                  {t({ ar: "تعليمات", en: "Instructions for" })} {routingContextLabel(context, lang)}
                 </span>
                 <p className="mt-1 text-sm font-bold">{ap.context_approach}</p>
                 {ap.context_preferred_road ? (
-                  <p className="mt-1 text-[12px]">الطريق المفضل: {ap.context_preferred_road}</p>
+                  <p className="mt-1 text-[12px]">
+                    {t({ ar: "الطريق المفضل:", en: "Preferred road:" })} {ap.context_preferred_road}
+                  </p>
                 ) : null}
                 {ap.context_vehicle_note ? (
-                  <p className="mt-0.5 text-[12px]">المركبة: {ap.context_vehicle_note}</p>
+                  <p className="mt-0.5 text-[12px]">
+                    {t({ ar: "المركبة:", en: "Vehicle:" })} {ap.context_vehicle_note}
+                  </p>
                 ) : null}
                 {ap.context_note ? (
                   <p className="mt-0.5 text-[12px] text-muted-foreground">{ap.context_note}</p>
@@ -468,7 +504,7 @@ function AddressCardPage() {
             {ap?.instructions ? (
               <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-primary">
-                  تعليمات الوصول
+                  {t({ ar: "تعليمات الوصول", en: "Access instructions" })}
                 </span>
                 <p className="mt-1 text-sm">{ap.instructions}</p>
               </div>
@@ -512,7 +548,7 @@ function AddressCardPage() {
 
         <section className="rounded-xl border border-border bg-background p-4">
           <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-            التوجيه إلى هذا العنوان
+            {t({ ar: "التوجيه إلى هذا العنوان", en: "Directions to this address" })}
           </h2>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {TRAVEL_OPTIONS.map((opt) => (
@@ -520,14 +556,17 @@ function AddressCardPage() {
                 key={opt.mode}
                 code={ok.code}
                 mode={opt.mode}
-                label={opt.ar}
+                label={t({ ar: opt.ar, en: opt.en })}
                 className="flex items-center justify-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-3 text-sm font-bold hover:border-primary/50"
               />
             ))}
           </div>
           <p className="mt-2 flex items-start gap-1.5 text-[11px] text-muted-foreground">
             <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
-            المسارات الخاصة بالشاحنات وكراسي المتحركين والطوارئ تُعرض كتوجيه قياسي ما لم تتوفر بيانات طرق كافية.
+            {t({
+              ar: "المسارات الخاصة بالشاحنات وكراسي المتحركين والطوارئ تُعرض كتوجيه قياسي ما لم تتوفر بيانات طرق كافية.",
+              en: "Truck, wheelchair and emergency routes are shown as standard directions unless enough road data is available.",
+            })}
           </p>
 
           <Link
@@ -536,7 +575,7 @@ function AddressCardPage() {
             className="mt-3 flex items-center justify-center gap-2 rounded-xl border-2 border-primary/40 bg-primary/5 px-4 py-3 text-sm font-bold text-primary"
           >
             <Package className="size-4" />
-            وضع التوصيل — عرض مبسّط للساعي
+            {t({ ar: "وضع التوصيل — عرض مبسّط للساعي", en: "Delivery mode — simplified courier view" })}
           </Link>
 
           <Link
@@ -545,7 +584,7 @@ function AddressCardPage() {
             className="mt-2 flex items-center justify-center gap-2 rounded-xl border-2 border-destructive/40 bg-destructive/5 px-4 py-3 text-sm font-bold text-destructive"
           >
             <AlertTriangle className="size-4" />
-            وضع الطوارئ — معلومات الوصول السريع
+            {t({ ar: "وضع الطوارئ — معلومات الوصول السريع", en: "Emergency mode — rapid access information" })}
           </Link>
 
           <div className="mt-4 flex flex-wrap gap-2">
@@ -562,28 +601,28 @@ function AddressCardPage() {
                   }
                 }
                 await navigator.clipboard.writeText(shareUrl);
-                toast.success("تم نسخ رابط العنوان");
+                toast.success(t({ ar: "تم نسخ رابط العنوان", en: "Address link copied" }));
               }}
               className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2.5 text-sm font-bold"
             >
-              <Share2 className="size-4" /> مشاركة
+              <Share2 className="size-4" /> {t({ ar: "مشاركة", en: "Share" })}
             </button>
             <button
               type="button"
               onClick={() => {
                 void navigator.clipboard.writeText(ok.code);
-                toast.success("تم نسخ العنوان الذكي");
+                toast.success(t({ ar: "تم نسخ العنوان الذكي", en: "Smart address copied" }));
               }}
               className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2.5 text-sm font-bold"
             >
-              <Copy className="size-4" /> نسخ الرمز
+              <Copy className="size-4" /> {t({ ar: "نسخ الرمز", en: "Copy code" })}
             </button>
             <button
               type="button"
               onClick={() => setShowQr((v) => !v)}
               className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2.5 text-sm font-bold"
             >
-              <QrCode className="size-4" /> رمز QR
+              <QrCode className="size-4" /> {t({ ar: "رمز QR", en: "QR code" })}
             </button>
             {signedIn ? (
               <button
@@ -594,9 +633,13 @@ function AddressCardPage() {
                       data: { code: ok.code, label: ok.site.display_name },
                     });
                     setSaved(res.saved);
-                    toast.success(res.saved ? "حُفظ في المفضلة" : "أُزيل من المفضلة");
+                    toast.success(
+                      res.saved
+                        ? t({ ar: "حُفظ في المفضلة", en: "Saved to favourites" })
+                        : t({ ar: "أُزيل من المفضلة", en: "Removed from favourites" }),
+                    );
                   } catch {
-                    toast.error("تعذر تحديث المفضلة");
+                    toast.error(t({ ar: "تعذر تحديث المفضلة", en: "Couldn't update favourites" }));
                   }
                 }}
                 className={`flex items-center gap-1.5 rounded-lg border px-3 py-2.5 text-sm font-bold ${
@@ -604,14 +647,14 @@ function AddressCardPage() {
                 }`}
               >
                 <Star className="size-4" fill={saved ? "currentColor" : "none"} />
-                {saved ? "محفوظ" : "حفظ العنوان"}
+                {saved ? t({ ar: "محفوظ", en: "Saved" }) : t({ ar: "حفظ العنوان", en: "Save address" })}
               </button>
             ) : (
               <Link
                 to="/auth"
                 className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2.5 text-sm font-bold"
               >
-                <Star className="size-4" /> سجّل الدخول للحفظ
+                <Star className="size-4" /> {t({ ar: "سجّل الدخول للحفظ", en: "Sign in to save" })}
               </Link>
             )}
           </div>
@@ -621,7 +664,7 @@ function AddressCardPage() {
               url={`${shareUrl}?s=qr`}
               code={ok.code}
               title={ok.site.display_name}
-              subtitle={[ok.site.neighborhood, ok.site.city].filter(Boolean).join(" — ")}
+              subtitle={formatLocality({ neighborhood: ok.site.neighborhood, city: ok.site.city }, lang)}
               logoUrl={ok.business?.logo_url}
               onClose={() => setShowQr(false)}
             />
@@ -631,7 +674,7 @@ function AddressCardPage() {
         {ok.alternatives.length ? (
           <section className="rounded-xl border border-border bg-background p-4">
             <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-              مداخل بديلة
+              {t({ ar: "مداخل بديلة", en: "Alternative entrances" })}
             </h2>
             <div className="space-y-2">
               {ok.alternatives.map((alt) => (
@@ -646,7 +689,7 @@ function AddressCardPage() {
                     </p>
                   </div>
                   <span className={`text-[11px] font-bold ${alt.open_now ? "text-allow" : "text-prohibit"}`}>
-                    {alt.open_now ? "مفتوح" : "مغلق"}
+                    {alt.open_now ? t({ ar: "مفتوح", en: "Open" }) : t({ ar: "مغلق", en: "Closed" })}
                   </span>
                 </div>
               ))}
@@ -655,7 +698,10 @@ function AddressCardPage() {
         ) : null}
 
         <p className="pb-6 text-center text-[10px] text-muted-foreground">
-          تفاصيل الوحدات السكنية وأسماء السكان لا تُعرض علناً — تُشارك فقط عبر رابط مؤقت من صاحب العنوان.
+          {t({
+            ar: "تفاصيل الوحدات السكنية وأسماء السكان لا تُعرض علناً — تُشارك فقط عبر رابط مؤقت من صاحب العنوان.",
+            en: "Residential unit details and resident names aren't shown publicly — they're shared only via a temporary link from the address owner.",
+          })}
         </p>
       </div>
     </div>
