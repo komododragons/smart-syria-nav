@@ -610,34 +610,72 @@ export const orgAnalytics = createServerFn({ method: "POST" })
     const codes = [...byCode.keys()];
     const since = new Date(Date.now() - data.days * 86_400_000).toISOString();
 
-    const totals = { resolve: 0, navigate_start: 0, delivery_view: 0, qr_scan: 0, plate_print: 0 };
-    const perLocation = new Map<string, { name: string; code: string; resolve: number; navigate_start: number }>();
+    const totals = {
+      resolve: 0,
+      navigate_start: 0,
+      delivery_view: 0,
+      qr_scan: 0,
+      plate_print: 0,
+      search_appearance: 0,
+    };
+    type Row = {
+      name: string;
+      code: string;
+      resolve: number;
+      navigate_start: number;
+      qr_scan: number;
+      delivery_view: number;
+      search_appearance: number;
+    };
+    const perLocation = new Map<string, Row>();
+    const byDay = new Map<string, number>();
     if (codes.length) {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { data: events } = await supabaseAdmin
         .from("address_events")
-        .select("smart_code, event_type")
+        .select("smart_code, event_type, created_at")
         .in("smart_code", codes)
         .gte("created_at", since)
         .limit(20000);
       for (const ev of events ?? []) {
         const type = ev.event_type as keyof typeof totals;
         if (type in totals) totals[type] += 1;
+        const day = String(ev.created_at).slice(0, 10);
+        byDay.set(day, (byDay.get(day) ?? 0) + 1);
         const meta = byCode.get(ev.smart_code);
         if (!meta) continue;
         const entry =
           perLocation.get(ev.smart_code) ??
-          { name: meta.name, code: meta.code, resolve: 0, navigate_start: 0 };
+          ({
+            name: meta.name,
+            code: meta.code,
+            resolve: 0,
+            navigate_start: 0,
+            qr_scan: 0,
+            delivery_view: 0,
+            search_appearance: 0,
+          } satisfies Row);
+        if (type in entry) entry[type as keyof Row extends never ? never : "resolve"] += 0;
         if (type === "resolve") entry.resolve += 1;
         if (type === "navigate_start") entry.navigate_start += 1;
+        if (type === "qr_scan") entry.qr_scan += 1;
+        if (type === "delivery_view") entry.delivery_view += 1;
+        if (type === "search_appearance") entry.search_appearance += 1;
         perLocation.set(ev.smart_code, entry);
       }
+    }
+
+    const series: { day: string; count: number }[] = [];
+    for (let i = data.days - 1; i >= 0; i -= 1) {
+      const day = new Date(Date.now() - i * 86_400_000).toISOString().slice(0, 10);
+      series.push({ day, count: byDay.get(day) ?? 0 });
     }
 
     return {
       days: data.days,
       locations_count: codes.length,
       totals,
+      series,
       per_location: [...perLocation.values()].sort(
         (a, b) => b.resolve + b.navigate_start - (a.resolve + a.navigate_start),
       ),
