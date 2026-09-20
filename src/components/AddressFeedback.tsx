@@ -12,9 +12,10 @@ type Props = {
   purpose: string;
   nodeId: string | null;
   accessPointId: string | null;
+  businessId?: string | null;
 };
 
-export function AddressFeedback({ smartCode, purpose, nodeId, accessPointId }: Props) {
+export function AddressFeedback({ smartCode, purpose, nodeId, accessPointId, businessId }: Props) {
   const navigate = useNavigate();
   const report = useServerFn(reportCorrection);
   const feedback = useServerFn(submitVisitFeedback);
@@ -27,6 +28,7 @@ export function AddressFeedback({ smartCode, purpose, nodeId, accessPointId }: P
   const [reportOpen, setReportOpen] = useState(false);
   const [issueType, setIssueType] = useState<string | null>(null);
   const [details, setDetails] = useState("");
+  const [suggested, setSuggested] = useState("");
   const [reportSent, setReportSent] = useState(false);
 
   const handleAuthError = () => {
@@ -62,6 +64,8 @@ export function AddressFeedback({ smartCode, purpose, nodeId, accessPointId }: P
     }
   };
 
+  const selectedType = CORRECTION_TYPES.find((t) => t.value === issueType);
+
   const sendReport = async () => {
     if (!issueType) return;
     setSending(true);
@@ -73,6 +77,9 @@ export function AddressFeedback({ smartCode, purpose, nodeId, accessPointId }: P
           details: details.trim() || undefined,
           node_id: nodeId,
           access_point_id: accessPointId,
+          business_id: businessId ?? null,
+          target_field: selectedType?.field,
+          suggested_value: suggested.trim() || undefined,
         },
       });
       setReportSent(true);
@@ -187,6 +194,18 @@ export function AddressFeedback({ smartCode, purpose, nodeId, accessPointId }: P
                 </button>
               ))}
             </div>
+            {selectedType?.valueLabel ? (
+              <label className="block text-xs font-bold text-muted-foreground">
+                {selectedType.valueLabel}
+                <input
+                  value={suggested}
+                  onChange={(event) => setSuggested(event.target.value)}
+                  maxLength={300}
+                  placeholder={selectedType.placeholder ?? ""}
+                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-normal text-foreground focus:border-primary focus:outline-none"
+                />
+              </label>
+            ) : null}
             <textarea
               value={details}
               onChange={(event) => setDetails(event.target.value)}
