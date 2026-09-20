@@ -238,6 +238,9 @@ function SearchPage() {
                         </span>
                       ) : null}
                       <span>{VERIFICATION_LEVELS[biz.verification_level]?.ar ?? "غير موثق"}</span>
+                      {formatDistance(biz.distance_m) ? (
+                        <span className="font-mono">{formatDistance(biz.distance_m)}</span>
+                      ) : null}
                     </div>
                   </Link>
                 );
@@ -277,9 +280,23 @@ function SearchPage() {
                       </p>
                     ) : null}
                   </div>
-                  <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
-                    {place.confidence_score}%
-                  </span>
+                  <div className="flex shrink-0 flex-col items-end gap-1 text-[11px] text-muted-foreground">
+                    {place.code ? (
+                      <Link
+                        to="/a/$code"
+                        params={{ code: place.code }}
+                        className="rounded-md bg-foreground px-2 py-1 font-mono text-background"
+                        dir="ltr"
+                      >
+                        {place.code}
+                      </Link>
+                    ) : null}
+                    {place.code ? <DirectionsButton code={place.code} variant="chip" /> : null}
+                    {formatDistance(place.distance_m) ? (
+                      <span className="font-mono">{formatDistance(place.distance_m)}</span>
+                    ) : null}
+                    <span className="font-mono">{place.confidence_score}%</span>
+                  </div>
                 </div>
               ))}
             </div>
