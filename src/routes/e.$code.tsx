@@ -246,7 +246,7 @@ function EmergencyPage() {
 
         <DirectionsButton
           code={ok.code}
-          mode="emergency"
+          mode="driving"
           label="ابدأ التوجيه إلى الموقع"
           className="flex w-full items-center justify-center gap-2 rounded-2xl bg-destructive px-4 py-4 text-lg font-bold text-destructive-foreground shadow-plate"
         />
