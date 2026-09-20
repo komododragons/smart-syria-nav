@@ -177,6 +177,49 @@ export function normalizeArabic(value: string): string {
     .replace(/\s+/g, " ");
 }
 
+const ARABIC_EQUIVALENTS: Record<string, string[]> = {
+  ا: ["ا", "أ", "إ", "آ"],
+  أ: ["ا", "أ", "إ", "آ"],
+  إ: ["ا", "أ", "إ", "آ"],
+  آ: ["ا", "أ", "إ", "آ"],
+  ي: ["ي", "ى"],
+  ى: ["ي", "ى"],
+  ه: ["ه", "ة"],
+  ة: ["ه", "ة"],
+  و: ["و", "ؤ"],
+};
+
+/** Escapes LIKE wildcards so user input can't widen a pattern. */
+export function escapeLike(value: string): string {
+  return value.replace(/[%_\\,]/g, " ").trim();
+}
+
+/**
+ * Spelling variations of an Arabic query (أ/إ/آ/ا, ي/ى, ه/ة, ؤ/و, and the
+ * leading "ال"), so a user typing "ابو رمانه" still finds "أبو رمانة".
+ */
+export function arabicVariants(value: string, max = 6): string[] {
+  const base = escapeLike(value.trim().toLowerCase());
+  if (!base) return [];
+  const seeds = [base];
+  if (base.startsWith("ال") && base.length > 4) seeds.push(base.slice(2));
+  const out = new Set<string>();
+  for (const seed of seeds) {
+    let combos: string[] = [""];
+    for (const char of seed) {
+      const options = ARABIC_EQUIVALENTS[char];
+      if (!options || combos.length * options.length > max) {
+        combos = combos.map((c) => c + char);
+      } else {
+        combos = combos.flatMap((c) => options.map((o) => c + o));
+      }
+    }
+    for (const combo of combos) out.add(combo);
+    if (out.size >= max * 2) break;
+  }
+  return [...out].slice(0, max * 2);
+}
+
 export function confidenceBand(score: number): { ar: string; tone: "high" | "medium" | "low" } {
   if (score >= 80) return { ar: "درجة عالية", tone: "high" };
   if (score >= 55) return { ar: "درجة متوسطة", tone: "medium" };
