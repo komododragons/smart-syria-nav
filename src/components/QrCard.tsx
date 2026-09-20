@@ -28,8 +28,8 @@ export function QrCard({
   url: string;
   code: string;
   title: string;
-  subtitle?: string;
-  logoUrl?: string | null;
+  subtitle?: string | undefined;
+  logoUrl?: string | null | undefined;
   onClose: () => void;
 }) {
   const qrId = useId().replace(/:/g, "");
@@ -37,7 +37,7 @@ export function QrCard({
   const [format, setFormat] = useState<PlateFormat>("a6");
 
   const qrSvg = () => document.getElementById(qrId)?.querySelector("svg");
-  const qrBlob = () => {
+  const qrSvgBlob = () => {
     const svg = qrSvg();
     if (!svg) return null;
     const copy = svg.cloneNode(true) as SVGElement;
@@ -47,20 +47,42 @@ export function QrCard({
     return new Blob([new XMLSerializer().serializeToString(copy)], { type: "image/svg+xml;charset=utf-8" });
   };
 
-  const downloadQr = () => {
-    const blob = qrBlob();
+  const qrPngBlob = async () => {
+    const blob = qrSvgBlob();
+    if (!blob) return null;
+    const objectUrl = URL.createObjectURL(blob);
+    const image = new Image();
+    image.src = objectUrl;
+    await image.decode();
+    const canvas = document.createElement("canvas");
+    canvas.width = 1200;
+    canvas.height = 1200;
+    const context = canvas.getContext("2d");
+    if (!context) {
+      URL.revokeObjectURL(objectUrl);
+      return null;
+    }
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(image, 60, 60, 1080, 1080);
+    URL.revokeObjectURL(objectUrl);
+    return new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
+  };
+
+  const downloadQr = async () => {
+    const blob = await qrPngBlob();
     if (!blob) return;
     const objectUrl = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = objectUrl;
-    anchor.download = `syriasan-${code}.svg`;
+    anchor.download = `syriasan-${code}.png`;
     anchor.click();
     URL.revokeObjectURL(objectUrl);
   };
 
   const shareQr = async () => {
-    const blob = qrBlob();
-    const file = blob ? new File([blob], `syriasan-${code}.svg`, { type: blob.type }) : null;
+    const blob = await qrPngBlob();
+    const file = blob ? new File([blob], `syriasan-${code}.png`, { type: "image/png" }) : null;
     if (navigator.share) {
       try {
         if (file && navigator.canShare?.({ files: [file] })) {
@@ -74,6 +96,23 @@ export function QrCard({
       }
     }
     await navigator.clipboard.writeText(url);
+  };
+
+  const printQr = () => {
+    const printSizes: Record<PlateFormat, string> = {
+      a6: "A6 portrait",
+      a5: "A5 portrait",
+      a4: "A4 portrait",
+      sticker: "90mm 90mm",
+      door: "200mm 100mm",
+      window: "300mm 200mm",
+    };
+    const style = document.createElement("style");
+    style.id = "syriasan-print-size";
+    style.textContent = `@page { size: ${plateMode ? printSizes[format] : "A6 portrait"}; margin: 0; }`;
+    document.head.appendChild(style);
+    window.addEventListener("afterprint", () => style.remove(), { once: true });
+    window.print();
   };
 
   return (
@@ -153,12 +192,12 @@ export function QrCard({
         </div>
 
         <div className="no-print grid grid-cols-2 gap-2 border-t border-border p-3 sm:grid-cols-3">
-          <button type="button" onClick={downloadQr} className="flex items-center justify-center gap-1.5 rounded-lg border border-border px-3 py-2.5 text-xs font-bold">
+          <button type="button" onClick={() => void downloadQr()} className="flex items-center justify-center gap-1.5 rounded-lg border border-border px-3 py-2.5 text-xs font-bold">
             <Download className="size-4" /> تنزيل QR
           </button>
           <button
             type="button"
-            onClick={() => window.print()}
+            onClick={printQr}
             className="flex items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2.5 text-xs font-bold text-primary-foreground"
           >
             <Printer className="size-4" />
