@@ -142,7 +142,7 @@ function Row({
 const CONTEXT_KEY = "ssan.routing.context";
 
 function AddressCardPage() {
-  const { t, lang } = useI18n();
+  const { t, lang, date } = useI18n();
   const loaded = Route.useLoaderData();
   const { code: rawCode } = Route.useParams();
   const [showQr, setShowQr] = useState(false);
@@ -292,9 +292,16 @@ function AddressCardPage() {
                 </span>
                 <h1 className="mt-1 text-xl font-bold leading-tight">{ok.site.display_name}</h1>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {[ok.site.governorate, ok.site.city, ok.site.district, ok.site.neighborhood, ok.site.street]
-                    .filter(Boolean)
-                    .join(" — ")}
+                  {formatAddressLine(
+                    {
+                      street: ok.site.street,
+                      neighborhood: ok.site.neighborhood,
+                      district: ok.site.district,
+                      city: ok.site.city,
+                      governorate: ok.site.governorate,
+                    },
+                    lang,
+                  )}
                 </p>
               </div>
               <span className="shrink-0 rounded-md bg-surface px-2 py-1 text-[10px] font-bold">
@@ -305,7 +312,7 @@ function AddressCardPage() {
             <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px]">
               <span className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-1 font-bold">
                 <BadgeCheck className="size-3.5 text-primary" />
-                {VERIFICATION_LEVELS[ok.verification_level]?.ar ?? "غير موثق"}
+                {VERIFICATION_LEVELS[ok.verification_level]?.ar ?? t({ ar: "غير موثق", en: "Not verified" })}
               </span>
               <span className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-1">
                 <span
@@ -315,11 +322,11 @@ function AddressCardPage() {
               </span>
               {verifiedAt ? (
                 <span className="rounded-md border border-border bg-surface px-2 py-1 text-muted-foreground">
-                  آخر توثيق: {new Date(verifiedAt).toLocaleDateString("ar-SY")}
+                  {t({ ar: "آخر توثيق:", en: "Last verified:" })} {date(verifiedAt, { dateStyle: "medium" })}
                 </span>
               ) : (
                 <span className="rounded-md border border-border bg-surface px-2 py-1 text-muted-foreground">
-                  لم يُوثق ميدانياً بعد
+                  {t({ ar: "لم يُوثق ميدانياً بعد", en: "Not field-verified yet" })}
                 </span>
               )}
             </div>

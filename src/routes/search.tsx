@@ -6,8 +6,9 @@ import { Building2, Landmark, Navigation2, Search as SearchIcon, Store } from "l
 
 import { AppHeader } from "@/components/AppHeader";
 import { DirectionsButton } from "@/components/DirectionsButton";
+import { useI18n, formatDistance, type Lang } from "@/lib/i18n";
 import { searchNetwork } from "@/lib/addresses.functions";
-import { PLACE_CATEGORIES, PLACE_CATEGORY_META } from "@/lib/place-categories";
+import { PLACE_CATEGORIES, placeCategoryLabel } from "@/lib/place-categories";
 import { GOVERNORATES, NODE_TYPE_LABELS, VERIFICATION_LEVELS } from "@/lib/smart-address";
 
 export const Route = createFileRoute("/search")({
@@ -29,12 +30,70 @@ export const Route = createFileRoute("/search")({
   component: SearchPage,
 });
 
-function formatDistance(meters?: number | null) {
-  if (meters == null) return null;
-  return meters < 1000 ? `${meters} م` : `${(meters / 1000).toFixed(1)} كم`;
+const GOVERNORATE_EN: Record<string, string> = {
+  "دمشق": "Damascus",
+  "ريف دمشق": "Rif Dimashq",
+  "حلب": "Aleppo",
+  "حمص": "Homs",
+  "حماة": "Hama",
+  "اللاذقية": "Latakia",
+  "طرطوس": "Tartus",
+  "دير الزور": "Deir ez-Zor",
+  "الحسكة": "Al-Hasakah",
+  "إدلب": "Idlib",
+  "درعا": "Daraa",
+  "السويداء": "As-Suwayda",
+  "القنيطرة": "Quneitra",
+  "الرقة": "Raqqa",
+};
+
+const NODE_TYPE_EN: Record<string, string> = {
+  property: "Property / site",
+  land: "Land",
+  building: "Building",
+  floor: "Floor",
+  apartment: "Apartment",
+  office: "Office",
+  shop: "Shop",
+  clinic: "Clinic",
+  warehouse: "Warehouse",
+  farm: "Farm",
+  field: "Field",
+  factory: "Factory",
+  school: "School",
+  hospital: "Hospital",
+  hotel: "Hotel",
+  government_office: "Government office",
+  pickup_point: "Pickup point",
+  poi: "Point of interest",
+  custom: "Other",
+};
+
+const VERIFICATION_EN: Record<string, string> = {
+  unverified: "Unverified",
+  user_confirmed: "Confirmed by owner",
+  community_confirmed: "Community confirmed",
+  courier_verified: "Verified by courier",
+  business_verified: "Verified business",
+};
+
+function governorateLabel(ar: string, lang: Lang) {
+  return lang === "ar" ? ar : GOVERNORATE_EN[ar] ?? ar;
+}
+
+function nodeTypeLabel(value: string, lang: Lang) {
+  return lang === "ar" ? (NODE_TYPE_LABELS[value] ?? value) : NODE_TYPE_EN[value] ?? value;
+}
+
+function verificationLabel(level: string | undefined, lang: Lang) {
+  if (!level || !VERIFICATION_LEVELS[level]) {
+    return lang === "ar" ? "غير موثق" : "Unverified";
+  }
+  return lang === "ar" ? VERIFICATION_LEVELS[level].ar : VERIFICATION_EN[level] ?? VERIFICATION_EN.unverified;
 }
 
 function SearchPage() {
+  const { t, lang } = useI18n();
   const search = useServerFn(searchNetwork);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | undefined>(undefined);
@@ -88,7 +147,10 @@ function SearchPage() {
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="رمز ذكي، اسم نشاط، حي، منطقة، معلم… (عربي أو English)"
+            placeholder={t({
+              ar: "رمز ذكي، اسم نشاط، حي، منطقة، معلم… (عربي أو English)",
+              en: "Smart code, business name, neighborhood, district, landmark… (Arabic or English)",
+            })}
             className="w-full rounded-lg border border-border bg-background py-3 pe-4 ps-9 text-sm focus:border-primary focus:outline-none"
           />
           <div className="mt-3 flex flex-wrap gap-1.5">
@@ -96,7 +158,7 @@ function SearchPage() {
               to="/places"
               className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 text-[11px] font-bold text-primary"
             >
-              دليل الأماكن العامة
+              {t({ ar: "دليل الأماكن العامة", en: "Public places directory" })}
             </Link>
             <button
               type="button"
@@ -105,7 +167,7 @@ function SearchPage() {
                 category ? "border-border bg-background text-muted-foreground" : "border-primary bg-primary text-primary-foreground"
               }`}
             >
-              كل التصنيفات
+              {t({ ar: "كل التصنيفات", en: "All categories" })}
             </button>
             {PLACE_CATEGORIES.map((c) => (
               <button
@@ -118,7 +180,7 @@ function SearchPage() {
                     : "border-border bg-background text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {c.emoji} {c.ar}
+                {c.emoji} {placeCategoryLabel(c.value, lang)}
               </button>
             ))}
           </div>
@@ -133,7 +195,11 @@ function SearchPage() {
               }`}
             >
               <Navigation2 className="size-3" />
-              {geoBusy ? "جارٍ تحديد موقعك…" : origin ? "الأقرب إليّ (مفعّل)" : "الأقرب إليّ"}
+              {geoBusy
+                ? t({ ar: "جارٍ تحديد موقعك…", en: "Locating you…" })
+                : origin
+                  ? t({ ar: "الأقرب إليّ (مفعّل)", en: "Nearest to me (on)" })
+                  : t({ ar: "الأقرب إليّ", en: "Nearest to me" })}
             </button>
             <button
               type="button"
@@ -144,7 +210,7 @@ function SearchPage() {
                   : "border-primary/50 bg-primary/10 text-primary"
               }`}
             >
-              كل المحافظات
+              {t({ ar: "كل المحافظات", en: "All governorates" })}
             </button>
             {GOVERNORATES.map((g) => (
               <button
@@ -157,7 +223,7 @@ function SearchPage() {
                     : "border-border bg-background text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {g.ar}
+                {governorateLabel(g.ar, lang)}
               </button>
             ))}
           </div>
@@ -167,7 +233,10 @@ function SearchPage() {
       <main className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-6">
         {query.trim().length < 2 ? (
           <p className="py-12 text-center text-sm text-muted-foreground">
-            البحث يفهم الأسماء العربية الشائعة والمعالم والاختصارات. العناوين السكنية غير مُدرجة في النتائج.
+            {t({
+              ar: "البحث يفهم الأسماء العربية الشائعة والمعالم والاختصارات. العناوين السكنية غير مُدرجة في النتائج.",
+              en: "Search understands common Arabic names, landmarks, and abbreviations. Residential addresses never appear in results.",
+            })}
           </p>
         ) : null}
 
@@ -176,12 +245,14 @@ function SearchPage() {
             {data.codes.map((hit) => (
               <div key={hit.code} className="rounded-2xl border border-primary/40 bg-primary/5 p-4">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-primary">
-                  عنوان ذكي مطابق
+                  {t({ ar: "عنوان ذكي مطابق", en: "Matching smart address" })}
                 </span>
                 <Link to="/a/$code" params={{ code: hit.code }} className="block font-mono text-lg" dir="ltr">
                   {hit.code}
                 </Link>
-                <p className="text-xs text-muted-foreground">{hit.label ?? "افتح بطاقة العنوان"}</p>
+                <p className="text-xs text-muted-foreground">
+                  {hit.label ?? t({ ar: "افتح بطاقة العنوان", en: "Open address card" })}
+                </p>
                 <span className="mt-2 inline-block">
                   <DirectionsButton code={hit.code} variant="chip" />
                 </span>
@@ -193,7 +264,7 @@ function SearchPage() {
         {data?.businesses.length ? (
           <section className="animate-entrance">
             <h2 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-              <Store className="size-3.5" /> أعمال ومنشآت
+              <Store className="size-3.5" /> {t({ ar: "أعمال ومنشآت", en: "Businesses & establishments" })}
             </h2>
             <div className="space-y-2">
               {data.businesses.map((biz) => {
@@ -219,7 +290,7 @@ function SearchPage() {
                         </Link>
                         <p className="text-xs text-muted-foreground">
                           {[
-                            PLACE_CATEGORY_META[biz.place_category ?? ""]?.ar ?? biz.category,
+                            placeCategoryLabel(biz.place_category, lang) ?? biz.category,
                             node?.neighborhood,
                             node?.city,
                           ]
@@ -241,9 +312,9 @@ function SearchPage() {
                           {biz.phone}
                         </span>
                       ) : null}
-                      <span>{VERIFICATION_LEVELS[biz.verification_level]?.ar ?? "غير موثق"}</span>
-                      {formatDistance(biz.distance_m) ? (
-                        <span className="font-mono">{formatDistance(biz.distance_m)}</span>
+                      <span>{verificationLabel(biz.verification_level, lang)}</span>
+                      {biz.distance_m != null ? (
+                        <span className="font-mono">{formatDistance(biz.distance_m, lang)}</span>
                       ) : null}
                     </div>
                   </div>
@@ -256,7 +327,7 @@ function SearchPage() {
         {data?.places.length ? (
           <section className="animate-entrance">
             <h2 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-              <Building2 className="size-3.5" /> مواقع ومبانٍ عامة
+              <Building2 className="size-3.5" /> {t({ ar: "مواقع ومبانٍ عامة", en: "Public sites & buildings" })}
             </h2>
             <div className="space-y-2">
               {data.places.map((place) => (
@@ -268,9 +339,8 @@ function SearchPage() {
                     <p className="font-bold leading-tight">{place.display_name}</p>
                     <p className="text-xs text-muted-foreground">
                       {[
-                        PLACE_CATEGORY_META[place.place_category ?? ""]?.ar ??
-                          NODE_TYPE_LABELS[place.node_type] ??
-                          place.node_type,
+                        placeCategoryLabel(place.place_category, lang) ??
+                          nodeTypeLabel(place.node_type, lang),
                         place.neighborhood,
                         place.city,
                         place.governorate,
@@ -296,8 +366,8 @@ function SearchPage() {
                       </Link>
                     ) : null}
                     {place.code ? <DirectionsButton code={place.code} variant="chip" /> : null}
-                    {formatDistance(place.distance_m) ? (
-                      <span className="font-mono">{formatDistance(place.distance_m)}</span>
+                    {place.distance_m != null ? (
+                      <span className="font-mono">{formatDistance(place.distance_m, lang)}</span>
                     ) : null}
                     <span className="font-mono">{place.confidence_score}%</span>
                   </div>
@@ -309,7 +379,7 @@ function SearchPage() {
 
         {data && !data.businesses.length && !data.places.length && !data.code ? (
           <p className="py-12 text-center text-sm text-muted-foreground">
-            لا نتائج. جرّب اسم الحي أو معلماً قريباً.
+            {t({ ar: "لا نتائج. جرّب اسم الحي أو معلماً قريباً.", en: "No results. Try a neighborhood name or a nearby landmark." })}
           </p>
         ) : null}
       </main>
