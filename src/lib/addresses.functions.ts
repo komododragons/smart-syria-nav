@@ -683,6 +683,10 @@ export const resolveTemporaryToken = createServerFn({ method: "POST" })
     }
     if (accessPoint && !shared.has("instructions")) accessPoint.instructions_ar = null;
     if (accessPoint && !shared.has("parking")) accessPoint.parking_info = null;
+    if (accessPoint && !shared.has("location")) {
+      accessPoint.latitude = null;
+      accessPoint.longitude = null;
+    }
 
     if (site && !shared.has("location")) {
       site = { ...site, latitude: null, longitude: null };
