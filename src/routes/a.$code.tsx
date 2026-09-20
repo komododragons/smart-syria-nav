@@ -31,6 +31,7 @@ import { QrCard } from "@/components/QrCard";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveAddress } from "@/lib/addresses.functions";
 import { listFavorites, toggleFavorite } from "@/lib/network.functions";
+import { logAddressEvent } from "@/lib/orgs.functions";
 import {
   ACCESSIBILITY_LABELS,
   NODE_TYPE_LABELS,
