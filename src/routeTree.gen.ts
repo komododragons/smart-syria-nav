@@ -31,6 +31,7 @@ import { Route as AdminNavigationRouteImport } from './routes/admin.navigation'
 import { Route as BusinessIdRouteImport } from './routes/business.$id'
 import { Route as ClaimIdRouteImport } from './routes/claim.$id'
 import { Route as DCodeRouteImport } from './routes/d.$code'
+import { Route as ECodeRouteImport } from './routes/e.$code'
 import { Route as EmbedAddressRouteImport } from './routes/embed.address'
 import { Route as NavigationCodeRouteImport } from './routes/navigation.$code'
 import { Route as TTokenRouteImport } from './routes/t.$token'
@@ -149,6 +150,11 @@ const DCodeRoute = DCodeRouteImport.update({
   path: '/d/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ECodeRoute = ECodeRouteImport.update({
+  id: '/e/$code',
+  path: '/e/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EmbedAddressRoute = EmbedAddressRouteImport.update({
   id: '/embed/address',
   path: '/embed/address',
@@ -208,6 +214,7 @@ export interface FileRoutesByFullPath {
   '/business/$id': typeof BusinessIdRoute
   '/claim/$id': typeof ClaimIdRoute
   '/d/$code': typeof DCodeRoute
+  '/e/$code': typeof ECodeRoute
   '/embed/address': typeof EmbedAddressRoute
   '/navigation/$code': typeof NavigationCodeRoute
   '/t/$token': typeof TTokenRoute
@@ -239,6 +246,7 @@ export interface FileRoutesByTo {
   '/business/$id': typeof BusinessIdRoute
   '/claim/$id': typeof ClaimIdRoute
   '/d/$code': typeof DCodeRoute
+  '/e/$code': typeof ECodeRoute
   '/embed/address': typeof EmbedAddressRoute
   '/navigation/$code': typeof NavigationCodeRoute
   '/t/$token': typeof TTokenRoute
@@ -271,6 +279,7 @@ export interface FileRoutesById {
   '/business/$id': typeof BusinessIdRoute
   '/claim/$id': typeof ClaimIdRoute
   '/d/$code': typeof DCodeRoute
+  '/e/$code': typeof ECodeRoute
   '/embed/address': typeof EmbedAddressRoute
   '/navigation/$code': typeof NavigationCodeRoute
   '/t/$token': typeof TTokenRoute
@@ -304,6 +313,7 @@ export interface FileRouteTypes {
     | '/business/$id'
     | '/claim/$id'
     | '/d/$code'
+    | '/e/$code'
     | '/embed/address'
     | '/navigation/$code'
     | '/t/$token'
@@ -335,6 +345,7 @@ export interface FileRouteTypes {
     | '/business/$id'
     | '/claim/$id'
     | '/d/$code'
+    | '/e/$code'
     | '/embed/address'
     | '/navigation/$code'
     | '/t/$token'
@@ -366,6 +377,7 @@ export interface FileRouteTypes {
     | '/business/$id'
     | '/claim/$id'
     | '/d/$code'
+    | '/e/$code'
     | '/embed/address'
     | '/navigation/$code'
     | '/t/$token'
@@ -395,6 +407,7 @@ export interface RootRouteChildren {
   BusinessIdRoute: typeof BusinessIdRoute
   ClaimIdRoute: typeof ClaimIdRoute
   DCodeRoute: typeof DCodeRoute
+  ECodeRoute: typeof ECodeRoute
   EmbedAddressRoute: typeof EmbedAddressRoute
   NavigationCodeRoute: typeof NavigationCodeRoute
   TTokenRoute: typeof TTokenRoute
@@ -560,6 +573,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/e/$code': {
+      id: '/e/$code'
+      path: '/e/$code'
+      fullPath: '/e/$code'
+      preLoaderRoute: typeof ECodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/embed/address': {
       id: '/embed/address'
       path: '/embed/address'
@@ -646,6 +666,7 @@ const rootRouteChildren: RootRouteChildren = {
   BusinessIdRoute: BusinessIdRoute,
   ClaimIdRoute: ClaimIdRoute,
   DCodeRoute: DCodeRoute,
+  ECodeRoute: ECodeRoute,
   EmbedAddressRoute: EmbedAddressRoute,
   NavigationCodeRoute: NavigationCodeRoute,
   TTokenRoute: TTokenRoute,

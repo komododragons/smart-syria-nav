@@ -430,6 +430,15 @@ function AddressCardPage() {
             وضع التوصيل — عرض مبسّط للساعي
           </Link>
 
+          <Link
+            to="/e/$code"
+            params={{ code: ok.code }}
+            className="mt-2 flex items-center justify-center gap-2 rounded-xl border-2 border-destructive/40 bg-destructive/5 px-4 py-3 text-sm font-bold text-destructive"
+          >
+            <AlertTriangle className="size-4" />
+            وضع الطوارئ — معلومات الوصول السريع
+          </Link>
+
           <div className="mt-4 flex flex-wrap gap-2">
             <button
               type="button"
