@@ -871,3 +871,97 @@ function MyClaimsSection() {
     </section>
   );
 }
+
+function TemporaryLinksList({ smartAddressId }: { smartAddressId: string }) {
+  const queryClient = useQueryClient();
+  const listFn = useServerFn(listTemporaryLinks);
+  const revokeFn = useServerFn(revokeTemporaryLink);
+
+  const linksQuery = useQuery({
+    queryKey: ["temp-links", smartAddressId],
+    queryFn: () => listFn({ data: { smart_address_id: smartAddressId } }),
+  });
+
+  const links = linksQuery.data ?? [];
+  if (!links.length) return null;
+
+  return (
+    <div className="mt-4 border-t border-border pt-3">
+      <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+        الروابط المؤقتة
+      </p>
+      <div className="mt-2 space-y-2">
+        {links.map((link) => {
+          const expired = new Date(link.expires_at).getTime() < Date.now();
+          const used = link.max_uses != null && link.use_count >= link.max_uses;
+          const dead = link.revoked || expired || used;
+          return (
+            <div
+              key={link.id}
+              className="rounded-lg border border-border bg-surface p-2.5 text-xs"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-mono font-bold" dir="ltr">
+                  {link.token}
+                </span>
+                <span className={dead ? "text-muted-foreground" : "text-allow font-bold"}>
+                  {link.revoked
+                    ? "ملغى"
+                    : expired
+                      ? "منتهٍ"
+                      : used
+                        ? "استُخدم"
+                        : "فعّال"}
+                </span>
+              </div>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                {[
+                  link.label,
+                  PURPOSE_LABELS[link.purpose] ?? link.purpose,
+                  `ينتهي ${new Date(link.expires_at).toLocaleString("ar-SY")}`,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </p>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                يكشف:{" "}
+                {(link.shared_fields ?? [])
+                  .map((f) => SHARE_FIELD_LABELS.find((s) => s.value === f)?.ar ?? f)
+                  .join("، ")}
+              </p>
+              <div className="mt-2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    void navigator.clipboard.writeText(`${window.location.origin}/t/${link.token}`);
+                    toast.success("تم نسخ الرابط");
+                  }}
+                  className="rounded-lg border border-border px-3 py-1.5 font-bold"
+                >
+                  نسخ الرابط
+                </button>
+                {!dead ? (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        await revokeFn({ data: { id: link.id } });
+                        toast.success("تم إلغاء الرابط");
+                        await queryClient.invalidateQueries({ queryKey: ["temp-links"] });
+                      } catch {
+                        toast.error("تعذّر إلغاء الرابط");
+                      }
+                    }}
+                    className="rounded-lg border border-prohibit/40 px-3 py-1.5 font-bold text-prohibit"
+                  >
+                    إلغاء
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
