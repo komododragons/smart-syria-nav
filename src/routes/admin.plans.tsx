@@ -47,7 +47,7 @@ function AdminPlansPage() {
 
   const query = useQuery({
     queryKey: ["plan-admin"],
-    queryFn: () => fetchOverview({ data: {} }),
+    queryFn: () => fetchOverview(),
     enabled: signedIn === true,
   });
   const data = query.data?.authorized ? query.data : null;

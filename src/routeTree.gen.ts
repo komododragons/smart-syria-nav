@@ -23,6 +23,7 @@ import { Route as MyAddressesRouteImport } from './routes/my-addresses'
 import { Route as MyCorrectionsRouteImport } from './routes/my-corrections'
 import { Route as OfflineRouteImport } from './routes/offline'
 import { Route as PlacesRouteImport } from './routes/places'
+import { Route as PlansRouteImport } from './routes/plans'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as VaultRouteImport } from './routes/vault'
 import { Route as VerifyRouteImport } from './routes/verify'
@@ -33,6 +34,7 @@ import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminClaimsRouteImport } from './routes/admin.claims'
 import { Route as AdminCorrectionsRouteImport } from './routes/admin.corrections'
 import { Route as AdminNavigationRouteImport } from './routes/admin.navigation'
+import { Route as AdminPlansRouteImport } from './routes/admin.plans'
 import { Route as AdminQualityRouteImport } from './routes/admin.quality'
 import { Route as BusinessIdRouteImport } from './routes/business.$id'
 import { Route as ClaimIdRouteImport } from './routes/claim.$id'
@@ -116,6 +118,11 @@ const PlacesRoute = PlacesRouteImport.update({
   path: '/places',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlansRoute = PlansRouteImport.update({
+  id: '/plans',
+  path: '/plans',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
@@ -164,6 +171,11 @@ const AdminCorrectionsRoute = AdminCorrectionsRouteImport.update({
 const AdminNavigationRoute = AdminNavigationRouteImport.update({
   id: '/navigation',
   path: '/navigation',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPlansRoute = AdminPlansRouteImport.update({
+  id: '/plans',
+  path: '/plans',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminQualityRoute = AdminQualityRouteImport.update({
@@ -242,6 +254,7 @@ export interface FileRoutesByFullPath {
   '/my-corrections': typeof MyCorrectionsRoute
   '/offline': typeof OfflineRoute
   '/places': typeof PlacesRoute
+  '/plans': typeof PlansRoute
   '/search': typeof SearchRoute
   '/vault': typeof VaultRoute
   '/verify': typeof VerifyRoute
@@ -252,6 +265,7 @@ export interface FileRoutesByFullPath {
   '/admin/claims': typeof AdminClaimsRoute
   '/admin/corrections': typeof AdminCorrectionsRoute
   '/admin/navigation': typeof AdminNavigationRoute
+  '/admin/plans': typeof AdminPlansRoute
   '/admin/quality': typeof AdminQualityRoute
   '/business/$id': typeof BusinessIdRoute
   '/claim/$id': typeof ClaimIdRoute
@@ -280,6 +294,7 @@ export interface FileRoutesByTo {
   '/my-corrections': typeof MyCorrectionsRoute
   '/offline': typeof OfflineRoute
   '/places': typeof PlacesRoute
+  '/plans': typeof PlansRoute
   '/search': typeof SearchRoute
   '/vault': typeof VaultRoute
   '/verify': typeof VerifyRoute
@@ -290,6 +305,7 @@ export interface FileRoutesByTo {
   '/admin/claims': typeof AdminClaimsRoute
   '/admin/corrections': typeof AdminCorrectionsRoute
   '/admin/navigation': typeof AdminNavigationRoute
+  '/admin/plans': typeof AdminPlansRoute
   '/admin/quality': typeof AdminQualityRoute
   '/business/$id': typeof BusinessIdRoute
   '/claim/$id': typeof ClaimIdRoute
@@ -319,6 +335,7 @@ export interface FileRoutesById {
   '/my-corrections': typeof MyCorrectionsRoute
   '/offline': typeof OfflineRoute
   '/places': typeof PlacesRoute
+  '/plans': typeof PlansRoute
   '/search': typeof SearchRoute
   '/vault': typeof VaultRoute
   '/verify': typeof VerifyRoute
@@ -329,6 +346,7 @@ export interface FileRoutesById {
   '/admin/claims': typeof AdminClaimsRoute
   '/admin/corrections': typeof AdminCorrectionsRoute
   '/admin/navigation': typeof AdminNavigationRoute
+  '/admin/plans': typeof AdminPlansRoute
   '/admin/quality': typeof AdminQualityRoute
   '/business/$id': typeof BusinessIdRoute
   '/claim/$id': typeof ClaimIdRoute
@@ -359,6 +377,7 @@ export interface FileRouteTypes {
     | '/my-corrections'
     | '/offline'
     | '/places'
+    | '/plans'
     | '/search'
     | '/vault'
     | '/verify'
@@ -369,6 +388,7 @@ export interface FileRouteTypes {
     | '/admin/claims'
     | '/admin/corrections'
     | '/admin/navigation'
+    | '/admin/plans'
     | '/admin/quality'
     | '/business/$id'
     | '/claim/$id'
@@ -397,6 +417,7 @@ export interface FileRouteTypes {
     | '/my-corrections'
     | '/offline'
     | '/places'
+    | '/plans'
     | '/search'
     | '/vault'
     | '/verify'
@@ -407,6 +428,7 @@ export interface FileRouteTypes {
     | '/admin/claims'
     | '/admin/corrections'
     | '/admin/navigation'
+    | '/admin/plans'
     | '/admin/quality'
     | '/business/$id'
     | '/claim/$id'
@@ -435,6 +457,7 @@ export interface FileRouteTypes {
     | '/my-corrections'
     | '/offline'
     | '/places'
+    | '/plans'
     | '/search'
     | '/vault'
     | '/verify'
@@ -445,6 +468,7 @@ export interface FileRouteTypes {
     | '/admin/claims'
     | '/admin/corrections'
     | '/admin/navigation'
+    | '/admin/plans'
     | '/admin/quality'
     | '/business/$id'
     | '/claim/$id'
@@ -474,6 +498,7 @@ export interface RootRouteChildren {
   MyCorrectionsRoute: typeof MyCorrectionsRoute
   OfflineRoute: typeof OfflineRoute
   PlacesRoute: typeof PlacesRoute
+  PlansRoute: typeof PlansRoute
   SearchRoute: typeof SearchRoute
   VaultRoute: typeof VaultRoute
   VerifyRoute: typeof VerifyRoute
@@ -592,6 +617,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlacesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/plans': {
+      id: '/plans'
+      path: '/plans'
+      fullPath: '/plans'
+      preLoaderRoute: typeof PlansRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/search': {
       id: '/search'
       path: '/search'
@@ -660,6 +692,13 @@ declare module '@tanstack/react-router' {
       path: '/navigation'
       fullPath: '/admin/navigation'
       preLoaderRoute: typeof AdminNavigationRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/plans': {
+      id: '/admin/plans'
+      path: '/plans'
+      fullPath: '/admin/plans'
+      preLoaderRoute: typeof AdminPlansRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/quality': {
@@ -755,6 +794,7 @@ interface AdminRouteChildren {
   AdminClaimsRoute: typeof AdminClaimsRoute
   AdminCorrectionsRoute: typeof AdminCorrectionsRoute
   AdminNavigationRoute: typeof AdminNavigationRoute
+  AdminPlansRoute: typeof AdminPlansRoute
   AdminQualityRoute: typeof AdminQualityRoute
 }
 
@@ -764,6 +804,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminClaimsRoute: AdminClaimsRoute,
   AdminCorrectionsRoute: AdminCorrectionsRoute,
   AdminNavigationRoute: AdminNavigationRoute,
+  AdminPlansRoute: AdminPlansRoute,
   AdminQualityRoute: AdminQualityRoute,
 }
 
@@ -784,6 +825,7 @@ const rootRouteChildren: RootRouteChildren = {
   MyCorrectionsRoute: MyCorrectionsRoute,
   OfflineRoute: OfflineRoute,
   PlacesRoute: PlacesRoute,
+  PlansRoute: PlansRoute,
   SearchRoute: SearchRoute,
   VaultRoute: VaultRoute,
   VerifyRoute: VerifyRoute,
