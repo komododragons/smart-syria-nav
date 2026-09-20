@@ -68,12 +68,15 @@ export type Database = {
           is_parking_entrance: boolean
           is_pedestrian_entrance: boolean
           is_primary: boolean
+          last_verified_at: string | null
           latitude: number | null
+          loading_info: string | null
           longitude: number | null
           name_ar: string | null
           name_en: string | null
           node_id: string
           opens_at: string | null
+          parking_info: string | null
           photo_url: string | null
           sort_order: number
           status_reason: string | null
@@ -105,12 +108,15 @@ export type Database = {
           is_parking_entrance?: boolean
           is_pedestrian_entrance?: boolean
           is_primary?: boolean
+          last_verified_at?: string | null
           latitude?: number | null
+          loading_info?: string | null
           longitude?: number | null
           name_ar?: string | null
           name_en?: string | null
           node_id: string
           opens_at?: string | null
+          parking_info?: string | null
           photo_url?: string | null
           sort_order?: number
           status_reason?: string | null
@@ -142,12 +148,15 @@ export type Database = {
           is_parking_entrance?: boolean
           is_pedestrian_entrance?: boolean
           is_primary?: boolean
+          last_verified_at?: string | null
           latitude?: number | null
+          loading_info?: string | null
           longitude?: number | null
           name_ar?: string | null
           name_en?: string | null
           node_id?: string
           opens_at?: string | null
+          parking_info?: string | null
           photo_url?: string | null
           sort_order?: number
           status_reason?: string | null
@@ -890,6 +899,7 @@ export type Database = {
       }
       location_nodes: {
         Row: {
+          building_number: string | null
           city: string | null
           confidence_score: number
           country_code: string
@@ -907,23 +917,29 @@ export type Database = {
           id: string
           is_active: boolean
           landmark: string | null
+          last_verified_at: string | null
           latitude: number | null
           lifecycle_status: string
+          loading_info: string | null
           longitude: number | null
           name_ar: string | null
           name_en: string | null
           neighborhood: string | null
           node_type: string
           parent_id: string | null
+          parking_info: string | null
           private_notes: string | null
           public_notes: string | null
           street: string | null
           unit_label: string | null
           updated_at: string
           verification_level: string
+          verification_method: string | null
           visibility: string
+          wheelchair_accessible: boolean | null
         }
         Insert: {
+          building_number?: string | null
           city?: string | null
           confidence_score?: number
           country_code?: string
@@ -941,23 +957,29 @@ export type Database = {
           id?: string
           is_active?: boolean
           landmark?: string | null
+          last_verified_at?: string | null
           latitude?: number | null
           lifecycle_status?: string
+          loading_info?: string | null
           longitude?: number | null
           name_ar?: string | null
           name_en?: string | null
           neighborhood?: string | null
           node_type: string
           parent_id?: string | null
+          parking_info?: string | null
           private_notes?: string | null
           public_notes?: string | null
           street?: string | null
           unit_label?: string | null
           updated_at?: string
           verification_level?: string
+          verification_method?: string | null
           visibility?: string
+          wheelchair_accessible?: boolean | null
         }
         Update: {
+          building_number?: string | null
           city?: string | null
           confidence_score?: number
           country_code?: string
@@ -975,21 +997,26 @@ export type Database = {
           id?: string
           is_active?: boolean
           landmark?: string | null
+          last_verified_at?: string | null
           latitude?: number | null
           lifecycle_status?: string
+          loading_info?: string | null
           longitude?: number | null
           name_ar?: string | null
           name_en?: string | null
           neighborhood?: string | null
           node_type?: string
           parent_id?: string | null
+          parking_info?: string | null
           private_notes?: string | null
           public_notes?: string | null
           street?: string | null
           unit_label?: string | null
           updated_at?: string
           verification_level?: string
+          verification_method?: string | null
           visibility?: string
+          wheelchair_accessible?: boolean | null
         }
         Relationships: [
           {
