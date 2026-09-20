@@ -77,6 +77,12 @@ export function AppHeader() {
                 لوحة الأعمال
               </Link>
               <Link
+                to="/vault"
+                className="rounded-lg border border-border px-3 py-2 text-xs font-bold text-foreground"
+              >
+                خزنة العناوين
+              </Link>
+              <Link
                 to="/my-addresses"
                 className="rounded-lg border border-border px-3 py-2 text-xs font-bold text-foreground"
               >
