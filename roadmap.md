@@ -30,3 +30,10 @@
 - [x] Download, print, and native share actions
 - [x] Printable A6, A5, A4, sticker, door-plate, and shop-window templates
 - [x] Optional business logo on address plates
+
+## Phase 7 — Business location management [DONE]
+- [x] Organizations + members + roles (owner/admin/manager/staff/viewer)
+- [x] /dashboard with tabs: locations, addresses, verification, QR, plates, API, team, analytics, settings
+- [x] Create / edit / archive-restore branches, attach existing owned businesses
+- [x] QR download + address plate print per branch
+- [x] address_events logging (resolve, navigate_start, delivery_view) feeding analytics
