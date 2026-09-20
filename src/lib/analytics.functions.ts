@@ -31,13 +31,12 @@ export const platformAnalytics = createServerFn({ method: "POST" })
     const sinceDate = new Date(Date.now() - data.days * 86_400_000);
     const since = sinceDate.toISOString();
 
+    const from = supabaseAdmin.from as unknown as (table: string) => any;
     const count = async (
       table: string,
       build: (q: any) => any = (q) => q,
     ): Promise<number> => {
-      const { count: n } = await build(
-        supabaseAdmin.from(table).select("id", { count: "exact", head: true }),
-      );
+      const { count: n } = await build(from(table).select("id", { count: "exact", head: true }));
       return n ?? 0;
     };
 
