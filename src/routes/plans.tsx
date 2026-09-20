@@ -15,6 +15,7 @@ import {
   formatLimit,
   type LimitKey,
 } from "@/lib/plans";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/plans")({
   head: () => ({
@@ -48,6 +49,7 @@ const LIMIT_ROWS: LimitKey[] = [
 ];
 
 function PlansPage() {
+  const { t, lang, name } = useI18n();
   const fetchEntitlements = useServerFn(myEntitlements);
   const [signedIn, setSignedIn] = useState(false);
 
@@ -68,14 +70,19 @@ function PlansPage() {
       <AppHeader />
       <main className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-6">
         <section className="rounded-xl border border-border bg-surface p-5">
-          <h1 className="text-xl font-bold">الخطط</h1>
+          <h1 className="text-xl font-bold">{t({ ar: "الخطط", en: "Plans" })}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            إنشاء العنوان الشخصي وحلّ العناوين والمشاركة ورموز QR مجانية دائماً ولن تُسعَّر. الخطط الأخرى
-            مخصّصة للأعمال والمطوّرين والمؤسسات.
+            {t({
+              ar: "إنشاء العنوان الشخصي وحلّ العناوين والمشاركة ورموز QR مجانية دائماً ولن تُسعَّر. الخطط الأخرى مخصّصة للأعمال والمطوّرين والمؤسسات.",
+              en: "Creating a personal address, resolving addresses, sharing, and QR codes are free forever and will never be priced. Other plans are for businesses, developers, and enterprises.",
+            })}
           </p>
           <p className="mt-3 flex items-start gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-[12px] font-bold text-primary">
             <Sparkles className="mt-0.5 size-3.5 shrink-0" />
-            الأسعار لم تُعلَن بعد. هذه الصفحة تعرض ما تشمله كل خطة فقط.
+            {t({
+              ar: "الأسعار لم تُعلَن بعد. هذه الصفحة تعرض ما تشمله كل خطة فقط.",
+              en: "Pricing hasn't been announced yet. This page only shows what each plan includes.",
+            })}
           </p>
         </section>
 
@@ -91,14 +98,14 @@ function PlansPage() {
                 }`}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <h2 className="text-sm font-bold">{plan.name_ar}</h2>
+                  <h2 className="text-sm font-bold">{name(plan)}</h2>
                   {active ? (
                     <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">
-                      خطتك الحالية
+                      {t({ ar: "خطتك الحالية", en: "Your current plan" })}
                     </span>
                   ) : (
                     <span className="font-mono text-[10px] text-muted-foreground" dir="ltr">
-                      {plan.name_en}
+                      {lang === "ar" ? plan.name_en : plan.name_ar}
                     </span>
                   )}
                 </div>
@@ -118,14 +125,14 @@ function PlansPage() {
         </div>
 
         <section className="overflow-x-auto rounded-xl border border-border bg-surface p-4">
-          <h2 className="text-sm font-bold">الحدود</h2>
+          <h2 className="text-sm font-bold">{t({ ar: "الحدود", en: "Limits" })}</h2>
           <table className="mt-3 w-full text-[12px]">
             <thead className="text-muted-foreground">
               <tr>
-                <th className="p-2 text-start font-bold">البند</th>
+                <th className="p-2 text-start font-bold">{t({ ar: "البند", en: "Item" })}</th>
                 {PLAN_ORDER.map((id) => (
                   <th key={id} className="p-2 text-center font-bold">
-                    {PLANS[id].name_ar}
+                    {name(PLANS[id])}
                   </th>
                 ))}
               </tr>
@@ -150,7 +157,7 @@ function PlansPage() {
 
         {mine.data ? (
           <section className="rounded-xl border border-border bg-surface p-4">
-            <h2 className="text-sm font-bold">استخدامك الحالي</h2>
+            <h2 className="text-sm font-bold">{t({ ar: "استخدامك الحالي", en: "Your current usage" })}</h2>
             <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
               {(
                 [
@@ -174,26 +181,31 @@ function PlansPage() {
             </div>
             {!mine.data.enforced ? (
               <p className="mt-3 text-[11px] text-muted-foreground">
-                الحدود معروضة للاطلاع فقط في الوقت الحالي ولا تمنع أي إجراء.
+                {t({
+                  ar: "الحدود معروضة للاطلاع فقط في الوقت الحالي ولا تمنع أي إجراء.",
+                  en: "Limits are shown for information only right now and don't block any action.",
+                })}
               </p>
             ) : null}
           </section>
         ) : (
           <section className="rounded-xl border border-border bg-surface p-4 text-center">
-            <p className="text-sm text-muted-foreground">سجّل الدخول لرؤية خطتك واستخدامك.</p>
+            <p className="text-sm text-muted-foreground">
+              {t({ ar: "سجّل الدخول لرؤية خطتك واستخدامك.", en: "Sign in to see your plan and usage." })}
+            </p>
             <Link
               to="/auth"
               className="mt-3 inline-block rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground"
             >
-              الدخول
+              {t({ ar: "الدخول", en: "Sign in" })}
             </Link>
           </section>
         )}
 
         <p className="pb-6 text-center text-[11px] text-muted-foreground">
-          للاهتمام بخطة المؤسسات أو تكامل مخصص، تواصل معنا عبر{" "}
+          {t({ ar: "للاهتمام بخطة المؤسسات أو تكامل مخصص، تواصل معنا عبر", en: "Interested in the enterprise plan or a custom integration? Reach us via" })}{" "}
           <Link to="/developers" className="font-bold text-primary">
-            صفحة المطوّرين
+            {t({ ar: "صفحة المطوّرين", en: "the developers page" })}
           </Link>
           .
         </p>

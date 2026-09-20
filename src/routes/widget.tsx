@@ -4,6 +4,7 @@ import { Boxes, CheckCircle2, Code2, Puzzle, ShieldCheck, Smartphone } from "luc
 
 import { AppHeader } from "@/components/AppHeader";
 import { SnippetTabs } from "@/components/SnippetTabs";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/widget")({
   head: () => ({
@@ -141,28 +142,30 @@ curl "https://syriasan.com/api/public/checkout?reference=SY-DAM-K7X4"
   },
 ];
 
-const EVENTS: { name: string; dir: string; desc: string }[] = [
-  { name: "syriasan:ready", dir: "الأداة ← الموقع", desc: "الأداة جاهزة للاستقبال (تحمل رقم إصدار البروتوكول)." },
-  { name: "syriasan:resize", dir: "الأداة ← الموقع", desc: "ارتفاع المحتوى الحالي لضبط الإطار تلقائياً." },
-  { name: "syriasan:resolved", dir: "الأداة ← الموقع", desc: "تم حلّ الرمز وعُرض العنوان — قبل تأكيد العميل." },
-  { name: "syriasan:address", dir: "الأداة ← الموقع", desc: "أكّد العميل العنوان — هنا فقط يُسلَّم للمتجر." },
-  { name: "syriasan:address-cleared", dir: "الأداة ← الموقع", desc: "ألغى العميل التأكيد أو غيّر الرمز." },
-  { name: "syriasan:set-code", dir: "الموقع ← الأداة", desc: "تعبئة رمز محفوظ مسبقاً وحلّه اختيارياً." },
+const EVENTS: { name: string; dir: { ar: string; en: string }; desc: { ar: string; en: string } }[] = [
+  { name: "syriasan:ready", dir: { ar: "الأداة ← الموقع", en: "widget → host" }, desc: { ar: "الأداة جاهزة للاستقبال (تحمل رقم إصدار البروتوكول).", en: "The widget is ready to receive messages (carries the protocol version)." } },
+  { name: "syriasan:resize", dir: { ar: "الأداة ← الموقع", en: "widget → host" }, desc: { ar: "ارتفاع المحتوى الحالي لضبط الإطار تلقائياً.", en: "The current content height, to auto-size the iframe." } },
+  { name: "syriasan:resolved", dir: { ar: "الأداة ← الموقع", en: "widget → host" }, desc: { ar: "تم حلّ الرمز وعُرض العنوان — قبل تأكيد العميل.", en: "The code was resolved and the address shown — before customer confirmation." } },
+  { name: "syriasan:address", dir: { ar: "الأداة ← الموقع", en: "widget → host" }, desc: { ar: "أكّد العميل العنوان — هنا فقط يُسلَّم للمتجر.", en: "The customer confirmed the address — only now is it handed to the store." } },
+  { name: "syriasan:address-cleared", dir: { ar: "الأداة ← الموقع", en: "widget → host" }, desc: { ar: "ألغى العميل التأكيد أو غيّر الرمز.", en: "The customer cleared the confirmation or changed the code." } },
+  { name: "syriasan:set-code", dir: { ar: "الموقع ← الأداة", en: "host → widget" }, desc: { ar: "تعبئة رمز محفوظ مسبقاً وحلّه اختيارياً.", en: "Prefill a previously saved code and optionally resolve it." } },
 ];
 
 function WidgetPage() {
+  const { t } = useI18n();
   return (
-    <div className="min-h-screen bg-background" dir="rtl">
+    <div className="min-h-screen bg-background">
       <AppHeader />
       <main className="mx-auto w-full max-w-4xl px-4 py-6">
         <header className="flex items-start gap-3">
           <Puzzle className="mt-1 size-6 text-primary" />
           <div>
-            <h1 className="text-xl font-bold">أداة العنوان القابلة للتضمين</h1>
+            <h1 className="text-xl font-bold">{t({ ar: "أداة العنوان القابلة للتضمين", en: "Embeddable address widget" })}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              حقل عنوان جاهز يُضاف إلى أي موقع أو تطبيق: يكتب العميل رمز سيرياسان، يتحقق فوراً، يرى
-              «دمشق — المزة»، ثم يضغط «تأكيد العنوان». لا يُسلَّم أي شيء للمتجر قبل التأكيد، ولا تُكشف
-              بيانات السكن الخاصة أبداً.
+              {t({
+                ar: "حقل عنوان جاهز يُضاف إلى أي موقع أو تطبيق: يكتب العميل رمز سيرياسان، يتحقق فوراً، يرى «دمشق — المزة»، ثم يضغط «تأكيد العنوان». لا يُسلَّم أي شيء للمتجر قبل التأكيد، ولا تُكشف بيانات السكن الخاصة أبداً.",
+                en: "A ready-made address field to drop into any site or app: the customer types a Syriasan code, it's validated instantly, they see “Damascus — Mazzeh”, then tap “Confirm address”. Nothing is handed to the store before confirmation, and private residential data is never exposed.",
+              })}
             </p>
           </div>
         </header>
@@ -171,21 +174,26 @@ function WidgetPage() {
 
         <section className={`${card} mt-4`}>
           <h2 className="flex items-center gap-2 text-sm font-bold">
-            <Code2 className="size-4 text-primary" /> التركيب
+            <Code2 className="size-4 text-primary" /> {t({ ar: "التركيب", en: "Integration" })}
           </h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            نفس الأداة، خمس طرق للتضمين. ابدأ بـ HTML: عنصر واحد وسكربت واحد، وتُملأ حقول الطلب تلقائياً.
+            {t({
+              ar: "نفس الأداة، خمس طرق للتضمين. ابدأ بـ HTML: عنصر واحد وسكربت واحد، وتُملأ حقول الطلب تلقائياً.",
+              en: "The same widget, five ways to embed it. Start with HTML: one element and one script, and your order fields fill in automatically.",
+            })}
           </p>
           <SnippetTabs snippets={SNIPPETS} />
         </section>
 
         <section className={`${card} mt-4`}>
           <h2 className="flex items-center gap-2 text-sm font-bold">
-            <Boxes className="size-4 text-primary" /> بروتوكول الأداة (الإصدار 1)
+            <Boxes className="size-4 text-primary" /> {t({ ar: "بروتوكول الأداة (الإصدار 1)", en: "Widget protocol (version 1)" })}
           </h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            كل الحزم المستقبلية — JavaScript وReact وFlutter والتطبيقات الأصلية — تتحدث بهذه الرسائل
-            نفسها، لذا يبقى التكامل صالحاً عند تحديث واجهة الأداة.
+            {t({
+              ar: "كل الحزم المستقبلية — JavaScript وReact وFlutter والتطبيقات الأصلية — تتحدث بهذه الرسائل نفسها، لذا يبقى التكامل صالحاً عند تحديث واجهة الأداة.",
+              en: "Every future package — JavaScript, React, Flutter and native apps — speaks these same messages, so integrations stay valid as the widget's UI evolves.",
+            })}
           </p>
           <div className="mt-3 overflow-hidden rounded-xl border border-border">
             {EVENTS.map((e) => (
@@ -196,13 +204,13 @@ function WidgetPage() {
                 <code dir="ltr" className="w-56 shrink-0 font-mono text-[11px] font-bold text-primary">
                   {e.name}
                 </code>
-                <span className="w-32 shrink-0 text-[11px] text-muted-foreground">{e.dir}</span>
-                <span>{e.desc}</span>
+                <span className="w-32 shrink-0 text-[11px] text-muted-foreground">{t(e.dir)}</span>
+                <span>{t(e.desc)}</span>
               </div>
             ))}
           </div>
           <p className="mt-3 text-[11px] text-muted-foreground">
-            نقطة التضمين:{" "}
+            {t({ ar: "نقطة التضمين:", en: "Embed URL:" })}{" "}
             <code dir="ltr" className="font-mono">
               https://syriasan.com/embed/address?lang=ar|en&amp;compact=1&amp;code=SY-DAM-K7X4&amp;auto=1&amp;origin=https://your-store.com
             </code>
@@ -211,48 +219,59 @@ function WidgetPage() {
 
         <section className={`${card} mt-4`}>
           <h2 className="flex items-center gap-2 text-sm font-bold">
-            <Smartphone className="size-4 text-primary" /> بنية الحزم القادمة
+            <Smartphone className="size-4 text-primary" /> {t({ ar: "بنية الحزم القادمة", en: "Architecture for future packages" })}
           </h2>
           <ul className="mt-2 space-y-1.5 text-xs text-muted-foreground">
             <li>
-              <b className="text-foreground">الطبقة الأولى — واجهة REST عامة:</b> نقطة{" "}
-              <code dir="ltr" className="font-mono">/api/public/checkout</code> وواجهة{" "}
-              <code dir="ltr" className="font-mono">/api/v1</code> الموثّقة. كل حزمة تستدعيها فقط.
+              <b className="text-foreground">{t({ ar: "الطبقة الأولى — واجهة REST عامة:", en: "Layer one — public REST API:" })}</b>{" "}
+              {t({ ar: "نقطة", en: "The" })}{" "}
+              <code dir="ltr" className="font-mono">/api/public/checkout</code> {t({ ar: "وواجهة", en: "and the documented" })}{" "}
+              <code dir="ltr" className="font-mono">/api/v1</code> {t({ ar: "الموثّقة. كل حزمة تستدعيها فقط.", en: "API. Every package simply calls it." })}
             </li>
             <li>
-              <b className="text-foreground">الطبقة الثانية — الأداة المُستضافة:</b> صفحة{" "}
-              <code dir="ltr" className="font-mono">/embed/address</code> تحمل كل المنطق والترجمة والخصوصية،
-              فتُحدَّث لجميع المتاجر دفعة واحدة دون أن يحدّث أحد شيئاً.
+              <b className="text-foreground">{t({ ar: "الطبقة الثانية — الأداة المُستضافة:", en: "Layer two — the hosted widget:" })}</b>{" "}
+              {t({ ar: "صفحة", en: "The" })}{" "}
+              <code dir="ltr" className="font-mono">/embed/address</code>{" "}
+              {t({
+                ar: "تحمل كل المنطق والترجمة والخصوصية، فتُحدَّث لجميع المتاجر دفعة واحدة دون أن يحدّث أحد شيئاً.",
+                en: "page carries all the logic, translation and privacy rules, so it updates for every store at once without anyone updating anything.",
+              })}
             </li>
             <li>
-              <b className="text-foreground">الطبقة الثالثة — أغلفة رقيقة:</b> حزمة JavaScript جاهزة الآن في{" "}
-              <code dir="ltr" className="font-mono">widget.js</code>، ومكوّن React، ولاحقاً{" "}
-              <code dir="ltr" className="font-mono">syriasan_flutter</code> وحزم iOS/Android — كلها مجرد
-              غلاف حول البروتوكول أعلاه، أقل من ٢٠٠ سطر لكل منصة.
+              <b className="text-foreground">{t({ ar: "الطبقة الثالثة — أغلفة رقيقة:", en: "Layer three — thin wrappers:" })}</b>{" "}
+              {t({ ar: "حزمة JavaScript جاهزة الآن في", en: "A JavaScript package is already available in" })}{" "}
+              <code dir="ltr" className="font-mono">widget.js</code>
+              {t({ ar: "، ومكوّن React، ولاحقاً", en: ", a React component, and later" })}{" "}
+              <code dir="ltr" className="font-mono">syriasan_flutter</code>{" "}
+              {t({
+                ar: "وحزم iOS/Android — كلها مجرد غلاف حول البروتوكول أعلاه، أقل من ٢٠٠ سطر لكل منصة.",
+                en: "and iOS/Android packages — all just a wrapper around the protocol above, under 200 lines per platform.",
+              })}
             </li>
           </ul>
         </section>
 
         <section className={`${card} mt-4`}>
           <h2 className="flex items-center gap-2 text-sm font-bold">
-            <ShieldCheck className="size-4 text-success" /> الخصوصية
+            <ShieldCheck className="size-4 text-success" /> {t({ ar: "الخصوصية", en: "Privacy" })}
           </h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            العناوين السكنية خاصة افتراضياً: الأداة تعرض التسلسل العام فقط. تفاصيل الطابق والشقة والهاتف لا
-            تظهر إلا إذا شارك صاحب العنوان رابطاً مؤقتاً (SY-TMP-…)، ولا يُسلَّم أي حقل إلى المتجر قبل ضغط
-            «تأكيد العنوان».
+            {t({
+              ar: "العناوين السكنية خاصة افتراضياً: الأداة تعرض التسلسل العام فقط. تفاصيل الطابق والشقة والهاتف لا تظهر إلا إذا شارك صاحب العنوان رابطاً مؤقتاً (SY-TMP-…)، ولا يُسلَّم أي حقل إلى المتجر قبل ضغط «تأكيد العنوان».",
+              en: "Residential addresses are private by default: the widget shows only the public sequence. Floor, apartment and phone details only appear if the address owner shares a temporary link (SY-TMP-…), and no field is handed to the store before “Confirm address” is pressed.",
+            })}
           </p>
         </section>
 
         <div className="mt-4 flex flex-wrap gap-2 text-xs font-bold">
           <Link to="/docs" className="rounded-lg bg-primary px-3 py-2 text-primary-foreground">
-            بوابة المطورين
+            {t({ ar: "بوابة المطورين", en: "Developer portal" })}
           </Link>
           <Link to="/checkout-component" className="rounded-lg border border-border px-3 py-2">
-            مكوّن الدفع
+            {t({ ar: "مكوّن الدفع", en: "Checkout component" })}
           </Link>
           <Link to="/api-reference" className="rounded-lg border border-border px-3 py-2">
-            مرجع الواجهة v1
+            {t({ ar: "مرجع الواجهة v1", en: "API v1 reference" })}
           </Link>
         </div>
       </main>
@@ -261,6 +280,7 @@ function WidgetPage() {
 }
 
 function LiveDemo() {
+  const { t, lang } = useI18n();
   const frameRef = useRef<HTMLIFrameElement | null>(null);
   const [height, setHeight] = useState(240);
   const [log, setLog] = useState<string[]>([]);
@@ -285,15 +305,15 @@ function LiveDemo() {
     return () => window.removeEventListener("message", onMessage);
   }, []);
 
-  const src = `/embed/address?lang=ar&compact=1&origin=${encodeURIComponent(
+  const src = `/embed/address?lang=${lang}&compact=1&origin=${encodeURIComponent(
     typeof window === "undefined" ? "" : window.location.origin,
   )}`;
 
   return (
     <section className={`${card} mt-4`}>
-      <h2 className="text-sm font-bold">تجربة حية</h2>
+      <h2 className="text-sm font-bold">{t({ ar: "تجربة حية", en: "Live demo" })}</h2>
       <p className="mt-1 text-xs text-muted-foreground">
-        هذه هي الأداة نفسها المضمّنة في إطار، وتحتها ما يستقبله المتجر من رسائل.
+        {t({ ar: "هذه هي الأداة نفسها المضمّنة في إطار، وتحتها ما يستقبله المتجر من رسائل.", en: "This is the same widget embedded in an iframe, with what the store receives shown below." })}
       </p>
       <div className="mt-3 grid gap-3 md:grid-cols-2">
         <iframe
@@ -304,13 +324,13 @@ function LiveDemo() {
           className="w-full rounded-xl border border-border"
         />
         <div className="rounded-xl border border-border bg-background p-3">
-          <p className="text-xs font-bold">ما يستقبله المتجر</p>
+          <p className="text-xs font-bold">{t({ ar: "ما يستقبله المتجر", en: "What the store receives" })}</p>
           {confirmed ? (
             <p className="mt-2 flex items-center gap-1.5 rounded-lg bg-success/10 p-2 text-xs font-bold text-success">
               <CheckCircle2 className="size-3.5" /> {confirmed.reference} — {confirmed.summary}
             </p>
           ) : (
-            <p className="mt-2 text-xs text-muted-foreground">لا شيء بعد — العنوان يُسلَّم بعد التأكيد فقط.</p>
+            <p className="mt-2 text-xs text-muted-foreground">{t({ ar: "لا شيء بعد — العنوان يُسلَّم بعد التأكيد فقط.", en: "Nothing yet — the address is only handed over after confirmation." })}</p>
           )}
           <ul dir="ltr" className="mt-3 space-y-1 font-mono text-[11px] text-muted-foreground">
             {log.length === 0 ? <li>waiting for events…</li> : log.map((l, i) => <li key={i}>{l}</li>)}

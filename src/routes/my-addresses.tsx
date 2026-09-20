@@ -24,27 +24,37 @@ import {
   updateMyAddress,
   type ShareField,
 } from "@/lib/addresses.functions";
-import { CLAIM_STATUS_LABELS, myClaims, withdrawClaim } from "@/lib/claims.functions";
+import { myClaims, withdrawClaim } from "@/lib/claims.functions";
 import { listFavorites, toggleFavorite } from "@/lib/network.functions";
-import { NODE_TYPE_LABELS, PURPOSE_LABELS, QUICK_PURPOSES, VERIFICATION_LEVELS } from "@/lib/smart-address";
+import { nodeTypeLabel, purposeLabel, QUICK_PURPOSES, verificationLabel } from "@/lib/smart-address";
+import { useI18n } from "@/lib/i18n";
 
-const SHARE_FIELD_LABELS: { value: ShareField; ar: string }[] = [
-  { value: "location", ar: "الموقع" },
-  { value: "building", ar: "المبنى" },
-  { value: "entrance", ar: "المدخل" },
-  { value: "floor", ar: "الطابق" },
-  { value: "unit", ar: "الشقة" },
-  { value: "instructions", ar: "تعليمات الوصول" },
-  { value: "parking", ar: "المواقف" },
-  { value: "phone", ar: "الهاتف" },
-  { value: "name", ar: "الاسم" },
+const SHARE_FIELD_LABELS: { value: ShareField; ar: string; en: string }[] = [
+  { value: "location", ar: "الموقع", en: "Location" },
+  { value: "building", ar: "المبنى", en: "Building" },
+  { value: "entrance", ar: "المدخل", en: "Entrance" },
+  { value: "floor", ar: "الطابق", en: "Floor" },
+  { value: "unit", ar: "الشقة", en: "Unit" },
+  { value: "instructions", ar: "تعليمات الوصول", en: "Access instructions" },
+  { value: "parking", ar: "المواقف", en: "Parking" },
+  { value: "phone", ar: "الهاتف", en: "Phone" },
+  { value: "name", ar: "الاسم", en: "Name" },
 ];
 
 const EXPIRY_PRESETS = [
-  { hours: 1, ar: "ساعة" },
-  { hours: 24, ar: "٢٤ ساعة" },
-  { hours: 168, ar: "٧ أيام" },
+  { hours: 1, ar: "ساعة", en: "1 hour" },
+  { hours: 24, ar: "٢٤ ساعة", en: "24 hours" },
+  { hours: 168, ar: "٧ أيام", en: "7 days" },
 ];
+
+const CLAIM_STATUS_LABELS: Record<string, { ar: string; en: string }> = {
+  pending: { ar: "قيد المراجعة", en: "Under review" },
+  approved: { ar: "مقبولة", en: "Approved" },
+  rejected: { ar: "مرفوضة", en: "Rejected" },
+  withdrawn: { ar: "مسحوبة", en: "Withdrawn" },
+  superseded: { ar: "أُلغيت لصالح مطالبة أخرى", en: "Superseded by another claim" },
+};
+
 
 export const Route = createFileRoute("/my-addresses")({
   head: () => ({
@@ -67,6 +77,7 @@ export const Route = createFileRoute("/my-addresses")({
 
 function MyAddressesPage() {
   const navigate = useNavigate();
+  const { t, lang, date } = useI18n();
   const listFn = useServerFn(listMyAddresses);
   const tempFn = useServerFn(createTemporaryAddress);
   const [authed, setAuthed] = useState<boolean | null>(null);
@@ -146,10 +157,10 @@ function MyAddressesPage() {
       }),
     onSuccess: async (row) => {
       setIssued({ token: row.token, expires_at: row.expires_at });
-      toast.success("تم إنشاء رابط مؤقت");
+      toast.success(t({ ar: "تم إنشاء رابط مؤقت", en: "Temporary link created" }));
       await linksQueryClient.invalidateQueries({ queryKey: ["temp-links"] });
     },
-    onError: () => toast.error("تعذر إنشاء الرابط المؤقت"),
+    onError: () => toast.error(t({ ar: "تعذر إنشاء الرابط المؤقت", en: "Couldn't create the temporary link" })),
   });
 
   const editMutation = useMutation({
@@ -180,15 +191,15 @@ function MyAddressesPage() {
         },
       }),
     onSuccess: async () => {
-      toast.success("تم حفظ التعديلات");
+      toast.success(t({ ar: "تم حفظ التعديلات", en: "Changes saved" }));
       setEditFor(null);
       await query.refetch();
     },
     onError: (err) =>
       toast.error(
         err instanceof Error && err.message === "not_found_or_forbidden"
-          ? "لا تملك صلاحية تعديل هذا العنوان"
-          : "تعذر حفظ التعديلات",
+          ? t({ ar: "لا تملك صلاحية تعديل هذا العنوان", en: "You don't have permission to edit this address" })
+          : t({ ar: "تعذر حفظ التعديلات", en: "Couldn't save the changes" }),
       ),
   });
 
@@ -197,13 +208,13 @@ function MyAddressesPage() {
       <div className="min-h-screen bg-background text-foreground">
         <AppHeader />
         <main className="mx-auto max-w-md px-4 py-16 text-center">
-          <h1 className="text-xl font-bold">يلزم تسجيل الدخول</h1>
+          <h1 className="text-xl font-bold">{t({ ar: "يلزم تسجيل الدخول", en: "Sign in required" })}</h1>
           <button
             type="button"
             onClick={() => navigate({ to: "/auth", search: { redirect: "/my-addresses" } })}
             className="mt-6 rounded-lg bg-primary px-5 py-3 text-sm font-bold text-primary-foreground"
           >
-            الدخول
+            {t({ ar: "الدخول", en: "Sign in" })}
           </button>
         </main>
       </div>
@@ -214,7 +225,7 @@ function MyAddressesPage() {
     <div className="min-h-screen bg-background text-foreground">
       <AppHeader />
       <main className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-6">
-        <h1 className="text-lg font-bold">عناويني الذكية</h1>
+        <h1 className="text-lg font-bold">{t({ ar: "عناويني الذكية", en: "My smart addresses" })}</h1>
 
         <MyClaimsSection />
 
@@ -222,7 +233,7 @@ function MyAddressesPage() {
         {favQuery.data && favQuery.data.length ? (
           <section className="rounded-2xl border border-border bg-surface p-4">
             <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-              <Star className="size-3.5" /> المفضلة ({favQuery.data.length})
+              <Star className="size-3.5" /> {t({ ar: "المفضلة", en: "Favourites" })} ({favQuery.data.length})
             </h2>
             <div className="mt-3 space-y-2">
               {favQuery.data.map((fav) => {
@@ -257,13 +268,13 @@ function MyAddressesPage() {
                     </Link>
                     <button
                       type="button"
-                      aria-label="إزالة من المفضلة"
+                      aria-label={t({ ar: "إزالة من المفضلة", en: "Remove from favourites" })}
                       onClick={async () => {
                         try {
                           await favToggleFn({ data: { code: smart.code!, label: fav.label } });
                           await favQuery.refetch();
                         } catch {
-                          toast.error("تعذر التحديث");
+                          toast.error(t({ ar: "تعذر التحديث", en: "Couldn't update" }));
                         }
                       }}
                       className="grid size-8 shrink-0 place-items-center rounded-lg border border-border text-muted-foreground"
@@ -278,12 +289,12 @@ function MyAddressesPage() {
         ) : null}
 
         {query.isPending ? (
-          <p className="py-10 text-center text-sm text-muted-foreground">جارٍ التحميل…</p>
+          <p className="py-10 text-center text-sm text-muted-foreground">{t({ ar: "جارٍ التحميل…", en: "Loading…" })}</p>
         ) : null}
 
         {query.data?.length === 0 ? (
           <p className="rounded-2xl border border-border bg-surface p-6 text-center text-sm text-muted-foreground">
-            لا عناوين بعد. أنشئ أول عنوان ذكي من صفحة الإنشاء.
+            {t({ ar: "لا عناوين بعد. أنشئ أول عنوان ذكي من صفحة الإنشاء.", en: "No addresses yet. Create your first smart address from the create page." })}
           </p>
         ) : null}
 
@@ -306,9 +317,9 @@ function MyAddressesPage() {
                   <p className="text-sm font-bold">{row.label ?? node?.display_name}</p>
                   <p className="text-xs text-muted-foreground">
                     {[
-                      node ? (NODE_TYPE_LABELS[node.node_type] ?? node.node_type) : null,
-                      node?.floor_label ? `الطابق ${node.floor_label}` : null,
-                      node?.unit_label ? `وحدة ${node.unit_label}` : null,
+                      node ? nodeTypeLabel(node.node_type, lang) : null,
+                      node?.floor_label ? `${t({ ar: "الطابق", en: "Floor" })} ${node.floor_label}` : null,
+                      node?.unit_label ? `${t({ ar: "وحدة", en: "Unit" })} ${node.unit_label}` : null,
                       node?.neighborhood,
                       node?.city,
                     ]
@@ -322,15 +333,15 @@ function MyAddressesPage() {
                   }`}
                 >
                   {row.is_public ? <Globe className="size-3" /> : <EyeOff className="size-3" />}
-                  {row.is_public ? "عام" : "خاص"}
+                  {row.is_public ? t({ ar: "عام", en: "Public" }) : t({ ar: "خاص", en: "Private" })}
                 </span>
               </div>
 
               <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
-                {ap ? <span>المدخل: {ap.display_name}</span> : null}
+                {ap ? <span>{t({ ar: "المدخل:", en: "Entrance:" })} {ap.display_name}</span> : null}
                 {node ? (
                   <span>
-                    {VERIFICATION_LEVELS[node.verification_level]?.ar ?? "غير موثق"} ·{" "}
+                    {verificationLabel(node.verification_level, lang)} ·{" "}
                     {node.confidence_score}%
                   </span>
                 ) : null}
@@ -341,11 +352,11 @@ function MyAddressesPage() {
                   type="button"
                   onClick={() => {
                     void navigator.clipboard.writeText(row.code);
-                    toast.success("تم النسخ");
+                    toast.success(t({ ar: "تم النسخ", en: "Copied" }));
                   }}
                   className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-bold"
                 >
-                  <Copy className="size-3.5" /> نسخ
+                  <Copy className="size-3.5" /> {t({ ar: "نسخ", en: "Copy" })}
                 </button>
                 {row.is_public ? (
                   <button
@@ -353,7 +364,7 @@ function MyAddressesPage() {
                     onClick={() => setQrFor(row.id)}
                     className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-bold"
                   >
-                    <QrCode className="size-3.5" /> QR ولوحة
+                    <QrCode className="size-3.5" /> {t({ ar: "QR ولوحة", en: "QR & signage" })}
                   </button>
                 ) : null}
                 <button
@@ -364,7 +375,7 @@ function MyAddressesPage() {
                   }}
                   className="flex items-center gap-1.5 rounded-lg bg-foreground px-3 py-2 text-xs font-bold text-background"
                 >
-                  <Timer className="size-3.5" /> عنوان مؤقت
+                  <Timer className="size-3.5" /> {t({ ar: "عنوان مؤقت", en: "Temporary address" })}
                 </button>
                 {node?.id ? (
                   <button
@@ -398,7 +409,7 @@ function MyAddressesPage() {
                     }}
                     className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-bold"
                   >
-                    <Pencil className="size-3.5" /> تعديل
+                    <Pencil className="size-3.5" /> {t({ ar: "تعديل", en: "Edit" })}
                   </button>
                 ) : null}
               </div>
@@ -411,7 +422,7 @@ function MyAddressesPage() {
                       : `${window.location.origin}/a/${row.code}`
                   }
                   code={row.code}
-                  title={row.label ?? node?.display_name ?? "عنوان ذكي"}
+                  title={row.label ?? node?.display_name ?? t({ ar: "عنوان ذكي", en: "Smart address" })}
                   subtitle={[node?.neighborhood, node?.city].filter(Boolean).join(" — ")}
                   onClose={() => setQrFor(null)}
                 />
@@ -420,7 +431,7 @@ function MyAddressesPage() {
               {editFor === row.id && node?.id ? (
                 <div className="mt-3 rounded-xl border border-border bg-background p-3">
                   <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-                    تعديل العنوان — يُحفظ فوراً ويظهر للمشاركين
+                    {t({ ar: "تعديل العنوان — يُحفظ فوراً ويظهر للمشاركين", en: "Edit address — saves instantly and is visible to anyone it's shared with" })}
                   </p>
                   <div className="mt-3 grid gap-2 sm:grid-cols-2">
                     <label className="flex flex-col gap-1 text-xs font-medium">
