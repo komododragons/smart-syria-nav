@@ -653,7 +653,11 @@ function NavigationWorkspace() {
                     onClick={() => {
                       setContext(option.value);
                       setEntranceId(null);
-                      setMode(option.travelMode);
+                      setMode(
+                        (TRAVEL_MODES.some((m) => m.value === option.travelMode)
+                          ? option.travelMode
+                          : "walking") as TravelMode,
+                      );
                       if (option.requireWheelchair) setWheelchair(true);
                     }}
                     className={`rounded-full border px-2.5 py-1 text-[11px] font-bold ${
