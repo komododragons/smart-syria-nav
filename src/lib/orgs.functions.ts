@@ -655,7 +655,6 @@ export const orgAnalytics = createServerFn({ method: "POST" })
             delivery_view: 0,
             search_appearance: 0,
           } satisfies Row);
-        if (type in entry) entry[type as keyof Row extends never ? never : "resolve"] += 0;
         if (type === "resolve") entry.resolve += 1;
         if (type === "navigate_start") entry.navigate_start += 1;
         if (type === "qr_scan") entry.qr_scan += 1;
