@@ -250,6 +250,16 @@ export async function resolvePublicCode(
     .order("sort_order", { ascending: true });
 
   const aps = (apsRaw ?? []) as unknown as AccessPointRow[];
+
+  // Published business attached to this site (or any node inside it).
+  const { data: businessRow } = await supa
+    .from("businesses")
+    .select("id, name_ar, name_en, category, phone, website, opening_hours, logo_url, verification_level, node_id")
+    .in("node_id", ids)
+    .eq("is_published", true)
+    .limit(1)
+    .maybeSingle();
+
   const allowedList: ResolvedAccessPoint[] = [];
   const prohibited: { display_name: string; reason: string }[] = [];
 
@@ -324,6 +334,19 @@ export async function resolvePublicCode(
     verification_level: target.verification_level,
     confidence: target.confidence_score,
     notes,
+    business: businessRow
+      ? {
+          id: businessRow.id,
+          name_ar: businessRow.name_ar,
+          name_en: businessRow.name_en,
+          category: businessRow.category,
+          phone: businessRow.phone,
+          website: businessRow.website,
+          opening_hours: businessRow.opening_hours,
+          logo_url: businessRow.logo_url,
+          verification_level: businessRow.verification_level,
+        }
+      : null,
   };
 }
 
