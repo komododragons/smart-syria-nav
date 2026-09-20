@@ -48,7 +48,8 @@ export const Route = createFileRoute("/embed/address")({
 
 function EmbedAddressPage() {
   const search = Route.useSearch();
-  const targetOrigin = search.origin && /^https?:\/\//.test(search.origin) ? search.origin : "*";
+  const originParam = str(search.origin);
+  const targetOrigin = /^https?:\/\//.test(originParam) ? originParam : "*";
   const boxRef = useRef<HTMLDivElement | null>(null);
   const [injected, setInjected] = useState<{ code: string; resolve: boolean; nonce: number } | null>(null);
 
@@ -87,11 +88,11 @@ function EmbedAddressPage() {
     <div ref={boxRef} className="bg-transparent p-2">
       <SyriasanAddressField
         key={injected?.nonce ?? 0}
-        compact={search.compact !== "0"}
+        compact={str(search.compact) !== "0"}
         lang={search.lang ?? "ar"}
-        title={search.title}
-        initialCode={injected?.code ?? search.code ?? ""}
-        autoResolve={injected ? injected.resolve : search.auto === "1"}
+        title={str(search.title) || undefined}
+        initialCode={injected?.code ?? str(search.code)}
+        autoResolve={injected ? injected.resolve : str(search.auto) === "1"}
         onResolve={(address: CheckoutAddressPayload) => post("syriasan:resolved", address)}
         onConfirm={(address: CheckoutAddressPayload) => post("syriasan:address", address)}
         onClear={() => post("syriasan:address-cleared", null)}
