@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as ApiReferenceRouteImport } from './routes/api-reference'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CheckoutComponentRouteImport } from './routes/checkout-component'
 import { Route as CourierRouteImport } from './routes/courier'
@@ -43,6 +44,11 @@ const IndexRoute = IndexRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiReferenceRoute = ApiReferenceRouteImport.update({
+  id: '/api-reference',
+  path: '/api-reference',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -164,6 +170,7 @@ const ApiPublicV1SplatRoute = ApiPublicV1SplatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/api-reference': typeof ApiReferenceRoute
   '/auth': typeof AuthRoute
   '/checkout-component': typeof CheckoutComponentRoute
   '/courier': typeof CourierRoute
@@ -191,6 +198,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/api-reference': typeof ApiReferenceRoute
   '/auth': typeof AuthRoute
   '/checkout-component': typeof CheckoutComponentRoute
   '/courier': typeof CourierRoute
@@ -219,6 +227,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/api-reference': typeof ApiReferenceRoute
   '/auth': typeof AuthRoute
   '/checkout-component': typeof CheckoutComponentRoute
   '/courier': typeof CourierRoute
@@ -248,6 +257,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/api-reference'
     | '/auth'
     | '/checkout-component'
     | '/courier'
@@ -275,6 +285,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
+    | '/api-reference'
     | '/auth'
     | '/checkout-component'
     | '/courier'
@@ -302,6 +313,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/api-reference'
     | '/auth'
     | '/checkout-component'
     | '/courier'
@@ -330,6 +342,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
+  ApiReferenceRoute: typeof ApiReferenceRoute
   AuthRoute: typeof AuthRoute
   CheckoutComponentRoute: typeof CheckoutComponentRoute
   CourierRoute: typeof CourierRoute
@@ -366,6 +379,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api-reference': {
+      id: '/api-reference'
+      path: '/api-reference'
+      fullPath: '/api-reference'
+      preLoaderRoute: typeof ApiReferenceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -549,6 +569,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
+  ApiReferenceRoute: ApiReferenceRoute,
   AuthRoute: AuthRoute,
   CheckoutComponentRoute: CheckoutComponentRoute,
   CourierRoute: CourierRoute,
