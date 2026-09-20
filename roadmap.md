@@ -52,3 +52,13 @@
 - [x] Iframe widget /embed/address with postMessage `syriasan:address` for any store
 - [x] Developer page /checkout-component: live demo, JSON contract, HTML/React/WooCommerce/Shopify snippets
 - [x] Private units never disclosed without an owner-approved temporary link
+
+## Phase 10 — Developer API v1 [DONE]
+- [x] REST endpoints: POST /addresses, GET /addresses/{code}, GET /resolve/{code}, GET /search, POST /validate, POST /geocode, POST /reverse-geocode, GET /qr/{code}, GET /route, POST /keys/revoke
+- [x] Mounted at /api/v1/* with /api/public/v1/* alias
+- [x] SHA-256 hashed keys, bearer or x-api-key, expiry + revocation
+- [x] Per-account and per-key scopes, 403 insufficient_scope
+- [x] Per-minute rate limiting with X-RateLimit headers and 429
+- [x] Usage metering (endpoint, method, status, scope, response time) + audit logs for writes/revocations
+- [x] Private residential addresses never exposed (403 private)
+- [x] Arabic API reference page at /api-reference
