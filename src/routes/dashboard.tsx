@@ -1106,6 +1106,8 @@ function SettingsTab({
   }, [organization]);
 
   return (
+    <div className="flex flex-col gap-4">
+    <PlanCard orgId={organization.id} />
     <section className={card}>
       <h2 className="flex items-center gap-2 text-sm font-bold">
         <Settings className="size-4 text-primary" /> إعدادات الشركة
