@@ -30,7 +30,7 @@ import { DirectionsButton } from "@/components/DirectionsButton";
 import { QrCard } from "@/components/QrCard";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveAddress } from "@/lib/addresses.functions";
-import { ROUTING_CONTEXTS, type RoutingContext } from "@/lib/routing-contexts";
+import { ROUTING_CONTEXTS, routingContextHint, routingContextLabel, type RoutingContext } from "@/lib/routing-contexts";
 import { listFavorites, toggleFavorite } from "@/lib/network.functions";
 import { logAddressEvent } from "@/lib/orgs.functions";
 import { rememberAddress } from "@/lib/offline/store";
@@ -43,6 +43,7 @@ import {
   normalizeCode,
 } from "@/lib/smart-address";
 import type { TravelMode } from "@/lib/navigation/types";
+import { formatAddressLine, formatLocality, useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/a/$code")({
   loader: ({ params }) =>
