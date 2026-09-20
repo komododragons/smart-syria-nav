@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
 import { SyriasanAddressField, type CheckoutAddressPayload } from "@/components/SyriasanAddressField";
@@ -45,6 +45,20 @@ function EmbedAddressPage() {
   const search = Route.useSearch();
   const targetOrigin = search.origin && /^https?:\/\//.test(search.origin) ? search.origin : "*";
   const boxRef = useRef<HTMLDivElement | null>(null);
+  const [injected, setInjected] = useState<{ code: string; resolve: boolean; nonce: number } | null>(null);
+
+  // Host -> widget: prefill (and optionally resolve) a code.
+  useEffect(() => {
+    function onMessage(event: MessageEvent) {
+      const data = event.data as { type?: string; payload?: { code?: string; resolve?: boolean } } | null;
+      if (!data || data.type !== "syriasan:set-code") return;
+      if (targetOrigin !== "*" && event.origin !== targetOrigin) return;
+      const code = String(data.payload?.code ?? "").slice(0, 40);
+      setInjected({ code, resolve: data.payload?.resolve !== false, nonce: Date.now() });
+    }
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, [targetOrigin]);
 
   function post(type: string, payload: unknown) {
     if (typeof window === "undefined" || window.parent === window) return;
