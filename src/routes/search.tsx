@@ -143,7 +143,13 @@ function SearchPage() {
                       <div>
                         <p className="font-bold leading-tight">{biz.name_ar}</p>
                         <p className="text-xs text-muted-foreground">
-                          {[biz.category, node?.neighborhood, node?.city].filter(Boolean).join(" · ")}
+                          {[
+                            PLACE_CATEGORY_META[biz.place_category ?? ""]?.ar ?? biz.category,
+                            node?.neighborhood,
+                            node?.city,
+                          ]
+                            .filter(Boolean)
+                            .join(" · ")}
                         </p>
                       </div>
                       {smart?.code ? (
