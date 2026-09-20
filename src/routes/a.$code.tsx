@@ -413,6 +413,15 @@ function AddressCardPage() {
             المسارات الخاصة بالشاحنات وكراسي المتحركين والطوارئ تُعرض كتوجيه قياسي ما لم تتوفر بيانات طرق كافية.
           </p>
 
+          <Link
+            to="/d/$code"
+            params={{ code: ok.code }}
+            className="mt-3 flex items-center justify-center gap-2 rounded-xl border-2 border-primary/40 bg-primary/5 px-4 py-3 text-sm font-bold text-primary"
+          >
+            <Package className="size-4" />
+            وضع التوصيل — عرض مبسّط للساعي
+          </Link>
+
           <div className="mt-4 flex flex-wrap gap-2">
             <button
               type="button"
