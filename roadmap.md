@@ -145,3 +145,5 @@ PHASE 23 — PRIVACY AND SECURITY — DONE
 - Remaining linter notices are the pre-existing 15 (PostGIS spatial_ref_sys, extensions in public, SECURITY DEFINER exposure) — untouched by request.
 
 PHASE 24 — INTERNATIONALIZATION — DONE (ar RTL / en LTR across all pages, i18n layer in src/lib/i18n.tsx)
+
+PHASE 25 — MOBILE-FIRST DESIGN — DONE (bottom tab bar, /scan QR camera + manual fallback, install prompt, data-saver map tiles, reduced-motion + touch-target CSS)
