@@ -65,6 +65,13 @@ export function AppHeader() {
             <CloudDownload className="size-4" />
           </Link>
           <Link
+            to="/plans"
+            className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
+            aria-label="الخطط"
+          >
+            <Layers className="size-4" />
+          </Link>
+          <Link
             to="/create"
             className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
             aria-label="إنشاء عنوان ذكي"
