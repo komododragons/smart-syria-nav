@@ -63,8 +63,9 @@ export const myEntitlements = createServerFn({ method: "POST" })
         api_keys: apiKeys,
         webhooks,
       },
-      enforced: await entitlementsEnforced(supa),
-      pricing_published: await pricingPublished(supa),
+      // platform_settings is admin-read-only, so read the flags server-side.
+      enforced: await entitlementsEnforced(settingsClient as never),
+      pricing_published: await pricingPublished(settingsClient as never),
     };
   });
 
