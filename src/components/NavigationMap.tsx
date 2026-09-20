@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 
+import { useI18n } from "@/lib/i18n";
 import type { Coordinates } from "@/lib/navigation/types";
 
 export type NavMarkerKind =
@@ -19,14 +20,14 @@ export type NavMarker = {
   onClick?: () => void;
 };
 
-export const MARKER_STYLE: Record<NavMarkerKind, { color: string; glyph: string; ar: string }> = {
-  origin: { color: "#16a34a", glyph: "◉", ar: "نقطة الانطلاق" },
-  destination: { color: "#e11d48", glyph: "▲", ar: "وجهة المسار" },
-  property: { color: "#0f1b3d", glyph: "■", ar: "موقع العقار" },
-  entrance: { color: "#3b6fa0", glyph: "▮", ar: "مدخل بديل" },
-  entrance_closed: { color: "#9ca3af", glyph: "✕", ar: "مدخل مغلق / مقيّد" },
-  road_access: { color: "#f59e0b", glyph: "◆", ar: "نقطة وصول طرقية" },
-  parking: { color: "#7c3aed", glyph: "P", ar: "نقطة وقوف" },
+export const MARKER_STYLE: Record<NavMarkerKind, { color: string; glyph: string; ar: string; en: string }> = {
+  origin: { color: "#16a34a", glyph: "◉", ar: "نقطة الانطلاق", en: "Starting point" },
+  destination: { color: "#e11d48", glyph: "▲", ar: "وجهة المسار", en: "Route destination" },
+  property: { color: "#0f1b3d", glyph: "■", ar: "موقع العقار", en: "Property location" },
+  entrance: { color: "#3b6fa0", glyph: "▮", ar: "مدخل بديل", en: "Alternative entrance" },
+  entrance_closed: { color: "#9ca3af", glyph: "✕", ar: "مدخل مغلق / مقيّد", en: "Closed / restricted entrance" },
+  road_access: { color: "#f59e0b", glyph: "◆", ar: "نقطة وصول طرقية", en: "Road access point" },
+  parking: { color: "#7c3aed", glyph: "P", ar: "نقطة وقوف", en: "Parking point" },
 };
 
 type Props = {
@@ -208,6 +209,7 @@ export function NavigationMap({ markers, path, finalLeg, center, onPick, classNa
 }
 
 export function NavigationLegend({ kinds }: { kinds: NavMarkerKind[] }) {
+  const { t } = useI18n();
   return (
     <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
       {kinds.map((kind) => (
@@ -218,7 +220,7 @@ export function NavigationLegend({ kinds }: { kinds: NavMarkerKind[] }) {
           >
             {MARKER_STYLE[kind].glyph}
           </span>
-          {MARKER_STYLE[kind].ar}
+          {t({ ar: MARKER_STYLE[kind].ar, en: MARKER_STYLE[kind].en })}
         </span>
       ))}
     </div>
