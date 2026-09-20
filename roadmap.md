@@ -120,3 +120,10 @@ PHASE 20 — COMMUNITY CORRECTIONS — DONE
 - reportCorrection snapshots the original value; nothing is written to live data on submit.
 - reviewCorrection = moderator decision (approved/rejected/needs_more_info) with optional apply (coords, business name/category, place category, closed) via admin client after role check, + audit_logs entry.
 - /admin/corrections moderation queue (original vs suggested, filters, reviewer note); /my-corrections reporter tracking.
+
+PHASE 21 — ANALYTICS — DONE
+- address_events gains search_appearance + qr_scan attribution (?s=qr on QR links, logged from /a/CODE).
+- searchNetwork records aggregate search appearances for public results only (admin client, best-effort, no query text, no identity).
+- orgAnalytics extended: qr_scan / delivery_view / search_appearance totals, daily series, richer per-location rows.
+- src/lib/analytics.functions.ts → platformAnalytics (staff-only via has_role admin/moderator/verifier): active + verified addresses, business locations, addresses/locations created, resolutions, QR scans, navigation starts, delivery views + share, search appearances, API requests (api_usage), corrections submitted, daily series, top public addresses (residential node types and non-public nodes excluded).
+- /admin/analytics dashboard (noindex) + link from /admin. No individual residential behaviour is exposed anywhere.

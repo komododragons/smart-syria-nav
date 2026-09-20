@@ -28,6 +28,7 @@ import { Route as VaultRouteImport } from './routes/vault'
 import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as WidgetRouteImport } from './routes/widget'
 import { Route as ACodeRouteImport } from './routes/a.$code'
+import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminClaimsRouteImport } from './routes/admin.claims'
 import { Route as AdminCorrectionsRouteImport } from './routes/admin.corrections'
@@ -140,6 +141,11 @@ const ACodeRoute = ACodeRouteImport.update({
   path: '/a/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminAuditRoute = AdminAuditRouteImport.update({
   id: '/audit',
   path: '/audit',
@@ -241,6 +247,7 @@ export interface FileRoutesByFullPath {
   '/verify': typeof VerifyRoute
   '/widget': typeof WidgetRoute
   '/a/$code': typeof ACodeRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/claims': typeof AdminClaimsRoute
   '/admin/corrections': typeof AdminCorrectionsRoute
@@ -278,6 +285,7 @@ export interface FileRoutesByTo {
   '/verify': typeof VerifyRoute
   '/widget': typeof WidgetRoute
   '/a/$code': typeof ACodeRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/claims': typeof AdminClaimsRoute
   '/admin/corrections': typeof AdminCorrectionsRoute
@@ -316,6 +324,7 @@ export interface FileRoutesById {
   '/verify': typeof VerifyRoute
   '/widget': typeof WidgetRoute
   '/a/$code': typeof ACodeRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/claims': typeof AdminClaimsRoute
   '/admin/corrections': typeof AdminCorrectionsRoute
@@ -355,6 +364,7 @@ export interface FileRouteTypes {
     | '/verify'
     | '/widget'
     | '/a/$code'
+    | '/admin/analytics'
     | '/admin/audit'
     | '/admin/claims'
     | '/admin/corrections'
@@ -392,6 +402,7 @@ export interface FileRouteTypes {
     | '/verify'
     | '/widget'
     | '/a/$code'
+    | '/admin/analytics'
     | '/admin/audit'
     | '/admin/claims'
     | '/admin/corrections'
@@ -429,6 +440,7 @@ export interface FileRouteTypes {
     | '/verify'
     | '/widget'
     | '/a/$code'
+    | '/admin/analytics'
     | '/admin/audit'
     | '/admin/claims'
     | '/admin/corrections'
@@ -615,6 +627,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ACodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/analytics': {
+      id: '/admin/analytics'
+      path: '/analytics'
+      fullPath: '/admin/analytics'
+      preLoaderRoute: typeof AdminAnalyticsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/audit': {
       id: '/admin/audit'
       path: '/audit'
@@ -731,6 +750,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminAuditRoute: typeof AdminAuditRoute
   AdminClaimsRoute: typeof AdminClaimsRoute
   AdminCorrectionsRoute: typeof AdminCorrectionsRoute
@@ -739,6 +759,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminAuditRoute: AdminAuditRoute,
   AdminClaimsRoute: AdminClaimsRoute,
   AdminCorrectionsRoute: AdminCorrectionsRoute,

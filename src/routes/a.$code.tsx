@@ -176,9 +176,16 @@ function AddressCardPage() {
 
   useEffect(() => {
     if (!ok) return;
-    void logAddressEvent({ data: { code: normalizeCode(rawCode), event: "resolve", source: "card" } }).catch(
-      () => undefined,
-    );
+    const fromQr =
+      typeof window !== "undefined" && new URLSearchParams(window.location.search).get("s") === "qr";
+    void logAddressEvent({
+      data: { code: normalizeCode(rawCode), event: "resolve", source: fromQr ? "qr" : "card" },
+    }).catch(() => undefined);
+    if (fromQr) {
+      void logAddressEvent({
+        data: { code: normalizeCode(rawCode), event: "qr_scan", source: "card" },
+      }).catch(() => undefined);
+    }
     // Keep a local copy so this address stays readable without a connection.
     rememberAddress({
       code: ok.code,
@@ -611,7 +618,7 @@ function AddressCardPage() {
 
           {showQr ? (
             <QrCard
-              url={shareUrl}
+              url={`${shareUrl}?s=qr`}
               code={ok.code}
               title={ok.site.display_name}
               subtitle={[ok.site.neighborhood, ok.site.city].filter(Boolean).join(" — ")}

@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Activity, BadgeCheck, Gauge, GitMerge, ScanSearch, ScrollText, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Activity, BadgeCheck, BarChart3, Gauge, GitMerge, ScanSearch, ScrollText, ThumbsDown, ThumbsUp } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
 import { supabase } from "@/integrations/supabase/client";
@@ -161,6 +161,12 @@ function AdminPage() {
             className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-bold text-foreground"
           >
             <Activity className="size-3.5" /> لوحة التوجيه
+          </Link>
+          <Link
+            to="/admin/analytics"
+            className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-bold text-foreground"
+          >
+            <BarChart3 className="size-3.5" /> تحليلات الشبكة
           </Link>
           <Link
             to="/admin/quality"
