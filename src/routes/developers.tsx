@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
@@ -95,6 +95,12 @@ function DevelopersPage() {
           <p className="mt-1 text-[11px] text-muted-foreground">
             المفتاح اختياري للاستخدام العام المحدود، وإلزامي لتتبع الاستهلاك ورفع حدود المعدل.
           </p>
+          <Link
+            to="/checkout-component"
+            className="mt-3 inline-flex rounded-lg border border-primary/50 px-3 py-2 text-xs font-bold text-primary"
+          >
+            مكوّن العنوان للمتاجر الإلكترونية (WooCommerce / Shopify / مخصص)
+          </Link>
         </div>
 
         <section className="rounded-2xl border border-border bg-surface p-4">

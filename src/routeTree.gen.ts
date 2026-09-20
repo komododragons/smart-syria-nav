@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CheckoutComponentRouteImport } from './routes/checkout-component'
 import { Route as CourierRouteImport } from './routes/courier'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -26,8 +27,10 @@ import { Route as AdminNavigationRouteImport } from './routes/admin.navigation'
 import { Route as BusinessIdRouteImport } from './routes/business.$id'
 import { Route as ClaimIdRouteImport } from './routes/claim.$id'
 import { Route as DCodeRouteImport } from './routes/d.$code'
+import { Route as EmbedAddressRouteImport } from './routes/embed.address'
 import { Route as NavigationCodeRouteImport } from './routes/navigation.$code'
 import { Route as TTokenRouteImport } from './routes/t.$token'
+import { Route as ApiPublicCheckoutRouteImport } from './routes/api.public.checkout'
 import { Route as ApiPublicResolveRouteImport } from './routes/api.public.resolve'
 
 const IndexRoute = IndexRouteImport.update({
@@ -43,6 +46,11 @@ const AdminRoute = AdminRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutComponentRoute = CheckoutComponentRouteImport.update({
+  id: '/checkout-component',
+  path: '/checkout-component',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CourierRoute = CourierRouteImport.update({
@@ -115,6 +123,11 @@ const DCodeRoute = DCodeRouteImport.update({
   path: '/d/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EmbedAddressRoute = EmbedAddressRouteImport.update({
+  id: '/embed/address',
+  path: '/embed/address',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NavigationCodeRoute = NavigationCodeRouteImport.update({
   id: '/navigation/$code',
   path: '/navigation/$code',
@@ -123,6 +136,11 @@ const NavigationCodeRoute = NavigationCodeRouteImport.update({
 const TTokenRoute = TTokenRouteImport.update({
   id: '/t/$token',
   path: '/t/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicCheckoutRoute = ApiPublicCheckoutRouteImport.update({
+  id: '/api/public/checkout',
+  path: '/api/public/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicResolveRoute = ApiPublicResolveRouteImport.update({
@@ -135,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/checkout-component': typeof CheckoutComponentRoute
   '/courier': typeof CourierRoute
   '/create': typeof CreateRoute
   '/dashboard': typeof DashboardRoute
@@ -149,14 +168,17 @@ export interface FileRoutesByFullPath {
   '/business/$id': typeof BusinessIdRoute
   '/claim/$id': typeof ClaimIdRoute
   '/d/$code': typeof DCodeRoute
+  '/embed/address': typeof EmbedAddressRoute
   '/navigation/$code': typeof NavigationCodeRoute
   '/t/$token': typeof TTokenRoute
+  '/api/public/checkout': typeof ApiPublicCheckoutRoute
   '/api/public/resolve': typeof ApiPublicResolveRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/checkout-component': typeof CheckoutComponentRoute
   '/courier': typeof CourierRoute
   '/create': typeof CreateRoute
   '/dashboard': typeof DashboardRoute
@@ -171,8 +193,10 @@ export interface FileRoutesByTo {
   '/business/$id': typeof BusinessIdRoute
   '/claim/$id': typeof ClaimIdRoute
   '/d/$code': typeof DCodeRoute
+  '/embed/address': typeof EmbedAddressRoute
   '/navigation/$code': typeof NavigationCodeRoute
   '/t/$token': typeof TTokenRoute
+  '/api/public/checkout': typeof ApiPublicCheckoutRoute
   '/api/public/resolve': typeof ApiPublicResolveRoute
 }
 export interface FileRoutesById {
@@ -180,6 +204,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/checkout-component': typeof CheckoutComponentRoute
   '/courier': typeof CourierRoute
   '/create': typeof CreateRoute
   '/dashboard': typeof DashboardRoute
@@ -194,8 +219,10 @@ export interface FileRoutesById {
   '/business/$id': typeof BusinessIdRoute
   '/claim/$id': typeof ClaimIdRoute
   '/d/$code': typeof DCodeRoute
+  '/embed/address': typeof EmbedAddressRoute
   '/navigation/$code': typeof NavigationCodeRoute
   '/t/$token': typeof TTokenRoute
+  '/api/public/checkout': typeof ApiPublicCheckoutRoute
   '/api/public/resolve': typeof ApiPublicResolveRoute
 }
 export interface FileRouteTypes {
@@ -204,6 +231,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/checkout-component'
     | '/courier'
     | '/create'
     | '/dashboard'
@@ -218,14 +246,17 @@ export interface FileRouteTypes {
     | '/business/$id'
     | '/claim/$id'
     | '/d/$code'
+    | '/embed/address'
     | '/navigation/$code'
     | '/t/$token'
+    | '/api/public/checkout'
     | '/api/public/resolve'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/admin'
     | '/auth'
+    | '/checkout-component'
     | '/courier'
     | '/create'
     | '/dashboard'
@@ -240,14 +271,17 @@ export interface FileRouteTypes {
     | '/business/$id'
     | '/claim/$id'
     | '/d/$code'
+    | '/embed/address'
     | '/navigation/$code'
     | '/t/$token'
+    | '/api/public/checkout'
     | '/api/public/resolve'
   id:
     | '__root__'
     | '/'
     | '/admin'
     | '/auth'
+    | '/checkout-component'
     | '/courier'
     | '/create'
     | '/dashboard'
@@ -262,8 +296,10 @@ export interface FileRouteTypes {
     | '/business/$id'
     | '/claim/$id'
     | '/d/$code'
+    | '/embed/address'
     | '/navigation/$code'
     | '/t/$token'
+    | '/api/public/checkout'
     | '/api/public/resolve'
   fileRoutesById: FileRoutesById
 }
@@ -271,6 +307,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
+  CheckoutComponentRoute: typeof CheckoutComponentRoute
   CourierRoute: typeof CourierRoute
   CreateRoute: typeof CreateRoute
   DashboardRoute: typeof DashboardRoute
@@ -282,8 +319,10 @@ export interface RootRouteChildren {
   BusinessIdRoute: typeof BusinessIdRoute
   ClaimIdRoute: typeof ClaimIdRoute
   DCodeRoute: typeof DCodeRoute
+  EmbedAddressRoute: typeof EmbedAddressRoute
   NavigationCodeRoute: typeof NavigationCodeRoute
   TTokenRoute: typeof TTokenRoute
+  ApiPublicCheckoutRoute: typeof ApiPublicCheckoutRoute
   ApiPublicResolveRoute: typeof ApiPublicResolveRoute
 }
 
@@ -308,6 +347,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout-component': {
+      id: '/checkout-component'
+      path: '/checkout-component'
+      fullPath: '/checkout-component'
+      preLoaderRoute: typeof CheckoutComponentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/courier': {
@@ -408,6 +454,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/embed/address': {
+      id: '/embed/address'
+      path: '/embed/address'
+      fullPath: '/embed/address'
+      preLoaderRoute: typeof EmbedAddressRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/navigation/$code': {
       id: '/navigation/$code'
       path: '/navigation/$code'
@@ -420,6 +473,13 @@ declare module '@tanstack/react-router' {
       path: '/t/$token'
       fullPath: '/t/$token'
       preLoaderRoute: typeof TTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/checkout': {
+      id: '/api/public/checkout'
+      path: '/api/public/checkout'
+      fullPath: '/api/public/checkout'
+      preLoaderRoute: typeof ApiPublicCheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/resolve': {
@@ -450,6 +510,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
+  CheckoutComponentRoute: CheckoutComponentRoute,
   CourierRoute: CourierRoute,
   CreateRoute: CreateRoute,
   DashboardRoute: DashboardRoute,
@@ -461,8 +522,10 @@ const rootRouteChildren: RootRouteChildren = {
   BusinessIdRoute: BusinessIdRoute,
   ClaimIdRoute: ClaimIdRoute,
   DCodeRoute: DCodeRoute,
+  EmbedAddressRoute: EmbedAddressRoute,
   NavigationCodeRoute: NavigationCodeRoute,
   TTokenRoute: TTokenRoute,
+  ApiPublicCheckoutRoute: ApiPublicCheckoutRoute,
   ApiPublicResolveRoute: ApiPublicResolveRoute,
 }
 export const routeTree = rootRouteImport
