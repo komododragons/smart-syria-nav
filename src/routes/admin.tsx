@@ -301,9 +301,14 @@ function AdminPage() {
             </section>
 
             <section className="rounded-2xl border border-border bg-surface p-4">
-              <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                مطالبات ملكية الأعمال المعلّقة
-              </h2>
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                  مطالبات ملكية الأعمال المعلّقة
+                </h2>
+                <Link to="/admin/claims" className="text-xs font-bold text-primary underline">
+                  فتح لوحة المراجعة الكاملة
+                </Link>
+              </div>
               {query.data.claims.length === 0 ? (
                 <p className="mt-3 text-sm text-muted-foreground">لا مطالبات معلّقة.</p>
               ) : (
