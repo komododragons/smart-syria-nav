@@ -222,6 +222,37 @@ export const searchNetwork = createServerFn({ method: "POST" })
       .sort((a, b) => b.score - a.score || (a.distance_m ?? 1e9) - (b.distance_m ?? 1e9))
       .slice(0, 25);
 
+    // Aggregate "appeared in search" signal for public results only. No searcher
+    // identity, no query text and no residential address is ever stored.
+    const shownCodes = [
+      ...new Set(
+        [
+          ...businesses.map(
+            (b) =>
+              (Array.isArray(b.smart_addresses) ? b.smart_addresses[0] : b.smart_addresses)?.code ??
+              null,
+          ),
+          ...places.map((p) => p.code),
+        ].filter((c): c is string => Boolean(c)),
+      ),
+    ].slice(0, 20);
+    if (shownCodes.length) {
+      try {
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        await supabaseAdmin
+          .from("address_events")
+          .insert(
+            shownCodes.map((code) => ({
+              smart_code: code,
+              event_type: "search_appearance",
+              source: "search",
+            })),
+          );
+      } catch {
+        // analytics must never break a search
+      }
+    }
+
     return {
       businesses,
       places,
