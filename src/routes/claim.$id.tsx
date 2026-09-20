@@ -9,6 +9,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { getBusinessProfile } from "@/lib/addresses.functions";
 import { CLAIM_METHODS, submitClaim } from "@/lib/claims.functions";
+import { useI18n, type Bilingual } from "@/lib/i18n";
 
 export const Route = createFileRoute("/claim/$id")({
   head: () => ({
@@ -34,7 +35,16 @@ export const Route = createFileRoute("/claim/$id")({
 
 type MethodKey = keyof typeof CLAIM_METHODS;
 
+const CLAIM_METHOD_LABELS: Record<MethodKey, Bilingual> = {
+  document: { ar: "وثيقة رسمية (سجل تجاري، عقد، فاتورة)", en: "Official document (business registration, contract, invoice)" },
+  phone: { ar: "رقم الهاتف المعلن للعمل", en: "The business's published phone number" },
+  email: { ar: "البريد الإلكتروني الرسمي", en: "Official business email" },
+  on_site: { ar: "تحقق ميداني من الموقع", en: "On-site field verification" },
+  other: { ar: "طريقة أخرى", en: "Another method" },
+};
+
 function ClaimPage() {
+  const { t } = useI18n();
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const fetchProfile = useServerFn(getBusinessProfile);
@@ -76,9 +86,9 @@ function ClaimPage() {
         if (error) throw error;
         setFiles((prev) => [...prev, { path, name: file.name }]);
       }
-      toast.success("تم رفع الوثيقة");
+      toast.success(t({ ar: "تم رفع الوثيقة", en: "Document uploaded" }));
     } catch {
-      toast.error("تعذّر رفع الملف — الحد الأقصى 10 ميغابايت لكل ملف");
+      toast.error(t({ ar: "تعذّر رفع الملف — الحد الأقصى 10 ميغابايت لكل ملف", en: "Couldn't upload the file — 10 MB maximum per file" }));
     } finally {
       setUploading(false);
     }
@@ -106,16 +116,16 @@ function ClaimPage() {
     onSuccess: (res) => {
       if (res.status === "submitted") {
         setDone({ conflict: res.conflict });
-        toast.success("أُرسل طلب المطالبة إلى فريق التوثيق");
+        toast.success(t({ ar: "أُرسل طلب المطالبة إلى فريق التوثيق", en: "Your claim request was sent to our verification team" }));
       } else if (res.status === "already_pending") {
-        toast.info("لديك طلب معلّق لهذا العمل");
+        toast.info(t({ ar: "لديك طلب معلّق لهذا العمل", en: "You already have a pending request for this business" }));
       } else if (res.status === "already_owner") {
-        toast.info("أنت المالك الموثق لهذا العمل");
+        toast.info(t({ ar: "أنت المالك الموثق لهذا العمل", en: "You are already the verified owner of this business" }));
       } else {
-        toast.error("العمل غير موجود");
+        toast.error(t({ ar: "العمل غير موجود", en: "This business could not be found" }));
       }
     },
-    onError: () => toast.error("تعذّر إرسال الطلب"),
+    onError: () => toast.error(t({ ar: "تعذّر إرسال الطلب", en: "Couldn't submit the request" })),
   });
 
   const valid = name.trim().length > 1 && role.trim().length > 1 && phone.trim().length > 4;
@@ -125,12 +135,12 @@ function ClaimPage() {
       <div className="min-h-screen bg-background text-foreground" dir="rtl">
         <AppHeader />
         <main className="mx-auto max-w-md px-4 py-16 text-center">
-          <h1 className="text-xl font-bold">يلزم تسجيل الدخول</h1>
+          <h1 className="text-xl font-bold">{t({ ar: "يلزم تسجيل الدخول", en: "Sign-in required" })}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            سجّل الدخول لتتمكن من المطالبة بملكية هذا العنوان.
+            {t({ ar: "سجّل الدخول لتتمكن من المطالبة بملكية هذا العنوان.", en: "Sign in to claim ownership of this address." })}
           </p>
           <Link to="/auth" className="mt-4 inline-block rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground">
-            تسجيل الدخول
+            {t({ ar: "تسجيل الدخول", en: "Sign in" })}
           </Link>
         </main>
       </div>
@@ -143,38 +153,45 @@ function ClaimPage() {
       <main className="mx-auto max-w-2xl px-4 py-8">
         <h1 className="flex items-center gap-2 text-2xl font-bold">
           <ShieldCheck className="h-6 w-6 text-primary" />
-          المطالبة بملكية هذا العنوان
+          {t({ ar: "المطالبة بملكية هذا العنوان", en: "Claim ownership of this address" })}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          {biz ? `${biz.name_ar}${biz.category ? ` — ${biz.category}` : ""}` : "جارٍ تحميل بيانات العمل…"}
+          {biz
+            ? `${biz.name_ar}${biz.category ? ` — ${biz.category}` : ""}`
+            : t({ ar: "جارٍ تحميل بيانات العمل…", en: "Loading business details…" })}
         </p>
 
         {done ? (
           <div className="mt-6 rounded-xl border border-border bg-card p-5">
             <div className="flex items-center gap-2 text-primary">
               <BadgeCheck className="h-5 w-5" />
-              <span className="font-semibold">تم استلام طلبك</span>
+              <span className="font-semibold">{t({ ar: "تم استلام طلبك", en: "Your request has been received" })}</span>
             </div>
             <p className="mt-2 text-sm text-muted-foreground">
-              سيراجع فريق التوثيق الوثائق ويتواصل معك عبر الرقم الذي أدخلته. يمكنك متابعة حالة الطلب من
-              صفحة عناويني.
+              {t({
+                ar: "سيراجع فريق التوثيق الوثائق ويتواصل معك عبر الرقم الذي أدخلته. يمكنك متابعة حالة الطلب من صفحة عناويني.",
+                en: "Our verification team will review the documents and contact you at the number you provided. You can track the request's status from My Addresses.",
+              })}
             </p>
             {done.conflict ? (
               <p className="mt-2 flex items-center gap-2 text-sm text-amber-600">
                 <AlertTriangle className="h-4 w-4" />
-                يوجد طلب آخر معلّق لنفس العمل — ستُراجَع الطلبات المتعارضة معاً.
+                {t({
+                  ar: "يوجد طلب آخر معلّق لنفس العمل — ستُراجَع الطلبات المتعارضة معاً.",
+                  en: "There is another pending request for this business — conflicting requests will be reviewed together.",
+                })}
               </p>
             ) : null}
             <div className="mt-4 flex gap-2">
               <Link to="/my-addresses" className="rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground">
-                متابعة الطلبات
+                {t({ ar: "متابعة الطلبات", en: "Track requests" })}
               </Link>
               <button
                 type="button"
                 className="rounded-lg border border-border px-4 py-2 text-sm"
                 onClick={() => navigate({ to: "/business/$id", params: { id } })}
               >
-                عودة لملف العمل
+                {t({ ar: "عودة لملف العمل", en: "Back to business profile" })}
               </button>
             </div>
           </div>
@@ -186,43 +203,48 @@ function ClaimPage() {
               if (valid) mutation.mutate();
             }}
           >
-            <Field label="الاسم الكامل للمطالِب">
+            <Field label={t({ ar: "الاسم الكامل للمطالِب", en: "Claimant's full name" })}>
               <input className={inputCls} value={name} onChange={(e) => setName(e.target.value)} required />
             </Field>
-            <Field label="صفتك (مالك، مدير، مفوّض…)">
+            <Field label={t({ ar: "صفتك (مالك، مدير، مفوّض…)", en: "Your role (owner, manager, authorized agent…)" })}>
               <input className={inputCls} value={role} onChange={(e) => setRole(e.target.value)} required />
             </Field>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="رقم للتواصل">
+              <Field label={t({ ar: "رقم للتواصل", en: "Contact number" })}>
                 <input className={inputCls} value={phone} onChange={(e) => setPhone(e.target.value)} required />
               </Field>
-              <Field label="بريد إلكتروني (اختياري)">
+              <Field label={t({ ar: "بريد إلكتروني (اختياري)", en: "Email (optional)" })}>
                 <input type="email" className={inputCls} value={email} onChange={(e) => setEmail(e.target.value)} />
               </Field>
             </div>
-            <Field label="طريقة إثبات الملكية">
+            <Field label={t({ ar: "طريقة إثبات الملكية", en: "Proof of ownership method" })}>
               <select className={inputCls} value={method} onChange={(e) => setMethod(e.target.value as MethodKey)}>
-                {Object.entries(CLAIM_METHODS).map(([key, label]) => (
+                {Object.keys(CLAIM_METHODS).map((key) => (
                   <option key={key} value={key}>
-                    {label}
+                    {t(CLAIM_METHOD_LABELS[key as MethodKey])}
                   </option>
                 ))}
               </select>
             </Field>
-            <Field label="تفاصيل إضافية">
+            <Field label={t({ ar: "تفاصيل إضافية", en: "Additional details" })}>
               <textarea
                 className={`${inputCls} min-h-24`}
                 value={evidence}
                 onChange={(e) => setEvidence(e.target.value)}
-                placeholder="مثال: رقم السجل التجاري، اسم المالك في الترخيص، أو أي معلومة تساعد المراجع."
+                placeholder={t({
+                  ar: "مثال: رقم السجل التجاري، اسم المالك في الترخيص، أو أي معلومة تساعد المراجع.",
+                  en: "Example: business registration number, owner's name on the license, or any detail that helps the reviewer.",
+                })}
               />
             </Field>
 
             <div>
-              <span className="text-sm font-medium">وثائق التحقق (حتى 8 ملفات، 10 م.ب للملف)</span>
+              <span className="text-sm font-medium">
+                {t({ ar: "وثائق التحقق (حتى 8 ملفات، 10 م.ب للملف)", en: "Verification documents (up to 8 files, 10 MB each)" })}
+              </span>
               <label className="mt-2 flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-border px-3 py-3 text-sm text-muted-foreground">
                 {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileUp className="h-4 w-4" />}
-                رفع صورة أو ملف PDF
+                {t({ ar: "رفع صورة أو ملف PDF", en: "Upload an image or PDF file" })}
                 <input
                   type="file"
                   multiple
@@ -237,7 +259,7 @@ function ClaimPage() {
                   {files.map((f) => (
                     <li key={f.path} className="flex items-center justify-between rounded-lg bg-muted px-3 py-2 text-xs">
                       <span className="truncate">{f.name}</span>
-                      <button type="button" onClick={() => removeFile(f.path)} aria-label="حذف">
+                      <button type="button" onClick={() => removeFile(f.path)} aria-label={t({ ar: "حذف", en: "Remove" })}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </button>
                     </li>
@@ -245,7 +267,10 @@ function ClaimPage() {
                 </ul>
               ) : null}
               <p className="mt-2 text-xs text-muted-foreground">
-                الوثائق خاصة تماماً ولا تظهر إلا لفريق المراجعة، ولا تُنشر على الملف العام.
+                {t({
+                  ar: "الوثائق خاصة تماماً ولا تظهر إلا لفريق المراجعة، ولا تُنشر على الملف العام.",
+                  en: "Documents are completely private, visible only to our review team, and are never published on the public profile.",
+                })}
               </p>
             </div>
 
@@ -254,7 +279,9 @@ function ClaimPage() {
               disabled={!valid || mutation.isPending}
               className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground disabled:opacity-50"
             >
-              {mutation.isPending ? "جارٍ الإرسال…" : "إرسال طلب المطالبة"}
+              {mutation.isPending
+                ? t({ ar: "جارٍ الإرسال…", en: "Submitting…" })
+                : t({ ar: "إرسال طلب المطالبة", en: "Submit claim request" })}
             </button>
           </form>
         )}
