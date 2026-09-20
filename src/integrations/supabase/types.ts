@@ -1512,6 +1512,51 @@ export type Database = {
         }
         Relationships: []
       }
+      privacy_preferences: {
+        Row: {
+          allow_share_floor: boolean
+          allow_share_instructions: boolean
+          allow_share_name: boolean
+          allow_share_parking: boolean
+          allow_share_phone: boolean
+          allow_share_unit: boolean
+          created_at: string
+          default_share_hours: number
+          max_share_hours: number
+          require_expiry: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          allow_share_floor?: boolean
+          allow_share_instructions?: boolean
+          allow_share_name?: boolean
+          allow_share_parking?: boolean
+          allow_share_phone?: boolean
+          allow_share_unit?: boolean
+          created_at?: string
+          default_share_hours?: number
+          max_share_hours?: number
+          require_expiry?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          allow_share_floor?: boolean
+          allow_share_instructions?: boolean
+          allow_share_name?: boolean
+          allow_share_parking?: boolean
+          allow_share_phone?: boolean
+          allow_share_unit?: boolean
+          created_at?: string
+          default_share_hours?: number
+          max_share_hours?: number
+          require_expiry?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

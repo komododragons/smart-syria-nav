@@ -134,3 +134,12 @@ PHASE 22 — MONETIZATION ARCHITECTURE — DONE (no pricing)
 - src/lib/plans.server.ts: userPlan/organizationPlan/resolvedPlan/strongerPlan, requireEntitlement + requireCapacity gated behind the entitlements.enforced flag (advisory until pricing launches), EntitlementError.
 - src/lib/plans.functions.ts: myEntitlements (effective plan + usage counters), planAdminOverview, setAccountPlan (admin, audit-logged), setEntitlementSettings (admin, audit-logged).
 - /plans public comparison page (free tier explicitly permanent), /admin/plans console (assign plans, enforcement + pricing toggles), plan card in dashboard settings, header link.
+
+PHASE 23 — PRIVACY AND SECURITY — DONE
+- privacy_preferences table (per-user, RLS own-row only): allow_share_phone/unit/floor/name/instructions/parking, default_share_hours, max_share_hours, require_expiry + validate trigger.
+- src/lib/privacy.functions.ts: readPrivacy, filterSharedFields, clampShareHours, myPrivacy, updatePrivacy (audit-logged), mySharingActivity (temporary_addresses + route_shares, aggregate only), revokeShare, revokeAllShares.
+- Share creation in addresses.functions.createTemporaryAddress and vault.functions.shareFromVault now strips owner-disabled fields server-side and clamps lifetime to max_share_hours.
+- /privacy centre (noindex): toggles, link lifetimes, live share list with per-link and panic revoke, data-separation explainer. Header link for signed-in users.
+- platform_settings: public read policy removed, admin-only; plan flags now read through the server admin client.
+- Privilege-escalation guards: guard_trust_fields (verification_level/confidence_score/verification_method/last_verified_at/created_by/owner_id frozen for non-staff on location_nodes, access_points, businesses), guard_smart_address_owner, guard_business_claim_review (claimant may only withdraw). All guard fns REVOKEd from PUBLIC.
+- Remaining linter notices are the pre-existing 15 (PostGIS spatial_ref_sys, extensions in public, SECURITY DEFINER exposure) — untouched by request.

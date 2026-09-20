@@ -205,13 +205,19 @@ export const shareFromVault = createServerFn({ method: "POST" })
       throw new Error("يمكن لمالك العنوان فقط إنشاء رابط مشاركة لتفاصيله");
     }
 
+    const { readPrivacy, filterSharedFields, clampShareHours } = await import("./privacy.functions");
+    const prefs = await readPrivacy(supa, context.userId);
+
     const alphabet = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
     const token = `SY-TMP-${Array.from(
       { length: 5 },
       () => alphabet[Math.floor(Math.random() * alphabet.length)],
     ).join("")}`;
-    const expires = new Date(Date.now() + data.hours * 3600_000).toISOString();
-    const fields = data.shared_fields;
+    const hours = clampShareHours(data.hours, prefs);
+    const expires = new Date(Date.now() + hours * 3600_000).toISOString();
+    // Owner privacy switches win over whatever the caller requested.
+    const fields = filterSharedFields(data.shared_fields, prefs);
+    if (fields.length === 0) fields.push("location");
 
     const { data: row, error } = await supa
       .from("temporary_addresses")

@@ -82,6 +82,13 @@ export function AppHeader() {
           {signedIn ? (
             <>
               <Link
+                to="/privacy"
+                className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
+                aria-label="مركز الخصوصية"
+              >
+                <ShieldCheck className="size-4" />
+              </Link>
+              <Link
                 to="/verify"
                 className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
                 aria-label="التوثيق الميداني"
