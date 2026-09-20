@@ -57,6 +57,13 @@ function MyAddressesPage() {
     longitude: "",
     entrance_name: "",
     entrance_instructions: "",
+    building_number: "",
+    parking_info: "",
+    loading_info: "",
+    wheelchair_accessible: false,
+    has_elevator: false,
+    entrance_parking_info: "",
+    entrance_loading_info: "",
   });
 
   useEffect(() => {
