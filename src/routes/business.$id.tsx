@@ -304,36 +304,17 @@ function BusinessPage() {
                           void navigate({ to: "/auth", search: { redirect: `/business/${id}` } });
                           return;
                         }
-                        setClaimOpen((v) => !v);
+                        void navigate({ to: "/claim/$id", params: { id } });
                       }}
                       className="shrink-0 rounded-lg bg-foreground px-4 py-2 text-xs font-bold text-background"
                     >
                       {authed === false ? "سجّل الدخول للمطالبة" : "طالب بالملكية"}
                     </button>
                   </div>
-                  {claimOpen ? (
-                    <div className="mt-3 rounded-xl border border-border bg-background p-3">
-                      <label className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-                        إثبات الملكية (اختياري)
-                      </label>
-                      <textarea
-                        value={evidence}
-                        onChange={(event) => setEvidence(event.target.value)}
-                        rows={3}
-                        maxLength={600}
-                        placeholder="مثال: رقم السجل التجاري، هاتف العمل، أو وثيقة إيجار…"
-                        className="mt-1 w-full rounded-lg border border-border bg-surface p-2.5 text-sm focus:border-primary focus:outline-none"
-                      />
-                      <button
-                        type="button"
-                        disabled={claimMutation.isPending}
-                        onClick={() => claimMutation.mutate()}
-                        className="mt-2 w-full rounded-lg bg-primary py-2.5 text-xs font-bold text-primary-foreground disabled:opacity-60"
-                      >
-                        إرسال طلب المطالبة
-                      </button>
-                    </div>
-                  ) : null}
+                  <p className="mt-2 text-[11px] text-muted-foreground">
+                    ستطلب منك الخطوة التالية اسمك وصفتك ووسيلة تواصل ووثيقة إثبات (سجل تجاري، عقد، أو
+                    فاتورة) لمراجعتها من فريق التوثيق.
+                  </p>
                 </>
               )}
             </section>
