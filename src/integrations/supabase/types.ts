@@ -209,6 +209,30 @@ export type Database = {
           },
         ]
       }
+      address_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          smart_code: string
+          source: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          smart_code: string
+          source?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          smart_code?: string
+          source?: string | null
+        }
+        Relationships: []
+      }
       api_clients: {
         Row: {
           created_at: string
@@ -409,16 +433,19 @@ export type Database = {
       }
       businesses: {
         Row: {
+          branch_label: string | null
           category: string | null
           created_at: string
           delivery_access_point_id: string | null
           id: string
+          is_archived: boolean
           is_published: boolean
           logo_url: string | null
           name_ar: string
           name_en: string | null
           node_id: string | null
           opening_hours: string | null
+          organization_id: string | null
           owner_id: string | null
           phone: string | null
           smart_address_id: string | null
@@ -428,16 +455,19 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          branch_label?: string | null
           category?: string | null
           created_at?: string
           delivery_access_point_id?: string | null
           id?: string
+          is_archived?: boolean
           is_published?: boolean
           logo_url?: string | null
           name_ar: string
           name_en?: string | null
           node_id?: string | null
           opening_hours?: string | null
+          organization_id?: string | null
           owner_id?: string | null
           phone?: string | null
           smart_address_id?: string | null
@@ -447,16 +477,19 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          branch_label?: string | null
           category?: string | null
           created_at?: string
           delivery_access_point_id?: string | null
           id?: string
+          is_archived?: boolean
           is_published?: boolean
           logo_url?: string | null
           name_ar?: string
           name_en?: string | null
           node_id?: string | null
           opening_hours?: string | null
+          organization_id?: string | null
           owner_id?: string | null
           phone?: string | null
           smart_address_id?: string | null
@@ -478,6 +511,13 @@ export type Database = {
             columns: ["node_id"]
             isOneToOne: false
             referencedRelation: "location_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "businesses_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
           {
@@ -1127,6 +1167,80 @@ export type Database = {
           message?: string | null
           provider?: string
           status_code?: number | null
+        }
+        Relationships: []
+      }
+      organization_members: {
+        Row: {
+          created_at: string
+          id: string
+          organization_id: string
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          organization_id: string
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          organization_id?: string
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_members_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          id: string
+          logo_url: string | null
+          name_ar: string
+          name_en: string | null
+          owner_id: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name_ar: string
+          name_en?: string | null
+          owner_id: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name_ar?: string
+          name_en?: string | null
+          owner_id?: string
+          updated_at?: string
+          website?: string | null
         }
         Relationships: []
       }
@@ -2021,6 +2135,7 @@ export type Database = {
         }[]
       }
       normalize_arabic: { Args: { _t: string }; Returns: string }
+      org_role: { Args: { _org: string; _user: string }; Returns: string }
       populate_geometry_columns:
         | { Args: { tbl_oid: unknown; use_typmod?: boolean }; Returns: number }
         | { Args: { use_typmod?: boolean }; Returns: string }

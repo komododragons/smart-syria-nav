@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Navigation2 } from "lucide-react";
 
+import { logAddressEvent } from "@/lib/orgs.functions";
 import type { TravelMode } from "@/lib/navigation/types";
 
 type Props = {
