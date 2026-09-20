@@ -11,6 +11,7 @@ import {
   type PreviewRow,
 } from "@/lib/bulk-import.functions";
 import { orgLocations } from "@/lib/orgs.functions";
+import { useI18n } from "@/lib/i18n";
 
 const card = "rounded-2xl border border-border bg-surface p-4 shadow-sm";
 const primaryBtn =
@@ -78,6 +79,7 @@ function toCsv(rows: (string | number | null)[][]): string {
 }
 
 export function BulkImportTab({ orgId, canManage }: { orgId: string; canManage: boolean }) {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const validate = useServerFn(validateBulkImport);
   const commit = useServerFn(commitBulkImport);
@@ -115,19 +117,19 @@ export function BulkImportTab({ orgId, canManage }: { orgId: string; canManage: 
         rows = XLSX.utils.sheet_to_json<Row>(sheet, { defval: "" });
       }
       if (!rows.length) {
-        toast.error("الملف فارغ");
+        toast.error(t({ ar: "الملف فارغ", en: "The file is empty" }));
         return;
       }
       if (rows.length > 2000) {
-        toast.error("الحد الأقصى 2000 سطر في الملف الواحد");
+        toast.error(t({ ar: "الحد الأقصى 2000 سطر في الملف الواحد", en: "Maximum 2000 rows per file" }));
         return;
       }
       setFileName(file.name);
       const res = await validate({ data: { organization_id: orgId, rows } });
       setPreview(res);
-      toast.success(`تمت قراءة ${res.total} سطراً`);
+      toast.success(t({ ar: `تمت قراءة ${res.total} سطراً`, en: `Read ${res.total} rows` }));
     } catch {
-      toast.error("تعذر قراءة الملف — تأكد أنه CSV أو XLSX صالح");
+      toast.error(t({ ar: "تعذر قراءة الملف — تأكد أنه CSV أو XLSX صالح", en: "Couldn't read the file — make sure it's a valid CSV or XLSX" }));
     } finally {
       setBusy(false);
     }
@@ -139,7 +141,7 @@ export function BulkImportTab({ orgId, canManage }: { orgId: string; canManage: 
       (r) => r.data && (r.status === "valid" || (includeDuplicates && r.status === "duplicate")),
     );
     if (!chosen.length) {
-      toast.error("لا توجد أسطر صالحة للاستيراد");
+      toast.error(t({ ar: "لا توجد أسطر صالحة للاستيراد", en: "No valid rows to import" }));
       return;
     }
     setBusy(true);
@@ -155,9 +157,9 @@ export function BulkImportTab({ orgId, canManage }: { orgId: string; canManage: 
       setResult({ created, failed });
       setPreview(null);
       await queryClient.invalidateQueries({ queryKey: ["org-locations", orgId] });
-      toast.success(`تم إنشاء ${created.length} عنواناً ذكياً`);
+      toast.success(t({ ar: `تم إنشاء ${created.length} عنواناً ذكياً`, en: `Created ${created.length} smart addresses` }));
     } catch {
-      toast.error("تعذر إتمام الاستيراد");
+      toast.error(t({ ar: "تعذر إتمام الاستيراد", en: "Couldn't complete the import" }));
     } finally {
       setBusy(false);
     }
@@ -245,9 +247,9 @@ export function BulkImportTab({ orgId, canManage }: { orgId: string; canManage: 
         ]);
       }
       downloadFile(`syriasan-locations-${new Date().toISOString().slice(0, 10)}.csv`, toCsv(rows));
-      toast.success(`تم تصدير ${res.locations.length} موقعاً`);
+      toast.success(t({ ar: `تم تصدير ${res.locations.length} موقعاً`, en: `Exported ${res.locations.length} locations` }));
     } catch {
-      toast.error("تعذر التصدير");
+      toast.error(t({ ar: "تعذر التصدير", en: "Couldn't export" }));
     } finally {
       setBusy(false);
     }
@@ -257,10 +259,10 @@ export function BulkImportTab({ orgId, canManage }: { orgId: string; canManage: 
     <div className="grid gap-4">
       <section className={card}>
         <h2 className="flex items-center gap-2 text-sm font-bold">
-          <FileSpreadsheet className="size-4 text-primary" /> استيراد المواقع دفعة واحدة
+          <FileSpreadsheet className="size-4 text-primary" /> {t({ ar: "استيراد المواقع دفعة واحدة", en: "Bulk import locations" })}
         </h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          ارفع ملف CSV أو XLSX يحوي فروعك. الأعمدة المدعومة:{" "}
+          {t({ ar: "ارفع ملف CSV أو XLSX يحوي فروعك. الأعمدة المدعومة:", en: "Upload a CSV or XLSX file with your branches. Supported columns:" })}{" "}
           {IMPORT_COLUMNS.map((c) => `${c.ar}${c.required ? "*" : ""}`).join(" · ")}
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
@@ -281,44 +283,44 @@ export function BulkImportTab({ orgId, canManage }: { orgId: string; canManage: 
             disabled={busy || !canManage}
             onClick={() => fileRef.current?.click()}
           >
-            <Upload className="size-3.5" /> اختر ملفاً
+            <Upload className="size-3.5" /> {t({ ar: "اختر ملفاً", en: "Choose a file" })}
           </button>
           <button type="button" className={ghostBtn} onClick={downloadTemplate}>
-            <Download className="size-3.5" /> تنزيل قالب جاهز
+            <Download className="size-3.5" /> {t({ ar: "تنزيل قالب جاهز", en: "Download a ready-made template" })}
           </button>
           <button type="button" className={ghostBtn} disabled={busy} onClick={() => void exportLocations()}>
-            <Download className="size-3.5" /> تصدير الرموز وروابط QR
+            <Download className="size-3.5" /> {t({ ar: "تصدير الرموز وروابط QR", en: "Export codes and QR links" })}
           </button>
         </div>
         {!canManage ? (
-          <p className="mt-2 text-xs text-warning">تحتاج صلاحية مسؤول مواقع أو أعلى للاستيراد.</p>
+          <p className="mt-2 text-xs text-warning">{t({ ar: "تحتاج صلاحية مسؤول مواقع أو أعلى للاستيراد.", en: "You need locations-manager permission or higher to import." })}</p>
         ) : null}
-        {fileName ? <p className="mt-2 text-xs text-muted-foreground">الملف: {fileName}</p> : null}
+        {fileName ? <p className="mt-2 text-xs text-muted-foreground">{t({ ar: "الملف", en: "File" })}: {fileName}</p> : null}
       </section>
 
       {preview ? (
         <section className={card}>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-sm font-bold">معاينة قبل التأكيد</h3>
+            <h3 className="text-sm font-bold">{t({ ar: "معاينة قبل التأكيد", en: "Preview before confirming" })}</h3>
             <div className="flex flex-wrap gap-2 text-[11px] font-bold">
-              <span className="rounded-full bg-success/15 px-2 py-1 text-success">صالح: {preview.valid}</span>
+              <span className="rounded-full bg-success/15 px-2 py-1 text-success">{t({ ar: "صالح", en: "Valid" })}: {preview.valid}</span>
               <span className="rounded-full bg-warning/15 px-2 py-1 text-warning">
-                مكرر: {preview.duplicates}
+                {t({ ar: "مكرر", en: "Duplicate" })}: {preview.duplicates}
               </span>
               <span className="rounded-full bg-destructive/15 px-2 py-1 text-destructive">
-                أخطاء: {preview.errors}
+                {t({ ar: "أخطاء", en: "Errors" })}: {preview.errors}
               </span>
             </div>
           </div>
 
           <div className="mt-3 max-h-96 overflow-auto rounded-xl border border-border">
-            <table className="w-full text-right text-xs">
+            <table className="w-full text-start text-xs">
               <thead className="sticky top-0 bg-muted/60 text-[11px]">
                 <tr>
-                  <th className="p-2 font-bold">السطر</th>
-                  <th className="p-2 font-bold">الاسم</th>
-                  <th className="p-2 font-bold">الموقع</th>
-                  <th className="p-2 font-bold">الحالة</th>
+                  <th className="p-2 font-bold">{t({ ar: "السطر", en: "Row" })}</th>
+                  <th className="p-2 font-bold">{t({ ar: "الاسم", en: "Name" })}</th>
+                  <th className="p-2 font-bold">{t({ ar: "الموقع", en: "Location" })}</th>
+                  <th className="p-2 font-bold">{t({ ar: "الحالة", en: "Status" })}</th>
                 </tr>
               </thead>
               <tbody>
@@ -329,12 +331,12 @@ export function BulkImportTab({ orgId, canManage }: { orgId: string; canManage: 
                     <td className="p-2 text-muted-foreground">
                       {row.data
                         ? `${row.data.governorate}${row.data.city ? ` — ${row.data.city}` : ""} (${row.data.latitude.toFixed(5)}, ${row.data.longitude.toFixed(5)})`
-                        : "—"}
+                        : t({ ar: "—", en: "—" })}
                     </td>
                     <td className="p-2">
                       {row.status === "valid" ? (
                         <span className="flex items-center gap-1 text-success">
-                          <CheckCircle2 className="size-3.5" /> جاهز
+                          <CheckCircle2 className="size-3.5" /> {t({ ar: "جاهز", en: "Ready" })}
                         </span>
                       ) : row.status === "duplicate" ? (
                         <span className="text-warning">{row.duplicate_of}</span>
@@ -356,18 +358,18 @@ export function BulkImportTab({ orgId, canManage }: { orgId: string; canManage: 
               checked={includeDuplicates}
               onChange={(e) => setIncludeDuplicates(e.target.checked)}
             />
-            استورد المكررات أيضاً ({preview.duplicates})
+            {t({ ar: "استورد المكررات أيضاً", en: "Also import duplicates" })} ({preview.duplicates})
           </label>
 
           <div className="mt-3 flex flex-wrap gap-2">
             <button type="button" className={primaryBtn} disabled={busy} onClick={() => void runImport()}>
-              <CheckCircle2 className="size-3.5" /> تأكيد الاستيراد وتوليد الرموز
+              <CheckCircle2 className="size-3.5" /> {t({ ar: "تأكيد الاستيراد وتوليد الرموز", en: "Confirm import and generate codes" })}
             </button>
             <button type="button" className={ghostBtn} onClick={downloadErrors}>
-              <Download className="size-3.5" /> تنزيل تقرير الأخطاء
+              <Download className="size-3.5" /> {t({ ar: "تنزيل تقرير الأخطاء", en: "Download error report" })}
             </button>
             <button type="button" className={ghostBtn} onClick={() => setPreview(null)}>
-              إلغاء
+              {t({ ar: "إلغاء", en: "Cancel" })}
             </button>
           </div>
         </section>
@@ -375,9 +377,9 @@ export function BulkImportTab({ orgId, canManage }: { orgId: string; canManage: 
 
       {result ? (
         <section className={card}>
-          <h3 className="text-sm font-bold">نتيجة الاستيراد</h3>
+          <h3 className="text-sm font-bold">{t({ ar: "نتيجة الاستيراد", en: "Import result" })}</h3>
           <p className="mt-1 text-xs text-muted-foreground">
-            تم إنشاء {result.created.length} عنواناً ذكياً، وفشل {result.failed.length}.
+            {t({ ar: `تم إنشاء ${result.created.length} عنواناً ذكياً، وفشل ${result.failed.length}.`, en: `Created ${result.created.length} smart addresses, ${result.failed.length} failed.` })}
           </p>
           {result.created.length ? (
             <div className="mt-3 flex flex-wrap gap-2">
@@ -395,17 +397,17 @@ export function BulkImportTab({ orgId, canManage }: { orgId: string; canManage: 
                   );
                 }}
               >
-                <Download className="size-3.5" /> تنزيل الرموز الجديدة
+                <Download className="size-3.5" /> {t({ ar: "تنزيل الرموز الجديدة", en: "Download the new codes" })}
               </button>
               <button
                 type="button"
                 className={ghostBtn}
                 onClick={() => {
                   void navigator.clipboard.writeText(result.created.map((c) => c.code).join("\n"));
-                  toast.success("تم نسخ الرموز");
+                  toast.success(t({ ar: "تم نسخ الرموز", en: "Codes copied" }));
                 }}
               >
-                <Copy className="size-3.5" /> نسخ الرموز
+                <Copy className="size-3.5" /> {t({ ar: "نسخ الرموز", en: "Copy codes" })}
               </button>
             </div>
           ) : null}
@@ -418,7 +420,7 @@ export function BulkImportTab({ orgId, canManage }: { orgId: string; canManage: 
             ))}
             {result.failed.map((f) => (
               <li key={`f-${f.line}`} className="py-1 text-destructive">
-                السطر {f.line} — {f.name}: {f.error}
+                {t({ ar: "السطر", en: "Row" })} {f.line} — {f.name}: {f.error}
               </li>
             ))}
           </ul>

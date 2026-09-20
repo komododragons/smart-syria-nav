@@ -8,13 +8,12 @@ import { AlertTriangle, FileText, ScrollText, ShieldCheck, ThumbsDown, ThumbsUp 
 import { AppHeader } from "@/components/AppHeader";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  CLAIM_METHODS,
-  CLAIM_STATUS_LABELS,
   claimAuditTrail,
   claimQueue,
   reviewBusinessClaim,
 } from "@/lib/claims.functions";
-import { VERIFICATION_LEVELS } from "@/lib/smart-address";
+import { verificationLabel } from "@/lib/smart-address";
+import { useI18n, type Bilingual } from "@/lib/i18n";
 
 export const Route = createFileRoute("/admin/claims")({
   head: () => ({
@@ -42,7 +41,30 @@ const GRANT_LEVELS = [
   "official_verified",
 ] as const;
 
+const CLAIM_STATUS_LABELS: Record<string, Bilingual> = {
+  pending: { ar: "معلّقة", en: "Pending" },
+  approved: { ar: "موافَق عليها", en: "Approved" },
+  rejected: { ar: "مرفوضة", en: "Rejected" },
+};
+
+const CLAIM_METHOD_LABELS: Record<string, Bilingual> = {
+  document: { ar: "وثيقة رسمية", en: "Official document" },
+  utility_bill: { ar: "فاتورة خدمة", en: "Utility bill" },
+  phone_match: { ar: "تطابق رقم الهاتف", en: "Phone number match" },
+  site_visit: { ar: "زيارة ميدانية", en: "Site visit" },
+  other: { ar: "أخرى", en: "Other" },
+};
+
+const AUDIT_LABELS: Record<string, Bilingual> = {
+  business_claim_submitted: { ar: "طلب مطالبة جديد", en: "New claim submitted" },
+  business_claim_approved: { ar: "قبول مطالبة", en: "Claim approved" },
+  business_claim_rejected: { ar: "رفض مطالبة", en: "Claim rejected" },
+  business_claim_withdrawn: { ar: "سحب مطالبة", en: "Claim withdrawn" },
+  business_ownership_transferred: { ar: "نقل ملكية عمل", en: "Business ownership transferred" },
+};
+
 function AdminClaimsPage() {
+  const { t, lang, date } = useI18n();
   const queryClient = useQueryClient();
   const queueFn = useServerFn(claimQueue);
   const reviewFn = useServerFn(reviewBusinessClaim);
@@ -82,18 +104,21 @@ function AdminClaimsPage() {
         },
       });
       if (!res.ok) {
-        toast.error("الطلب لم يعد معلّقاً");
+        toast.error(t({ ar: "الطلب لم يعد معلّقاً", en: "The claim is no longer pending" }));
       } else {
         toast.success(
           decision === "approved"
-            ? `تمت الموافقة ونُقلت الملكية${res.superseded ? ` — أُغلقت ${res.superseded} مطالبة متعارضة` : ""}`
-            : "تم رفض المطالبة",
+            ? t({
+                ar: `تمت الموافقة ونُقلت الملكية${res.superseded ? ` — أُغلقت ${res.superseded} مطالبة متعارضة` : ""}`,
+                en: `Approved and ownership transferred${res.superseded ? ` — closed ${res.superseded} conflicting claim(s)` : ""}`,
+              })
+            : t({ ar: "تم رفض المطالبة", en: "Claim rejected" }),
         );
       }
       await queryClient.invalidateQueries({ queryKey: ["admin-claims"] });
       await queryClient.invalidateQueries({ queryKey: ["admin-claims-audit"] });
     } catch {
-      toast.error("تعذّر تنفيذ القرار — تحتاج صلاحية مشرف أو مراجع");
+      toast.error(t({ ar: "تعذّر تنفيذ القرار — تحتاج صلاحية مشرف أو مراجع", en: "Could not save the decision — admin or reviewer role required" }));
     } finally {
       setBusyId(null);
     }
@@ -104,9 +129,9 @@ function AdminClaimsPage() {
       <div className="min-h-screen bg-background text-foreground" dir="rtl">
         <AppHeader />
         <main className="mx-auto max-w-md px-4 py-16 text-center">
-          <h1 className="text-xl font-bold">يلزم تسجيل الدخول</h1>
+          <h1 className="text-xl font-bold">{t({ ar: "يلزم تسجيل الدخول", en: "Sign-in required" })}</h1>
           <Link to="/auth" className="mt-4 inline-block rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground">
-            تسجيل الدخول
+            {t({ ar: "تسجيل الدخول", en: "Sign in" })}
           </Link>
         </main>
       </div>
@@ -118,8 +143,8 @@ function AdminClaimsPage() {
       <div className="min-h-screen bg-background text-foreground" dir="rtl">
         <AppHeader />
         <main className="mx-auto max-w-md px-4 py-16 text-center">
-          <h1 className="text-xl font-bold">صلاحية غير كافية</h1>
-          <p className="mt-2 text-sm text-muted-foreground">هذه الصفحة مخصصة للمشرفين والمراجعين.</p>
+          <h1 className="text-xl font-bold">{t({ ar: "صلاحية غير كافية", en: "Insufficient permissions" })}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{t({ ar: "هذه الصفحة مخصصة للمشرفين والمراجعين.", en: "This page is available to admins and reviewers only." })}</p>
         </main>
       </div>
     );
@@ -134,10 +159,10 @@ function AdminClaimsPage() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="flex items-center gap-2 text-2xl font-bold">
             <ShieldCheck className="h-6 w-6 text-primary" />
-            مطالبات ملكية الأعمال
+            {t({ ar: "مطالبات ملكية الأعمال", en: "Business ownership claims" })}
           </h1>
           <Link to="/admin" className="text-sm text-primary underline">
-            لوحة الإدارة
+            {t({ ar: "لوحة الإدارة", en: "Admin dashboard" })}
           </Link>
         </div>
 
@@ -151,15 +176,15 @@ function AdminClaimsPage() {
                 filter === key ? "border-primary bg-primary text-primary-foreground" : "border-border"
               }`}
             >
-              {key === "all" ? "الكل" : CLAIM_STATUS_LABELS[key]}
+              {key === "all" ? t({ ar: "الكل", en: "All" }) : t(CLAIM_STATUS_LABELS[key])}
             </button>
           ))}
         </div>
 
-        {queue.isLoading ? <p className="text-sm text-muted-foreground">جارٍ التحميل…</p> : null}
+        {queue.isLoading ? <p className="text-sm text-muted-foreground">{t({ ar: "جارٍ التحميل…", en: "Loading…" })}</p> : null}
         {!queue.isLoading && claims.length === 0 ? (
           <p className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">
-            لا توجد مطالبات في هذه القائمة.
+            {t({ ar: "لا توجد مطالبات في هذه القائمة.", en: "No claims in this list." })}
           </p>
         ) : null}
 
@@ -171,15 +196,15 @@ function AdminClaimsPage() {
               <article key={claim.id} className="rounded-xl border border-border bg-card p-4">
                 <header className="flex flex-wrap items-start justify-between gap-2">
                   <div>
-                    <h2 className="font-semibold">{biz?.name_ar ?? "عمل غير معروف"}</h2>
+                    <h2 className="font-semibold">{biz?.name_ar ?? t({ ar: "عمل غير معروف", en: "Unknown business" })}</h2>
                     <p className="text-xs text-muted-foreground">
-                      {new Date(claim.created_at).toLocaleString("ar-SY")} ·{" "}
-                      {CLAIM_STATUS_LABELS[claim.status] ?? claim.status}
+                      {date(claim.created_at)} ·{" "}
+                      {CLAIM_STATUS_LABELS[claim.status] ? t(CLAIM_STATUS_LABELS[claim.status]) : claim.status}
                     </p>
                   </div>
                   {biz?.owner_id ? (
                     <span className="rounded-full bg-amber-100 px-2 py-1 text-xs text-amber-800">
-                      للعمل مالك موثق حالياً
+                      {t({ ar: "للعمل مالك موثق حالياً", en: "This business already has a verified owner" })}
                     </span>
                   ) : null}
                 </header>
@@ -187,20 +212,23 @@ function AdminClaimsPage() {
                 {conflict ? (
                   <p className="mt-2 flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
                     <AlertTriangle className="h-4 w-4" />
-                    تعارض: {claim.competing_pending} مطالبات معلّقة على نفس العمل — قبول واحدة يُغلق الباقي تلقائياً.
+                    {t({
+                      ar: `تعارض: ${claim.competing_pending} مطالبات معلّقة على نفس العمل — قبول واحدة يُغلق الباقي تلقائياً.`,
+                      en: `Conflict: ${claim.competing_pending} pending claims on the same business — approving one closes the rest automatically.`,
+                    })}
                   </p>
                 ) : null}
 
                 <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
-                  <Row label="المطالِب" value={claim.claimant_name ?? "—"} />
-                  <Row label="الصفة" value={claim.claimant_role ?? "—"} />
-                  <Row label="هاتف التواصل" value={claim.contact_phone ?? "—"} />
-                  <Row label="البريد" value={claim.contact_email ?? "—"} />
+                  <Row label={t({ ar: "المطالِب", en: "Claimant" })} value={claim.claimant_name ?? "—"} />
+                  <Row label={t({ ar: "الصفة", en: "Role" })} value={claim.claimant_role ?? "—"} />
+                  <Row label={t({ ar: "هاتف التواصل", en: "Contact phone" })} value={claim.contact_phone ?? "—"} />
+                  <Row label={t({ ar: "البريد", en: "Email" })} value={claim.contact_email ?? "—"} />
                   <Row
-                    label="طريقة الإثبات"
-                    value={CLAIM_METHODS[claim.claim_method as keyof typeof CLAIM_METHODS] ?? claim.claim_method}
+                    label={t({ ar: "طريقة الإثبات", en: "Proof method" })}
+                    value={CLAIM_METHOD_LABELS[claim.claim_method] ? t(CLAIM_METHOD_LABELS[claim.claim_method]) : claim.claim_method}
                   />
-                  <Row label="هاتف العمل المعلن" value={biz?.phone ?? "—"} />
+                  <Row label={t({ ar: "هاتف العمل المعلن", en: "Listed business phone" })} value={biz?.phone ?? "—"} />
                 </dl>
 
                 {claim.evidence ? (
@@ -218,7 +246,7 @@ function AdminClaimsPage() {
                           className="flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-xs text-primary"
                         >
                           <FileText className="h-3.5 w-3.5" />
-                          فتح الوثيقة
+                          {t({ ar: "فتح الوثيقة", en: "Open document" })}
                         </a>
                       </li>
                     ))}
@@ -229,7 +257,7 @@ function AdminClaimsPage() {
                   <div className="mt-4 space-y-2">
                     <textarea
                       className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                      placeholder="ملاحظات المراجعة (تُسجَّل في سجل التدقيق)"
+                      placeholder={t({ ar: "ملاحظات المراجعة (تُسجَّل في سجل التدقيق)", en: "Review notes (logged to the audit trail)" })}
                       value={notes[claim.id] ?? ""}
                       onChange={(e) => setNotes((p) => ({ ...p, [claim.id]: e.target.value }))}
                     />
@@ -241,7 +269,7 @@ function AdminClaimsPage() {
                       >
                         {GRANT_LEVELS.map((lvl) => (
                           <option key={lvl} value={lvl}>
-                            {VERIFICATION_LEVELS[lvl]?.ar ?? lvl}
+                            {verificationLabel(lvl, lang)}
                           </option>
                         ))}
                       </select>
@@ -251,7 +279,7 @@ function AdminClaimsPage() {
                         onClick={() => decide(claim.id, "approved")}
                         className="flex items-center gap-1 rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground disabled:opacity-50"
                       >
-                        <ThumbsUp className="h-4 w-4" /> قبول ونقل الملكية
+                        <ThumbsUp className="h-4 w-4" /> {t({ ar: "قبول ونقل الملكية", en: "Approve & transfer ownership" })}
                       </button>
                       <button
                         type="button"
@@ -259,15 +287,15 @@ function AdminClaimsPage() {
                         onClick={() => decide(claim.id, "rejected")}
                         className="flex items-center gap-1 rounded-lg border border-border px-3 py-2 text-sm disabled:opacity-50"
                       >
-                        <ThumbsDown className="h-4 w-4" /> رفض
+                        <ThumbsDown className="h-4 w-4" /> {t({ ar: "رفض", en: "Reject" })}
                       </button>
                     </div>
                   </div>
                 ) : (
                   <div className="mt-3 text-xs text-muted-foreground">
-                    {claim.reviewed_at ? `روجعت في ${new Date(claim.reviewed_at).toLocaleString("ar-SY")}` : null}
+                    {claim.reviewed_at ? t({ ar: `روجعت في ${date(claim.reviewed_at)}`, en: `Reviewed on ${date(claim.reviewed_at)}` }) : null}
                     {claim.granted_level
-                      ? ` · المستوى الممنوح: ${VERIFICATION_LEVELS[claim.granted_level]?.ar ?? claim.granted_level}`
+                      ? ` · ${t({ ar: "المستوى الممنوح", en: "Granted level" })}: ${verificationLabel(claim.granted_level, lang)}`
                       : null}
                     {claim.review_notes ? ` · ${claim.review_notes}` : null}
                   </div>
@@ -280,20 +308,20 @@ function AdminClaimsPage() {
         <section className="rounded-xl border border-border bg-card p-4">
           <h2 className="flex items-center gap-2 font-semibold">
             <ScrollText className="h-5 w-5 text-primary" />
-            سجل التدقيق — الملكية والمطالبات
+            {t({ ar: "سجل التدقيق — الملكية والمطالبات", en: "Audit trail — ownership & claims" })}
           </h2>
           <ul className="mt-3 space-y-2 text-xs">
             {(audit.data?.authorized ? audit.data.logs : []).map((log) => (
               <li key={log.id} className="rounded-lg bg-muted px-3 py-2">
-                <span className="font-medium">{AUDIT_LABELS[log.action] ?? log.action}</span>
+                <span className="font-medium">{AUDIT_LABELS[log.action] ? t(AUDIT_LABELS[log.action]) : log.action}</span>
                 <span className="mx-2 text-muted-foreground">
-                  {new Date(log.created_at).toLocaleString("ar-SY")}
+                  {date(log.created_at)}
                 </span>
                 <code className="text-[10px] text-muted-foreground">{log.resource_id}</code>
               </li>
             ))}
             {audit.data?.authorized && audit.data.logs.length === 0 ? (
-              <li className="text-muted-foreground">لا توجد سجلات بعد.</li>
+              <li className="text-muted-foreground">{t({ ar: "لا توجد سجلات بعد.", en: "No log entries yet." })}</li>
             ) : null}
           </ul>
         </section>
@@ -301,14 +329,6 @@ function AdminClaimsPage() {
     </div>
   );
 }
-
-const AUDIT_LABELS: Record<string, string> = {
-  business_claim_submitted: "طلب مطالبة جديد",
-  business_claim_approved: "قبول مطالبة",
-  business_claim_rejected: "رفض مطالبة",
-  business_claim_withdrawn: "سحب مطالبة",
-  business_ownership_transferred: "نقل ملكية عمل",
-};
 
 function Row({ label, value }: { label: string; value: string }) {
   return (

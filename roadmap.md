@@ -143,3 +143,5 @@ PHASE 23 — PRIVACY AND SECURITY — DONE
 - platform_settings: public read policy removed, admin-only; plan flags now read through the server admin client.
 - Privilege-escalation guards: guard_trust_fields (verification_level/confidence_score/verification_method/last_verified_at/created_by/owner_id frozen for non-staff on location_nodes, access_points, businesses), guard_smart_address_owner, guard_business_claim_review (claimant may only withdraw). All guard fns REVOKEd from PUBLIC.
 - Remaining linter notices are the pre-existing 15 (PostGIS spatial_ref_sys, extensions in public, SECURITY DEFINER exposure) — untouched by request.
+
+PHASE 24 — INTERNATIONALIZATION — DONE (ar RTL / en LTR across all pages, i18n layer in src/lib/i18n.tsx)

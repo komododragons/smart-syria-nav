@@ -9,7 +9,8 @@ import { AppHeader } from "@/components/AppHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { correctionQueue } from "@/lib/corrections.functions";
 import { reviewCorrection } from "@/lib/addresses.functions";
-import { CORRECTION_DECISION_LABELS, CORRECTION_TYPE_LABELS } from "@/lib/smart-address";
+import { correctionDecisionLabel, correctionTypeLabel } from "@/lib/smart-address";
+import { useI18n, type Bilingual } from "@/lib/i18n";
 
 export const Route = createFileRoute("/admin/corrections")({
   head: () => ({
@@ -26,28 +27,29 @@ export const Route = createFileRoute("/admin/corrections")({
   component: CorrectionsPage,
 });
 
-const FILTERS = [
-  { key: "pending", label: "بانتظار المراجعة" },
-  { key: "under_review", label: "بحاجة لمعلومات" },
-  { key: "approved", label: "مقبولة" },
-  { key: "rejected", label: "مرفوضة" },
-  { key: "all", label: "الكل" },
-] as const;
+const FILTERS: { key: "pending" | "under_review" | "approved" | "rejected" | "all"; label: Bilingual }[] = [
+  { key: "pending", label: { ar: "بانتظار المراجعة", en: "Awaiting review" } },
+  { key: "under_review", label: { ar: "بحاجة لمعلومات", en: "Needs more info" } },
+  { key: "approved", label: { ar: "مقبولة", en: "Approved" } },
+  { key: "rejected", label: { ar: "مرفوضة", en: "Rejected" } },
+  { key: "all", label: { ar: "الكل", en: "All" } },
+];
 
 type FilterKey = (typeof FILTERS)[number]["key"];
 
-const FIELD_LABELS: Record<string, string> = {
-  node_coordinates: "إحداثيات الموقع",
-  business_name: "اسم النشاط",
-  business_status: "حالة النشاط",
-  business_category: "تصنيف النشاط",
-  place_category: "تصنيف المكان",
-  entrance: "المدخل",
-  access: "الوصول",
-  other: "أخرى",
+const FIELD_LABELS: Record<string, Bilingual> = {
+  node_coordinates: { ar: "إحداثيات الموقع", en: "Location coordinates" },
+  business_name: { ar: "اسم النشاط", en: "Business name" },
+  business_status: { ar: "حالة النشاط", en: "Business status" },
+  business_category: { ar: "تصنيف النشاط", en: "Business category" },
+  place_category: { ar: "تصنيف المكان", en: "Place category" },
+  entrance: { ar: "المدخل", en: "Entrance" },
+  access: { ar: "الوصول", en: "Access" },
+  other: { ar: "أخرى", en: "Other" },
 };
 
 function CorrectionsPage() {
+  const { t, lang, date } = useI18n();
   const navigate = useNavigate();
   const queueFn = useServerFn(correctionQueue);
   const reviewFn = useServerFn(reviewCorrection);
@@ -77,11 +79,13 @@ function CorrectionsPage() {
         data: { id, decision, apply, note: notes[id]?.trim() || undefined },
       });
       toast.success(
-        result.applied ? "تم قبول التصحيح وتطبيقه على البيانات" : "تم تسجيل القرار في سجل المراجعة",
+        result.applied
+          ? t({ ar: "تم قبول التصحيح وتطبيقه على البيانات", en: "Correction approved and applied to the data" })
+          : t({ ar: "تم تسجيل القرار في سجل المراجعة", en: "Decision logged in the review trail" }),
       );
       await query.refetch();
     } catch {
-      toast.error("تعذر حفظ القرار");
+      toast.error(t({ ar: "تعذر حفظ القرار", en: "Could not save the decision" }));
     } finally {
       setBusyId(null);
     }
@@ -92,13 +96,13 @@ function CorrectionsPage() {
       <div className="min-h-screen bg-background text-foreground">
         <AppHeader />
         <main className="mx-auto max-w-md px-4 py-16 text-center">
-          <h1 className="text-xl font-bold">يلزم تسجيل الدخول</h1>
+          <h1 className="text-xl font-bold">{t({ ar: "يلزم تسجيل الدخول", en: "Sign-in required" })}</h1>
           <button
             type="button"
             onClick={() => navigate({ to: "/auth", search: { redirect: "/admin/corrections" } })}
             className="mt-6 rounded-lg bg-primary px-5 py-3 text-sm font-bold text-primary-foreground"
           >
-            الدخول
+            {t({ ar: "الدخول", en: "Sign in" })}
           </button>
         </main>
       </div>
@@ -112,20 +116,22 @@ function CorrectionsPage() {
       <AppHeader />
       <main className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-6">
         <h1 className="flex items-center gap-2 text-lg font-bold">
-          <Flag className="size-5" /> تصحيحات المجتمع
+          <Flag className="size-5" /> {t({ ar: "تصحيحات المجتمع", en: "Community corrections" })}
         </h1>
         <p className="text-xs text-muted-foreground">
-          لا يُعدّل أي عنوان موثّق تلقائياً — كل تصحيح يمر بقرار مراجع، ويُسجَّل الأصل والمقترح
-          والمراجع والقرار ووقته.
+          {t({
+            ar: "لا يُعدّل أي عنوان موثّق تلقائياً — كل تصحيح يمر بقرار مراجع، ويُسجَّل الأصل والمقترح والمراجع والقرار ووقته.",
+            en: "No verified address is ever edited automatically — every correction goes through a reviewer decision, and the original, suggestion, reviewer, decision, and timestamp are all logged.",
+          })}
         </p>
 
         {query.isPending ? (
-          <p className="py-10 text-center text-sm text-muted-foreground">جارٍ التحميل…</p>
+          <p className="py-10 text-center text-sm text-muted-foreground">{t({ ar: "جارٍ التحميل…", en: "Loading…" })}</p>
         ) : null}
 
         {query.data && !query.data.authorized ? (
           <p className="rounded-2xl border border-border bg-surface p-6 text-center text-sm text-muted-foreground">
-            مراجعة التصحيحات متاحة للمشرفين والمراجعين فقط.
+            {t({ ar: "مراجعة التصحيحات متاحة للمشرفين والمراجعين فقط.", en: "Correction review is available to admins and reviewers only." })}
           </p>
         ) : null}
 
@@ -143,7 +149,7 @@ function CorrectionsPage() {
                       : "border-border bg-surface text-foreground"
                   }`}
                 >
-                  {item.label}
+                  {t(item.label)}
                   {data.counts[item.key] != null ? ` (${data.counts[item.key]})` : ""}
                 </button>
               ))}
@@ -151,7 +157,7 @@ function CorrectionsPage() {
 
             {data.reports.length === 0 ? (
               <p className="rounded-2xl border border-border bg-surface p-6 text-center text-sm text-muted-foreground">
-                لا تصحيحات في هذه القائمة.
+                {t({ ar: "لا تصحيحات في هذه القائمة.", en: "No corrections in this list." })}
               </p>
             ) : null}
 
@@ -166,7 +172,7 @@ function CorrectionsPage() {
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <p className="text-sm font-bold">
-                        {CORRECTION_TYPE_LABELS[report.issue_type] ?? report.issue_type}
+                        {correctionTypeLabel(report.issue_type, lang)}
                       </p>
                       <p className="mt-0.5 text-[11px] text-muted-foreground">
                         {biz?.name_ar ?? node?.display_name ?? "—"}
@@ -178,22 +184,22 @@ function CorrectionsPage() {
                       </p>
                     </div>
                     <span className="text-[10px] text-muted-foreground">
-                      {new Date(report.created_at).toLocaleString("ar-SY")}
+                      {date(report.created_at)}
                     </span>
                   </div>
 
                   <div className="mt-3 grid gap-2 sm:grid-cols-2">
                     <div className="rounded-lg border border-border bg-background p-2">
                       <p className="text-[10px] uppercase tracking-widest text-muted-foreground">
-                        القيمة الحالية · {FIELD_LABELS[report.target_field ?? "other"]}
+                        {t({ ar: "القيمة الحالية", en: "Current value" })} · {FIELD_LABELS[report.target_field ?? "other"] ? t(FIELD_LABELS[report.target_field ?? "other"]) : report.target_field}
                       </p>
-                      <p className="mt-1 text-xs">{report.original_value ?? "غير مسجّلة"}</p>
+                      <p className="mt-1 text-xs">{report.original_value ?? t({ ar: "غير مسجّلة", en: "Not recorded" })}</p>
                     </div>
                     <div className="rounded-lg border border-primary/40 bg-background p-2">
                       <p className="text-[10px] uppercase tracking-widest text-muted-foreground">
-                        التعديل المقترح
+                        {t({ ar: "التعديل المقترح", en: "Suggested change" })}
                       </p>
-                      <p className="mt-1 text-xs font-bold">{report.suggested_value ?? "بدون قيمة محددة"}</p>
+                      <p className="mt-1 text-xs font-bold">{report.suggested_value ?? t({ ar: "بدون قيمة محددة", en: "No specific value" })}</p>
                     </div>
                   </div>
 
@@ -210,7 +216,7 @@ function CorrectionsPage() {
                         }
                         rows={2}
                         maxLength={400}
-                        placeholder="ملاحظة المراجع (اختياري)"
+                        placeholder={t({ ar: "ملاحظة المراجع (اختياري)", en: "Reviewer note (optional)" })}
                         className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs focus:border-primary focus:outline-none"
                       />
                       <div className="flex flex-wrap gap-1.5">
@@ -220,7 +226,7 @@ function CorrectionsPage() {
                           onClick={() => decide(report.id, "approved", true)}
                           className="rounded-md bg-allow px-2.5 py-1.5 text-[11px] font-bold text-primary-foreground disabled:opacity-50"
                         >
-                          قبول وتطبيق
+                          {t({ ar: "قبول وتطبيق", en: "Approve & apply" })}
                         </button>
                         <button
                           type="button"
@@ -228,7 +234,7 @@ function CorrectionsPage() {
                           onClick={() => decide(report.id, "approved", false)}
                           className="rounded-md border border-border px-2.5 py-1.5 text-[11px] font-bold disabled:opacity-50"
                         >
-                          قبول دون تطبيق
+                          {t({ ar: "قبول دون تطبيق", en: "Approve without applying" })}
                         </button>
                         <button
                           type="button"
@@ -236,7 +242,7 @@ function CorrectionsPage() {
                           onClick={() => decide(report.id, "needs_more_info", false)}
                           className="rounded-md border border-border px-2.5 py-1.5 text-[11px] font-bold text-muted-foreground disabled:opacity-50"
                         >
-                          طلب معلومات
+                          {t({ ar: "طلب معلومات", en: "Request more info" })}
                         </button>
                         <button
                           type="button"
@@ -244,17 +250,19 @@ function CorrectionsPage() {
                           onClick={() => decide(report.id, "rejected", false)}
                           className="rounded-md bg-prohibit px-2.5 py-1.5 text-[11px] font-bold text-primary-foreground disabled:opacity-50"
                         >
-                          رفض
+                          {t({ ar: "رفض", en: "Reject" })}
                         </button>
                       </div>
                     </div>
                   ) : (
                     <p className="mt-3 rounded-lg border border-border bg-background p-2 text-[11px] text-muted-foreground">
-                      القرار: {CORRECTION_DECISION_LABELS[report.decision ?? ""] ?? report.status}
+                      {t({ ar: "القرار", en: "Decision" })}: {report.decision ? correctionDecisionLabel(report.decision, lang) : report.status}
                       {report.reviewed_at
-                        ? ` · ${new Date(report.reviewed_at).toLocaleString("ar-SY")}`
+                        ? ` · ${date(report.reviewed_at)}`
                         : ""}
-                      {report.applied ? " · طُبّق على البيانات" : " · لم يُطبّق"}
+                      {report.applied
+                        ? ` · ${t({ ar: "طُبّق على البيانات", en: "Applied to the data" })}`
+                        : ` · ${t({ ar: "لم يُطبّق", en: "Not applied" })}`}
                       {report.decision_note ? ` · ${report.decision_note}` : ""}
                     </p>
                   )}

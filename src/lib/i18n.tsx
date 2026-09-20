@@ -32,7 +32,7 @@ type I18nValue = {
   dir: "rtl" | "ltr";
   isRtl: boolean;
   /** Pick the string for the active language. */
-  t: (value: Bilingual) => string;
+  t: (value: Bilingual | null | undefined) => string;
   setLang: (lang: Lang) => void;
   toggleLang: () => void;
   /** Pick a localized record name with graceful fallback to the other language. */
@@ -90,7 +90,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
       locale,
       dir: lang === "ar" ? "rtl" : "ltr",
       isRtl: lang === "ar",
-      t: (pair) => pair[lang],
+      t: (pair) => pair?.[lang] ?? "",
       setLang,
       toggleLang: () => setLang(lang === "ar" ? "en" : "ar"),
       name: (record) => {
@@ -120,7 +120,7 @@ export function useI18n(): I18nValue {
     locale,
     dir: "rtl",
     isRtl: true,
-    t: (pair) => pair.ar,
+    t: (pair) => pair?.ar ?? "",
     setLang: () => undefined,
     toggleLang: () => undefined,
     name: (record) => (record ? (record.name_ar || record.name_en || "").trim() : ""),

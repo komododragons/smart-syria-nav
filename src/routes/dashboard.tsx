@@ -55,7 +55,8 @@ import {
   listApiClients,
   revokeApiKey,
 } from "@/lib/network.functions";
-import { GOVERNORATES, VERIFICATION_LEVELS } from "@/lib/smart-address";
+import { GOVERNORATES, verificationLabel, governorateLabel } from "@/lib/smart-address";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -91,17 +92,17 @@ type TabKey =
   | "analytics"
   | "settings";
 
-const TABS: { key: TabKey; label: string; icon: typeof Building2 }[] = [
-  { key: "locations", label: "المواقع", icon: Building2 },
-  { key: "addresses", label: "العناوين", icon: MapPinned },
-  { key: "import", label: "استيراد وتصدير", icon: FileSpreadsheet },
-  { key: "verification", label: "التوثيق", icon: BadgeCheck },
-  { key: "qr", label: "رموز QR", icon: QrCode },
-  { key: "plates", label: "لوحات العنوان", icon: LayoutTemplate },
-  { key: "api", label: "الواجهة البرمجية", icon: Code2 },
-  { key: "team", label: "الفريق", icon: Users },
-  { key: "analytics", label: "التحليلات", icon: BarChart3 },
-  { key: "settings", label: "الإعدادات", icon: Settings },
+const TABS: { key: TabKey; label: { ar: string; en: string }; icon: typeof Building2 }[] = [
+  { key: "locations", label: { ar: "المواقع", en: "Locations" }, icon: Building2 },
+  { key: "addresses", label: { ar: "العناوين", en: "Addresses" }, icon: MapPinned },
+  { key: "import", label: { ar: "استيراد وتصدير", en: "Import & export" }, icon: FileSpreadsheet },
+  { key: "verification", label: { ar: "التوثيق", en: "Verification" }, icon: BadgeCheck },
+  { key: "qr", label: { ar: "رموز QR", en: "QR codes" }, icon: QrCode },
+  { key: "plates", label: { ar: "لوحات العنوان", en: "Address plates" }, icon: LayoutTemplate },
+  { key: "api", label: { ar: "الواجهة البرمجية", en: "API" }, icon: Code2 },
+  { key: "team", label: { ar: "الفريق", en: "Team" }, icon: Users },
+  { key: "analytics", label: { ar: "التحليلات", en: "Analytics" }, icon: BarChart3 },
+  { key: "settings", label: { ar: "الإعدادات", en: "Settings" }, icon: Settings },
 ];
 
 const card = "rounded-2xl border border-border bg-surface p-4 shadow-sm";
@@ -122,6 +123,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function DashboardPage() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [tab, setTab] = useState<TabKey>("locations");
@@ -153,16 +155,16 @@ function DashboardPage() {
       <div className="min-h-screen bg-background text-foreground">
         <AppHeader />
         <main className="mx-auto max-w-lg px-4 py-16 text-center">
-          <h1 className="text-xl font-bold">لوحة إدارة الأعمال</h1>
+          <h1 className="text-xl font-bold">{t({ ar: "لوحة إدارة الأعمال", en: "Business dashboard" })}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            سجّل الدخول لإدارة فروع شركتك وعناوينها الذكية.
+            {t({ ar: "سجّل الدخول لإدارة فروع شركتك وعناوينها الذكية.", en: "Sign in to manage your company's branches and smart addresses." })}
           </p>
           <button
             type="button"
             className={`${primaryBtn} mx-auto mt-4`}
             onClick={() => void navigate({ to: "/auth", search: { redirect: "/dashboard" } })}
           >
-            تسجيل الدخول
+            {t({ ar: "تسجيل الدخول", en: "Sign in" })}
           </button>
         </main>
       </div>
@@ -177,10 +179,10 @@ function DashboardPage() {
           <div>
             <h1 className="flex items-center gap-2 text-xl font-bold">
               <Store className="size-5 text-primary" />
-              لوحة إدارة الأعمال
+              {t({ ar: "لوحة إدارة الأعمال", en: "Business dashboard" })}
             </h1>
             <p className="mt-1 text-xs text-muted-foreground">
-              فرع واحد أو آلاف الفروع — إدارة موحّدة للعناوين الذكية.
+              {t({ ar: "فرع واحد أو آلاف الفروع — إدارة موحّدة للعناوين الذكية.", en: "One branch or thousands — unified management for your smart addresses." })}
             </p>
           </div>
           {orgs.data?.length ? (
@@ -199,7 +201,7 @@ function DashboardPage() {
         </header>
 
         {orgs.isPending ? (
-          <p className="py-16 text-center text-sm text-muted-foreground">جارٍ التحميل…</p>
+          <p className="py-16 text-center text-sm text-muted-foreground">{t({ ar: "جارٍ التحميل…", en: "Loading…" })}</p>
         ) : null}
 
         {orgs.data && orgs.data.length === 0 ? <CreateOrgCard /> : null}
@@ -217,7 +219,7 @@ function DashboardPage() {
                   }`}
                 >
                   <Icon className="size-3.5" />
-                  {label}
+                  {t(label)}
                 </button>
               ))}
             </nav>
@@ -242,6 +244,7 @@ function DashboardPage() {
 }
 
 function CreateOrgCard() {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const create = useServerFn(createOrganization);
   const [name, setName] = useState("");
@@ -250,12 +253,12 @@ function CreateOrgCard() {
 
   return (
     <section className={card}>
-      <h2 className="text-sm font-bold">أنشئ حساب شركة</h2>
+      <h2 className="text-sm font-bold">{t({ ar: "أنشئ حساب شركة", en: "Create a company account" })}</h2>
       <p className="mt-1 text-xs text-muted-foreground">
-        الحساب يجمع كل فروعك تحت إدارة واحدة مع صلاحيات فريق.
+        {t({ ar: "الحساب يجمع كل فروعك تحت إدارة واحدة مع صلاحيات فريق.", en: "One account brings all your branches under unified management with team roles." })}
       </p>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        <Field label="اسم الشركة (عربي)">
+        <Field label={t({ ar: "اسم الشركة (عربي)", en: "Company name (Arabic)" })}>
           <input className={input} value={name} onChange={(e) => setName(e.target.value)} />
         </Field>
         <Field label="Company name (English)">
@@ -271,15 +274,15 @@ function CreateOrgCard() {
           try {
             await create({ data: { name_ar: name.trim(), name_en: nameEn.trim() || null } });
             await queryClient.invalidateQueries({ queryKey: ["my-orgs"] });
-            toast.success("تم إنشاء حساب الشركة");
+            toast.success(t({ ar: "تم إنشاء حساب الشركة", en: "Company account created" }));
           } catch {
-            toast.error("تعذر إنشاء الحساب");
+            toast.error(t({ ar: "تعذر إنشاء الحساب", en: "Couldn't create the account" }));
           } finally {
             setBusy(false);
           }
         }}
       >
-        <Plus className="size-3.5" /> إنشاء
+        <Plus className="size-3.5" /> {t({ ar: "إنشاء", en: "Create" })}
       </button>
     </section>
   );
@@ -344,6 +347,7 @@ function LocationsTab({
   canManage: boolean;
   canAdmin: boolean;
 }) {
+  const { t, lang } = useI18n();
   const queryClient = useQueryClient();
   const [includeArchived, setIncludeArchived] = useState(false);
   const locations = useLocations(orgId, includeArchived);
@@ -392,15 +396,15 @@ function LocationsTab({
       };
       if (form.business_id && form.node_id) {
         await update({ data: { ...payload, business_id: form.business_id, node_id: form.node_id } });
-        toast.success("تم تحديث الموقع");
+        toast.success(t({ ar: "تم تحديث الموقع", en: "Location updated" }));
       } else {
         const res = await create({ data: payload });
-        toast.success(`تم إنشاء الموقع — ${res.code}`);
+        toast.success(t({ ar: `تم إنشاء الموقع — ${res.code}`, en: `Location created — ${res.code}` }));
       }
       setForm(null);
       await refresh();
     } catch {
-      toast.error("تعذر حفظ الموقع");
+      toast.error(t({ ar: "تعذر حفظ الموقع", en: "Couldn't save the location" }));
     } finally {
       setBusy(false);
     }
@@ -415,18 +419,18 @@ function LocationsTab({
             checked={includeArchived}
             onChange={(e) => setIncludeArchived(e.target.checked)}
           />
-          إظهار المؤرشفة
+          {t({ ar: "إظهار المؤرشفة", en: "Show archived" })}
         </label>
         {canManage ? (
           <button type="button" className={primaryBtn} onClick={() => setForm({ ...emptyForm })}>
-            <Plus className="size-3.5" /> موقع جديد
+            <Plus className="size-3.5" /> {t({ ar: "موقع جديد", en: "New location" })}
           </button>
         ) : null}
       </div>
 
       {canAdmin && loose.data?.length ? (
         <section className={card}>
-          <h3 className="text-sm font-bold">مواقع تملكها ولم تُضف إلى الشركة</h3>
+          <h3 className="text-sm font-bold">{t({ ar: "مواقع تملكها ولم تُضف إلى الشركة", en: "Locations you own that aren't attached to this company yet" })}</h3>
           <div className="mt-2 flex flex-col gap-2">
             {loose.data.map((biz) => (
               <div key={biz.id} className="flex items-center justify-between gap-2 rounded-lg border border-border px-3 py-2">
@@ -441,13 +445,13 @@ function LocationsTab({
                     try {
                       await attach({ data: { organization_id: orgId, business_id: biz.id } });
                       await Promise.all([refresh(), loose.refetch()]);
-                      toast.success("تمت إضافة الموقع إلى الشركة");
+                      toast.success(t({ ar: "تمت إضافة الموقع إلى الشركة", en: "Location attached to the company" }));
                     } catch {
-                      toast.error("تعذرت الإضافة");
+                      toast.error(t({ ar: "تعذرت الإضافة", en: "Couldn't attach it" }));
                     }
                   }}
                 >
-                  ضمّ إلى الشركة
+                  {t({ ar: "ضمّ إلى الشركة", en: "Attach to company" })}
                 </button>
               </div>
             ))}
@@ -457,24 +461,24 @@ function LocationsTab({
 
       {form ? (
         <section className={card}>
-          <h3 className="text-sm font-bold">{form.business_id ? "تعديل موقع" : "موقع جديد"}</h3>
+          <h3 className="text-sm font-bold">{form.business_id ? t({ ar: "تعديل موقع", en: "Edit location" }) : t({ ar: "موقع جديد", en: "New location" })}</h3>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            <Field label="اسم الموقع">
+            <Field label={t({ ar: "اسم الموقع", en: "Location name" })}>
               <input className={input} value={form.name_ar} onChange={(e) => setForm({ ...form, name_ar: e.target.value })} />
             </Field>
-            <Field label="اسم الفرع">
+            <Field label={t({ ar: "اسم الفرع", en: "Branch name" })}>
               <input className={input} value={form.branch_label} onChange={(e) => setForm({ ...form, branch_label: e.target.value })} />
             </Field>
-            <Field label="الفئة">
+            <Field label={t({ ar: "الفئة", en: "Category" })}>
               <input className={input} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
             </Field>
-            <Field label="تصنيف الدليل العام">
+            <Field label={t({ ar: "تصنيف الدليل العام", en: "Public directory category" })}>
               <select
                 className={input}
                 value={form.place_category}
                 onChange={(e) => setForm({ ...form, place_category: e.target.value })}
               >
-                <option value="">بدون تصنيف عام</option>
+                <option value="">{t({ ar: "بدون تصنيف عام", en: "No public category" })}</option>
                 {PLACE_CATEGORIES.map((c) => (
                   <option key={c.value} value={c.value}>
                     {c.emoji} {c.ar}
@@ -482,39 +486,39 @@ function LocationsTab({
                 ))}
               </select>
             </Field>
-            <Field label="الهاتف">
+            <Field label={t({ ar: "الهاتف", en: "Phone" })}>
               <input className={input} dir="ltr" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
             </Field>
-            <Field label="ساعات العمل">
+            <Field label={t({ ar: "ساعات العمل", en: "Opening hours" })}>
               <input className={input} value={form.opening_hours} onChange={(e) => setForm({ ...form, opening_hours: e.target.value })} />
             </Field>
-            <Field label="المحافظة">
+            <Field label={t({ ar: "المحافظة", en: "Governorate" })}>
               <select className={input} value={form.governorate_code} onChange={(e) => setForm({ ...form, governorate_code: e.target.value })}>
                 {GOVERNORATES.map((g) => (
                   <option key={g.code} value={g.code}>{g.ar}</option>
                 ))}
               </select>
             </Field>
-            <Field label="المدينة">
+            <Field label={t({ ar: "المدينة", en: "City" })}>
               <input className={input} value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
             </Field>
-            <Field label="الحي">
+            <Field label={t({ ar: "الحي", en: "Neighborhood" })}>
               <input className={input} value={form.neighborhood} onChange={(e) => setForm({ ...form, neighborhood: e.target.value })} />
             </Field>
-            <Field label="الشارع">
+            <Field label={t({ ar: "الشارع", en: "Street" })}>
               <input className={input} value={form.street} onChange={(e) => setForm({ ...form, street: e.target.value })} />
             </Field>
-            <Field label="أقرب معلم">
+            <Field label={t({ ar: "أقرب معلم", en: "Nearest landmark" })}>
               <input className={input} value={form.landmark} onChange={(e) => setForm({ ...form, landmark: e.target.value })} />
             </Field>
-            <Field label="رقم المبنى">
+            <Field label={t({ ar: "رقم المبنى", en: "Building number" })}>
               <input className={input} value={form.building_number} onChange={(e) => setForm({ ...form, building_number: e.target.value })} />
             </Field>
-            <Field label="اسم المدخل">
+            <Field label={t({ ar: "اسم المدخل", en: "Entrance name" })}>
               <input className={input} value={form.entrance_name} onChange={(e) => setForm({ ...form, entrance_name: e.target.value })} />
             </Field>
             <div className="sm:col-span-2">
-              <Field label="تعليمات الوصول إلى المدخل">
+              <Field label={t({ ar: "تعليمات الوصول إلى المدخل", en: "Entrance access instructions" })}>
                 <textarea
                   className={`${input} min-h-20`}
                   value={form.entrance_instructions}
@@ -524,7 +528,7 @@ function LocationsTab({
             </div>
           </div>
 
-          <p className="mt-3 text-xs font-bold text-muted-foreground">اختر الموقع على الخريطة</p>
+          <p className="mt-3 text-xs font-bold text-muted-foreground">{t({ ar: "اختر الموقع على الخريطة", en: "Pick the location on the map" })}</p>
           <div className="mt-2">
             <CadastralMap
               center={{ latitude: form.latitude, longitude: form.longitude }}
@@ -533,7 +537,7 @@ function LocationsTab({
                   id: "draft",
                   latitude: form.latitude,
                   longitude: form.longitude,
-                  label: form.name_ar || "الموقع",
+                  label: form.name_ar || t({ ar: "الموقع", en: "Location" }),
                   tone: "draft",
                 },
               ]}
@@ -550,23 +554,23 @@ function LocationsTab({
               checked={form.is_published}
               onChange={(e) => setForm({ ...form, is_published: e.target.checked })}
             />
-            منشور للعامة
+            {t({ ar: "منشور للعامة", en: "Published publicly" })}
           </label>
 
           <div className="mt-3 flex gap-2">
             <button type="button" disabled={busy || form.name_ar.trim().length < 2} className={`${primaryBtn} disabled:opacity-50`} onClick={() => void save()}>
-              حفظ
+              {t({ ar: "حفظ", en: "Save" })}
             </button>
             <button type="button" className={ghostBtn} onClick={() => setForm(null)}>
-              إلغاء
+              {t({ ar: "إلغاء", en: "Cancel" })}
             </button>
           </div>
         </section>
       ) : null}
 
-      {locations.isPending ? <p className="text-sm text-muted-foreground">جارٍ التحميل…</p> : null}
+      {locations.isPending ? <p className="text-sm text-muted-foreground">{t({ ar: "جارٍ التحميل…", en: "Loading…" })}</p> : null}
       {locations.data && locations.data.locations.length === 0 ? (
-        <p className={`${card} text-center text-sm text-muted-foreground`}>لا توجد مواقع بعد.</p>
+        <p className={`${card} text-center text-sm text-muted-foreground`}>{t({ ar: "لا توجد مواقع بعد.", en: "No locations yet." })}</p>
       ) : null}
 
       {(locations.data?.locations ?? []).map((loc) => (
@@ -578,7 +582,7 @@ function LocationsTab({
                 {loc.branch_label ? <span className="text-muted-foreground"> — {loc.branch_label}</span> : null}
               </h3>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                {[loc.node?.neighborhood, loc.node?.city, loc.node?.governorate].filter(Boolean).join(" — ") || "بدون تفاصيل موقع"}
+                {[loc.node?.neighborhood, loc.node?.city, loc.node?.governorate].filter(Boolean).join(" — ") || t({ ar: "بدون تفاصيل موقع", en: "No location details" })}
               </p>
               {loc.smart_code ? (
                 <p className="mt-1 font-mono text-sm font-bold" dir="ltr">{loc.smart_code}</p>
@@ -586,7 +590,7 @@ function LocationsTab({
             </div>
             <div className="flex flex-wrap gap-2">
               {loc.is_archived ? (
-                <span className="rounded-md bg-secondary px-2 py-1 text-[10px] font-bold text-muted-foreground">مؤرشف</span>
+                <span className="rounded-md bg-secondary px-2 py-1 text-[10px] font-bold text-muted-foreground">{t({ ar: "مؤرشف", en: "Archived" })}</span>
               ) : null}
               {canManage ? (
                 <>
@@ -618,7 +622,7 @@ function LocationsTab({
                       })
                     }
                   >
-                    <Pencil className="size-3.5" /> تعديل
+                    <Pencil className="size-3.5" /> {t({ ar: "تعديل", en: "Edit" })}
                   </button>
                   <button
                     type="button"
@@ -629,20 +633,20 @@ function LocationsTab({
                           data: { organization_id: orgId, business_id: loc.id, archived: !loc.is_archived },
                         });
                         await refresh();
-                        toast.success(loc.is_archived ? "تمت الاستعادة" : "تمت الأرشفة");
+                        toast.success(loc.is_archived ? t({ ar: "تمت الاستعادة", en: "Restored" }) : t({ ar: "تمت الأرشفة", en: "Archived" }));
                       } catch {
-                        toast.error("تعذر التنفيذ");
+                        toast.error(t({ ar: "تعذر التنفيذ", en: "Couldn't complete that action" }));
                       }
                     }}
                   >
                     {loc.is_archived ? <ArchiveRestore className="size-3.5" /> : <Archive className="size-3.5" />}
-                    {loc.is_archived ? "استعادة" : "أرشفة"}
+                    {loc.is_archived ? t({ ar: "استعادة", en: "Restore" }) : t({ ar: "أرشفة", en: "Archive" })}
                   </button>
                 </>
               ) : null}
               {loc.smart_code ? (
                 <Link to="/a/$code" params={{ code: loc.smart_code }} className={ghostBtn}>
-                  فتح العنوان
+                  {t({ ar: "فتح العنوان", en: "Open address" })}
                 </Link>
               ) : null}
             </div>
@@ -654,11 +658,12 @@ function LocationsTab({
 }
 
 function AddressesTab({ orgId }: { orgId: string }) {
+  const { t } = useI18n();
   const locations = useLocations(orgId, true);
   const rows = locations.data?.locations ?? [];
   return (
     <section className={card}>
-      <h2 className="text-sm font-bold">العناوين الذكية ({rows.length})</h2>
+      <h2 className="text-sm font-bold">{t({ ar: `العناوين الذكية (${rows.length})`, en: `Smart addresses (${rows.length})` })}</h2>
       <div className="mt-3 flex flex-col gap-2">
         {rows.map((loc) => (
           <div key={loc.id} className="flex flex-wrap items-center gap-2 rounded-lg border border-border px-3 py-2">
@@ -672,36 +677,37 @@ function AddressesTab({ orgId }: { orgId: string }) {
                     className={ghostBtn}
                     onClick={() => {
                       void navigator.clipboard.writeText(loc.smart_code!);
-                      toast.success("تم نسخ الرمز");
+                      toast.success(t({ ar: "تم نسخ الرمز", en: "Code copied" }));
                     }}
                   >
-                    نسخ
+                    {t({ ar: "نسخ", en: "Copy" })}
                   </button>
                   <Link to="/a/$code" params={{ code: loc.smart_code }} className={ghostBtn}>
-                    البطاقة
+                    {t({ ar: "البطاقة", en: "Card" })}
                   </Link>
                   <Link to="/d/$code" params={{ code: loc.smart_code }} className={ghostBtn}>
-                    وضع التوصيل
+                    {t({ ar: "وضع التوصيل", en: "Delivery mode" })}
                   </Link>
                 </>
               ) : null}
             </div>
           </div>
         ))}
-        {rows.length === 0 ? <p className="text-sm text-muted-foreground">لا توجد عناوين بعد.</p> : null}
+        {rows.length === 0 ? <p className="text-sm text-muted-foreground">{t({ ar: "لا توجد عناوين بعد.", en: "No addresses yet." })}</p> : null}
       </div>
     </section>
   );
 }
 
 function VerificationTab({ orgId }: { orgId: string }) {
+  const { t, lang } = useI18n();
   const locations = useLocations(orgId, false);
   const rows = locations.data?.locations ?? [];
   return (
     <section className={card}>
-      <h2 className="text-sm font-bold">حالة التوثيق</h2>
+      <h2 className="text-sm font-bold">{t({ ar: "حالة التوثيق", en: "Verification status" })}</h2>
       <p className="mt-1 text-xs text-muted-foreground">
-        ارفع مستوى التوثيق عبر المطالبة بالملكية ومراجعة فريق سيرياسان.
+        {t({ ar: "ارفع مستوى التوثيق عبر المطالبة بالملكية ومراجعة فريق سيرياسان.", en: "Raise your verification level by claiming ownership and passing review by the Syriasan team." })}
       </p>
       <div className="mt-3 flex flex-col gap-2">
         {rows.map((loc) => (
@@ -714,25 +720,26 @@ function VerificationTab({ orgId }: { orgId: string }) {
                   : "bg-allow-surface text-allow"
               }`}
             >
-              {VERIFICATION_LEVELS[loc.verification_level]?.ar ?? "غير موثق"}
+              {verificationLabel(loc.verification_level, lang)}
             </span>
             {loc.node?.last_verified_at ? (
               <span className="text-[11px] text-muted-foreground">
-                آخر توثيق: {new Date(loc.node.last_verified_at).toLocaleDateString("ar-SY")}
+                {t({ ar: "آخر توثيق", en: "Last verified" })}: {new Date(loc.node.last_verified_at).toLocaleDateString(lang === "ar" ? "ar-SY" : "en-GB")}
               </span>
             ) : null}
             <Link to="/claim/$id" params={{ id: loc.id }} className={`${ghostBtn} ms-auto`}>
-              طلب توثيق الملكية
+              {t({ ar: "طلب توثيق الملكية", en: "Request ownership verification" })}
             </Link>
           </div>
         ))}
-        {rows.length === 0 ? <p className="text-sm text-muted-foreground">لا توجد مواقع.</p> : null}
+        {rows.length === 0 ? <p className="text-sm text-muted-foreground">{t({ ar: "لا توجد مواقع.", en: "No locations." })}</p> : null}
       </div>
     </section>
   );
 }
 
 function CodesTab({ orgId, plate }: { orgId: string; plate: boolean }) {
+  const { t } = useI18n();
   const locations = useLocations(orgId, false);
   const rows = (locations.data?.locations ?? []).filter((loc) => loc.smart_code);
   const [open, setOpen] = useState<string | null>(null);
@@ -740,11 +747,11 @@ function CodesTab({ orgId, plate }: { orgId: string; plate: boolean }) {
 
   return (
     <section className={card}>
-      <h2 className="text-sm font-bold">{plate ? "لوحات العنوان" : "رموز QR"}</h2>
+      <h2 className="text-sm font-bold">{plate ? t({ ar: "لوحات العنوان", en: "Address plates" }) : t({ ar: "رموز QR", en: "QR codes" })}</h2>
       <p className="mt-1 text-xs text-muted-foreground">
         {plate
-          ? "اطبع لوحة بمقاسات A6 وA5 وA4 وملصق ولوحة باب وواجهة محل، مع شعار الشركة."
-          : "نزّل أو شارك رمز QR يفتح صفحة العنوان العامة للفرع."}
+          ? t({ ar: "اطبع لوحة بمقاسات A6 وA5 وA4 وملصق ولوحة باب وواجهة محل، مع شعار الشركة.", en: "Print a plate in A6, A5 and A4 sizes, plus a sticker, door sign, and storefront sign — with your company logo." })
+          : t({ ar: "نزّل أو شارك رمز QR يفتح صفحة العنوان العامة للفرع.", en: "Download or share a QR code that opens the branch's public address page." })}
       </p>
       <div className="mt-3 grid gap-2 sm:grid-cols-2">
         {rows.map((loc) => (
@@ -761,7 +768,7 @@ function CodesTab({ orgId, plate }: { orgId: string; plate: boolean }) {
             {plate ? <LayoutTemplate className="size-4 text-primary" /> : <QrCode className="size-4 text-primary" />}
           </button>
         ))}
-        {rows.length === 0 ? <p className="text-sm text-muted-foreground">لا توجد عناوين بعد.</p> : null}
+        {rows.length === 0 ? <p className="text-sm text-muted-foreground">{t({ ar: "لا توجد عناوين بعد.", en: "No addresses yet." })}</p> : null}
       </div>
 
       {current?.smart_code ? (
@@ -784,6 +791,7 @@ function CodesTab({ orgId, plate }: { orgId: string; plate: boolean }) {
 }
 
 function ApiTab() {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const list = useServerFn(listApiClients);
   const createClient = useServerFn(createApiClient);
@@ -801,15 +809,15 @@ function ApiTab() {
   return (
     <section className={card}>
       <h2 className="flex items-center gap-2 text-sm font-bold">
-        <KeyRound className="size-4 text-primary" /> الواجهة البرمجية
+        <KeyRound className="size-4 text-primary" /> {t({ ar: "الواجهة البرمجية", en: "API" })}
       </h2>
       <p className="mt-1 text-xs text-muted-foreground">
-        استخدم مفاتيح الوصول لحلّ رموز سيرياسان داخل أنظمتك. راجع
-        <Link to="/developers" className="mx-1 text-primary">دليل المطورين</Link>.
+        {t({ ar: "استخدم مفاتيح الوصول لحلّ رموز سيرياسان داخل أنظمتك. راجع", en: "Use access keys to resolve Syriasan codes inside your own systems. See the" })}
+        <Link to="/developers" className="mx-1 text-primary">{t({ ar: "دليل المطورين", en: "developer guide" })}</Link>.
       </p>
 
       <div className="mt-3 flex flex-wrap gap-2">
-        <input className={`${input} max-w-60`} placeholder="اسم التطبيق" value={name} onChange={(e) => setName(e.target.value)} />
+        <input className={`${input} max-w-60`} placeholder={t({ ar: "اسم التطبيق", en: "App name" })} value={name} onChange={(e) => setName(e.target.value)} />
         <button
           type="button"
           disabled={name.trim().length < 2}
@@ -819,13 +827,13 @@ function ApiTab() {
               await createClient({ data: { name: name.trim(), environment: "live" } });
               setName("");
               await refresh();
-              toast.success("تم إنشاء التطبيق");
+              toast.success(t({ ar: "تم إنشاء التطبيق", en: "App created" }));
             } catch {
-              toast.error("تعذر الإنشاء");
+              toast.error(t({ ar: "تعذر الإنشاء", en: "Couldn't create it" }));
             }
           }}
         >
-          <Plus className="size-3.5" /> تطبيق جديد
+          <Plus className="size-3.5" /> {t({ ar: "تطبيق جديد", en: "New app" })}
         </button>
       </div>
 
@@ -849,11 +857,11 @@ function ApiTab() {
                     setFresh(res.key);
                     await refresh();
                   } catch {
-                    toast.error("تعذر إنشاء المفتاح");
+                    toast.error(t({ ar: "تعذر إنشاء المفتاح", en: "Couldn't create the key" }));
                   }
                 }}
               >
-                مفتاح جديد
+                {t({ ar: "مفتاح جديد", en: "New key" })}
               </button>
             </div>
             <div className="mt-2 flex flex-col gap-1">
@@ -863,7 +871,7 @@ function ApiTab() {
                   <div key={key.id} className="flex items-center justify-between gap-2 text-xs">
                     <span className="font-mono" dir="ltr">{key.key_prefix}…</span>
                     {key.revoked ? (
-                      <span className="text-muted-foreground">ملغى</span>
+                      <span className="text-muted-foreground">{t({ ar: "ملغى", en: "Revoked" })}</span>
                     ) : (
                       <button
                         type="button"
@@ -873,7 +881,7 @@ function ApiTab() {
                           await refresh();
                         }}
                       >
-                        إلغاء
+                        {t({ ar: "إلغاء", en: "Revoke" })}
                       </button>
                     )}
                   </div>
@@ -887,6 +895,7 @@ function ApiTab() {
 }
 
 function TeamTab({ orgId, canAdmin }: { orgId: string; canAdmin: boolean }) {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const list = useServerFn(orgMembers);
   const add = useServerFn(addOrgMember);
@@ -904,7 +913,7 @@ function TeamTab({ orgId, canAdmin }: { orgId: string; canAdmin: boolean }) {
   return (
     <section className={card}>
       <h2 className="flex items-center gap-2 text-sm font-bold">
-        <Users className="size-4 text-primary" /> فريق العمل
+        <Users className="size-4 text-primary" /> {t({ ar: "فريق العمل", en: "Team" })}
       </h2>
       {canAdmin ? (
         <div className="mt-3 flex flex-wrap gap-2">
@@ -922,20 +931,20 @@ function TeamTab({ orgId, canAdmin }: { orgId: string; canAdmin: boolean }) {
                 await add({ data: { organization_id: orgId, email: email.trim(), role } });
                 setEmail("");
                 await refresh();
-                toast.success("تمت إضافة العضو");
+                toast.success(t({ ar: "تمت إضافة العضو", en: "Member added" }));
               } catch (error) {
                 const message = error instanceof Error ? error.message : "";
                 toast.error(
                   message.includes("user_not_registered")
-                    ? "لا يوجد حساب بهذا البريد — اطلب منه التسجيل أولاً"
+                    ? t({ ar: "لا يوجد حساب بهذا البريد — اطلب منه التسجيل أولاً", en: "No account with this email — ask them to sign up first" })
                     : message.includes("already_member")
-                      ? "هذا الشخص عضو بالفعل"
-                      : "تعذرت الإضافة",
+                      ? t({ ar: "هذا الشخص عضو بالفعل", en: "This person is already a member" })
+                      : t({ ar: "تعذرت الإضافة", en: "Couldn't add them" }),
                 );
               }
             }}
           >
-            <Plus className="size-3.5" /> إضافة
+            <Plus className="size-3.5" /> {t({ ar: "إضافة", en: "Add" })}
           </button>
         </div>
       ) : null}
@@ -975,7 +984,7 @@ function TeamTab({ orgId, canAdmin }: { orgId: string; canAdmin: boolean }) {
                   await refresh();
                 }}
               >
-                <Trash2 className="size-3.5" /> إزالة
+                <Trash2 className="size-3.5" /> {t({ ar: "إزالة", en: "Remove" })}
               </button>
             ) : null}
           </div>
@@ -986,6 +995,7 @@ function TeamTab({ orgId, canAdmin }: { orgId: string; canAdmin: boolean }) {
 }
 
 function AnalyticsTab({ orgId }: { orgId: string }) {
+  const { t } = useI18n();
   const fetchAnalytics = useServerFn(orgAnalytics);
   const [days, setDays] = useState(30);
   const stats = useQuery({
@@ -995,14 +1005,14 @@ function AnalyticsTab({ orgId }: { orgId: string }) {
 
   const cards = useMemo(
     () => [
-      { label: "عمليات حلّ العنوان", value: stats.data?.totals.resolve ?? 0 },
-      { label: "مسح رموز QR", value: stats.data?.totals.qr_scan ?? 0 },
-      { label: "بدء التوجيه", value: stats.data?.totals.navigate_start ?? 0 },
-      { label: "فتح وضع التوصيل", value: stats.data?.totals.delivery_view ?? 0 },
-      { label: "ظهور في البحث", value: stats.data?.totals.search_appearance ?? 0 },
-      { label: "عدد المواقع", value: stats.data?.locations_count ?? 0 },
+      { label: t({ ar: "عمليات حلّ العنوان", en: "Address resolutions" }), value: stats.data?.totals.resolve ?? 0 },
+      { label: t({ ar: "مسح رموز QR", en: "QR scans" }), value: stats.data?.totals.qr_scan ?? 0 },
+      { label: t({ ar: "بدء التوجيه", en: "Navigation starts" }), value: stats.data?.totals.navigate_start ?? 0 },
+      { label: t({ ar: "فتح وضع التوصيل", en: "Delivery mode opens" }), value: stats.data?.totals.delivery_view ?? 0 },
+      { label: t({ ar: "ظهور في البحث", en: "Search appearances" }), value: stats.data?.totals.search_appearance ?? 0 },
+      { label: t({ ar: "عدد المواقع", en: "Number of locations" }), value: stats.data?.locations_count ?? 0 },
     ],
-    [stats.data],
+    [stats.data, t],
   );
 
   const series = stats.data?.series ?? [];
@@ -1012,17 +1022,17 @@ function AnalyticsTab({ orgId }: { orgId: string }) {
     <section className={card}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="flex items-center gap-2 text-sm font-bold">
-          <BarChart3 className="size-4 text-primary" /> التحليلات
+          <BarChart3 className="size-4 text-primary" /> {t({ ar: "التحليلات", en: "Analytics" })}
         </h2>
         <select className={`${input} max-w-36`} value={days} onChange={(e) => setDays(Number(e.target.value))}>
-          <option value={7}>آخر 7 أيام</option>
-          <option value={30}>آخر 30 يوماً</option>
-          <option value={90}>آخر 90 يوماً</option>
+          <option value={7}>{t({ ar: "آخر 7 أيام", en: "Last 7 days" })}</option>
+          <option value={30}>{t({ ar: "آخر 30 يوماً", en: "Last 30 days" })}</option>
+          <option value={90}>{t({ ar: "آخر 90 يوماً", en: "Last 90 days" })}</option>
         </select>
       </div>
 
       <p className="mt-2 text-[11px] text-muted-foreground">
-        أرقام مجمّعة فقط — لا تُسجَّل هوية أي زائر أو عميل.
+        {t({ ar: "أرقام مجمّعة فقط — لا تُسجَّل هوية أي زائر أو عميل.", en: "Aggregate numbers only — no visitor or customer identity is ever recorded." })}
       </p>
 
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -1046,7 +1056,7 @@ function AnalyticsTab({ orgId }: { orgId: string }) {
               />
             ))}
           </div>
-          <p className="mt-2 text-[11px] text-muted-foreground">النشاط اليومي · الذروة {peak}</p>
+          <p className="mt-2 text-[11px] text-muted-foreground">{t({ ar: "النشاط اليومي", en: "Daily activity" })} · {t({ ar: "الذروة", en: "Peak" })} {peak}</p>
         </div>
       ) : null}
 
@@ -1055,15 +1065,15 @@ function AnalyticsTab({ orgId }: { orgId: string }) {
           <div key={row.code} className="flex flex-wrap items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs">
             <span className="font-bold">{row.name}</span>
             <span className="font-mono text-muted-foreground" dir="ltr">{row.code}</span>
-            <span className="ms-auto">حلّ: {row.resolve}</span>
+            <span className="ms-auto">{t({ ar: "حلّ", en: "Resolve" })}: {row.resolve}</span>
             <span>QR: {row.qr_scan}</span>
-            <span>توجيه: {row.navigate_start}</span>
-            <span>توصيل: {row.delivery_view}</span>
-            <span>بحث: {row.search_appearance}</span>
+            <span>{t({ ar: "توجيه", en: "Navigate" })}: {row.navigate_start}</span>
+            <span>{t({ ar: "توصيل", en: "Delivery" })}: {row.delivery_view}</span>
+            <span>{t({ ar: "بحث", en: "Search" })}: {row.search_appearance}</span>
           </div>
         ))}
         {stats.data && stats.data.per_location.length === 0 ? (
-          <p className="text-sm text-muted-foreground">لا يوجد نشاط في هذه الفترة بعد.</p>
+          <p className="text-sm text-muted-foreground">{t({ ar: "لا يوجد نشاط في هذه الفترة بعد.", en: "No activity in this period yet." })}</p>
         ) : null}
       </div>
     </section>
@@ -1085,6 +1095,7 @@ function SettingsTab({
   };
   canAdmin: boolean;
 }) {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const update = useServerFn(updateOrganization);
   const [form, setForm] = useState({
@@ -1112,25 +1123,25 @@ function SettingsTab({
     <PlanCard orgId={organization.id} />
     <section className={card}>
       <h2 className="flex items-center gap-2 text-sm font-bold">
-        <Settings className="size-4 text-primary" /> إعدادات الشركة
+        <Settings className="size-4 text-primary" /> {t({ ar: "إعدادات الشركة", en: "Company settings" })}
       </h2>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        <Field label="اسم الشركة (عربي)">
+        <Field label={t({ ar: "اسم الشركة (عربي)", en: "Company name (Arabic)" })}>
           <input className={input} value={form.name_ar} onChange={(e) => setForm({ ...form, name_ar: e.target.value })} />
         </Field>
         <Field label="Company name (English)">
           <input className={input} dir="ltr" value={form.name_en} onChange={(e) => setForm({ ...form, name_en: e.target.value })} />
         </Field>
-        <Field label="رابط الشعار">
+        <Field label={t({ ar: "رابط الشعار", en: "Logo URL" })}>
           <input className={input} dir="ltr" value={form.logo_url} onChange={(e) => setForm({ ...form, logo_url: e.target.value })} />
         </Field>
-        <Field label="الموقع الإلكتروني">
+        <Field label={t({ ar: "الموقع الإلكتروني", en: "Website" })}>
           <input className={input} dir="ltr" value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} />
         </Field>
-        <Field label="هاتف التواصل">
+        <Field label={t({ ar: "هاتف التواصل", en: "Contact phone" })}>
           <input className={input} dir="ltr" value={form.contact_phone} onChange={(e) => setForm({ ...form, contact_phone: e.target.value })} />
         </Field>
-        <Field label="بريد التواصل">
+        <Field label={t({ ar: "بريد التواصل", en: "Contact email" })}>
           <input className={input} dir="ltr" value={form.contact_email} onChange={(e) => setForm({ ...form, contact_email: e.target.value })} />
         </Field>
       </div>
@@ -1152,16 +1163,16 @@ function SettingsTab({
                 },
               });
               await queryClient.invalidateQueries({ queryKey: ["my-orgs"] });
-              toast.success("تم حفظ الإعدادات");
+              toast.success(t({ ar: "تم حفظ الإعدادات", en: "Settings saved" }));
             } catch {
-              toast.error("تعذر الحفظ");
+              toast.error(t({ ar: "تعذر الحفظ", en: "Couldn't save" }));
             }
           }}
         >
-          حفظ
+          {t({ ar: "حفظ", en: "Save" })}
         </button>
       ) : (
-        <p className="mt-3 text-xs text-muted-foreground">تحتاج صلاحية مدير لتعديل الإعدادات.</p>
+        <p className="mt-3 text-xs text-muted-foreground">{t({ ar: "تحتاج صلاحية مدير لتعديل الإعدادات.", en: "You need admin permission to edit settings." })}</p>
       )}
     </section>
     </div>
@@ -1170,6 +1181,7 @@ function SettingsTab({
 
 /** Current plan + usage for this organization. No pricing is shown yet. */
 function PlanCard({ orgId }: { orgId: string }) {
+  const { t } = useI18n();
   const fetchEntitlements = useServerFn(myEntitlements);
   const query = useQuery({
     queryKey: ["org-entitlements", orgId],
@@ -1182,7 +1194,7 @@ function PlanCard({ orgId }: { orgId: string }) {
   return (
     <section className={card}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-sm font-bold">الخطة الحالية</h2>
+        <h2 className="text-sm font-bold">{t({ ar: "الخطة الحالية", en: "Current plan" })}</h2>
         <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-bold text-primary">
           {def.name_ar}
         </span>
@@ -1208,11 +1220,11 @@ function PlanCard({ orgId }: { orgId: string }) {
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <Link to="/plans" className="rounded-lg border border-border px-3 py-2 text-xs font-bold">
-          مقارنة الخطط
+          {t({ ar: "مقارنة الخطط", en: "Compare plans" })}
         </Link>
         {!data.enforced ? (
           <span className="text-[11px] text-muted-foreground">
-            الحدود للاطلاع فقط حالياً — لم تُعلَن الأسعار بعد.
+            {t({ ar: "الحدود للاطلاع فقط حالياً — لم تُعلَن الأسعار بعد.", en: "Limits are informational only for now — pricing hasn't been announced yet." })}
           </span>
         ) : null}
       </div>

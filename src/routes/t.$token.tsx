@@ -6,7 +6,9 @@ import { Clock, Navigation } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { CadastralMap } from "@/components/CadastralMap";
 import { resolveTemporaryToken } from "@/lib/addresses.functions";
-import { NODE_TYPE_LABELS, PURPOSE_LABELS, formatCoords, osmDirectionsUrl } from "@/lib/smart-address";
+import { formatCoords, osmDirectionsUrl } from "@/lib/smart-address";
+import { nodeTypeLabel, purposeLabel } from "@/lib/smart-address";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/t/$token")({
   head: () => ({
@@ -25,6 +27,7 @@ export const Route = createFileRoute("/t/$token")({
 });
 
 function TempPage() {
+  const { t, lang } = useI18n();
   const { token } = Route.useParams();
   const resolve = useServerFn(resolveTemporaryToken);
   const query = useQuery({
@@ -39,20 +42,25 @@ function TempPage() {
       <AppHeader />
       <main className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-6">
         {query.isPending ? (
-          <p className="py-12 text-center text-sm text-muted-foreground">جارٍ التحقق…</p>
+          <p className="py-12 text-center text-sm text-muted-foreground">
+            {t({ ar: "جارٍ التحقق…", en: "Verifying…" })}
+          </p>
         ) : null}
 
         {data && data.status !== "ok" ? (
           <section className="rounded-2xl border border-border bg-surface p-6 text-center">
             <p className="font-bold">
               {data.status === "expired"
-                ? "انتهت صلاحية هذا الرمز المؤقت"
+                ? t({ ar: "انتهت صلاحية هذا الرمز المؤقت", en: "This temporary link has expired" })
                 : data.status === "revoked"
-                  ? "تم إلغاء هذا الرمز"
-                  : "رمز غير معروف"}
+                  ? t({ ar: "تم إلغاء هذا الرمز", en: "This link has been revoked" })
+                  : t({ ar: "رمز غير معروف", en: "Unknown link" })}
             </p>
             <p className="mt-2 text-sm text-muted-foreground">
-              اطلب رمزاً جديداً من صاحب العنوان. الرموز المؤقتة تنتهي تلقائياً لحماية الخصوصية.
+              {t({
+                ar: "اطلب رمزاً جديداً من صاحب العنوان. الرموز المؤقتة تنتهي تلقائياً لحماية الخصوصية.",
+                en: "Ask the address owner for a new link. Temporary links expire automatically to protect privacy.",
+              })}
             </p>
           </section>
         ) : null}
@@ -61,12 +69,14 @@ function TempPage() {
           <>
             <section className="animate-entrance rounded-2xl border border-primary/40 bg-primary/5 p-4">
               <span className="text-[10px] font-bold uppercase tracking-widest text-primary">
-                وصول مؤقت — {PURPOSE_LABELS[data.purpose] ?? data.purpose}
+                {t({ ar: "وصول مؤقت", en: "Temporary access" })} — {purposeLabel(data.purpose, lang)}
               </span>
-              <h1 className="text-xl font-bold">{data.site?.display_name ?? "الوجهة"}</h1>
+              <h1 className="text-xl font-bold">
+                {data.site?.display_name ?? t({ ar: "الوجهة", en: "Destination" })}
+              </h1>
               <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Clock className="size-3" />
-                ينتهي: {new Date(data.expires_at).toLocaleString("ar-SY")}
+                {t({ ar: "ينتهي:", en: "Expires:" })} {new Date(data.expires_at).toLocaleString(lang === "ar" ? "ar-SY" : "en-GB")}
               </p>
             </section>
 
@@ -87,14 +97,12 @@ function TempPage() {
 
             <section className="animate-entrance rounded-2xl border border-border bg-surface p-4">
               <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                الوجهة
+                {t({ ar: "الوجهة", en: "Destination" })}
               </h2>
               <div className="mt-2 space-y-1 text-sm">
                 {data.chain.map((level, index) => (
                   <p key={`${level.node_type}-${index}`}>
-                    <span className="text-muted-foreground">
-                      {NODE_TYPE_LABELS[level.node_type] ?? level.node_type}:
-                    </span>{" "}
+                    <span className="text-muted-foreground">{nodeTypeLabel(level.node_type, lang)}:</span>{" "}
                     <strong>{level.label}</strong>
                   </p>
                 ))}
@@ -106,7 +114,8 @@ function TempPage() {
               ) : null}
               {data.access_point?.parking_info ?? data.site?.parking_info ? (
                 <p className="mt-2 rounded-lg border border-border bg-background p-3 text-sm">
-                  المواقف: {data.access_point?.parking_info ?? data.site?.parking_info}
+                  {t({ ar: "المواقف:", en: "Parking:" })}{" "}
+                  {data.access_point?.parking_info ?? data.site?.parking_info}
                 </p>
               ) : null}
               {data.contact_name || data.contact_phone ? (
@@ -138,12 +147,14 @@ function TempPage() {
                   rel="noreferrer"
                   className="mt-4 flex items-center justify-center gap-1.5 rounded-xl bg-primary py-3 text-sm font-bold text-primary-foreground"
                 >
-                  <Navigation className="size-4" /> الاتجاهات
+                  <Navigation className="size-4" /> {t({ ar: "الاتجاهات", en: "Directions" })}
                 </a>
               ) : null}
               <p className="mt-3 text-[11px] text-muted-foreground">
-                هذا الرابط يكشف فقط ما اختار صاحب العنوان مشاركته، وينتهي تلقائياً. العنوان يبقى خاصاً
-                وغير قابل للبحث.
+                {t({
+                  ar: "هذا الرابط يكشف فقط ما اختار صاحب العنوان مشاركته، وينتهي تلقائياً. العنوان يبقى خاصاً وغير قابل للبحث.",
+                  en: "This link reveals only what the address owner chose to share, and expires automatically. The address stays private and unsearchable.",
+                })}
               </p>
             </section>
           </>

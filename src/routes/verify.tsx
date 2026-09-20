@@ -8,7 +8,8 @@ import { BadgeCheck, MapPin } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { submitVerification, verifierQueue } from "@/lib/network.functions";
-import { ACCESS_TYPE_LABELS, NODE_TYPE_LABELS, VERIFICATION_LEVELS } from "@/lib/smart-address";
+import { accessTypeLabel, nodeTypeLabel, verificationLabel } from "@/lib/smart-address";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/verify")({
   head: () => ({
@@ -25,19 +26,20 @@ export const Route = createFileRoute("/verify")({
 });
 
 const LEVEL_OPTIONS = [
-  { value: "community_confirmed", ar: "مؤكد مجتمعياً" },
-  { value: "courier_verified", ar: "موثق من شركة توصيل" },
-  { value: "officially_verified", ar: "توثيق رسمي" },
+  { value: "community_confirmed", ar: "مؤكد مجتمعياً", en: "Community-confirmed" },
+  { value: "courier_verified", ar: "موثق من شركة توصيل", en: "Courier-verified" },
+  { value: "officially_verified", ar: "توثيق رسمي", en: "Officially verified" },
 ] as const;
 
 const METHOD_OPTIONS = [
-  { value: "field_visit", ar: "زيارة ميدانية" },
-  { value: "photo_evidence", ar: "صورة توثيقية" },
-  { value: "local_authority", ar: "مصدر محلي رسمي" },
-  { value: "courier_log", ar: "سجل توصيل ناجح" },
+  { value: "field_visit", ar: "زيارة ميدانية", en: "Field visit" },
+  { value: "photo_evidence", ar: "صورة توثيقية", en: "Photo evidence" },
+  { value: "local_authority", ar: "مصدر محلي رسمي", en: "Local official source" },
+  { value: "courier_log", ar: "سجل توصيل ناجح", en: "Successful delivery log" },
 ] as const;
 
 function VerifyPage() {
+  const { t, lang } = useI18n();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const queueFn = useServerFn(verifierQueue);
@@ -69,10 +71,10 @@ function VerifyPage() {
           method,
         },
       });
-      toast.success("تم تسجيل التوثيق ورفع درجة الثقة");
+      toast.success(t({ ar: "تم تسجيل التوثيق ورفع درجة الثقة", en: "Verification recorded and trust score raised" }));
       await queryClient.invalidateQueries({ queryKey: ["verifier-queue"] });
     } catch {
-      toast.error("تعذّر التوثيق — تحتاج صلاحية موثق ميداني");
+      toast.error(t({ ar: "تعذّر التوثيق — تحتاج صلاحية موثق ميداني", en: "Couldn't verify — field verifier permission required" }));
     } finally {
       setBusyId(null);
     }
@@ -83,13 +85,13 @@ function VerifyPage() {
       <div className="min-h-screen bg-background text-foreground">
         <AppHeader />
         <main className="mx-auto max-w-md px-4 py-16 text-center">
-          <h1 className="text-xl font-bold">يلزم تسجيل الدخول</h1>
+          <h1 className="text-xl font-bold">{t({ ar: "يلزم تسجيل الدخول", en: "Sign in required" })}</h1>
           <button
             type="button"
             onClick={() => navigate({ to: "/auth", search: { redirect: "/verify" } })}
             className="mt-6 rounded-lg bg-primary px-5 py-3 text-sm font-bold text-primary-foreground"
           >
-            الدخول
+            {t({ ar: "الدخول", en: "Sign in" })}
           </button>
         </main>
       </div>
@@ -101,22 +103,25 @@ function VerifyPage() {
       <AppHeader />
       <main className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-6">
         <div>
-          <h1 className="text-lg font-bold">قائمة التوثيق الميداني</h1>
+          <h1 className="text-lg font-bold">{t({ ar: "قائمة التوثيق الميداني", en: "Field verification queue" })}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            مواقع ومداخل بمستوى توثيق منخفض. كل توثيق يرفع درجة الثقة +10 ويُسجَّل في سجل التدقيق.
+            {t({
+              ar: "مواقع ومداخل بمستوى توثيق منخفض. كل توثيق يرفع درجة الثقة +10 ويُسجَّل في سجل التدقيق.",
+              en: "Locations and access points with low verification levels. Every verification raises the trust score by +10 and is logged in the audit trail.",
+            })}
           </p>
         </div>
 
         {query.data && !query.data.authorized ? (
           <p className="rounded-2xl border border-border bg-surface p-6 text-center text-sm text-muted-foreground">
-            هذه القائمة مخصصة للموثقين الميدانيين والمراجعين فقط.
+            {t({ ar: "هذه القائمة مخصصة للموثقين الميدانيين والمراجعين فقط.", en: "This queue is only available to field verifiers and reviewers." })}
           </p>
         ) : null}
 
         {query.data?.authorized ? (
           <>
             <section className="flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-surface p-3 text-xs">
-              <span className="font-bold text-muted-foreground">مستوى التوثيق:</span>
+              <span className="font-bold text-muted-foreground">{t({ ar: "مستوى التوثيق:", en: "Verification level:" })}</span>
               {LEVEL_OPTIONS.map((option) => (
                 <button
                   key={option.value}
@@ -128,10 +133,10 @@ function VerifyPage() {
                       : "border border-border text-muted-foreground"
                   }`}
                 >
-                  {option.ar}
+                  {t({ ar: option.ar, en: option.en })}
                 </button>
               ))}
-              <span className="ms-3 font-bold text-muted-foreground">الطريقة:</span>
+              <span className="ms-3 font-bold text-muted-foreground">{t({ ar: "الطريقة:", en: "Method:" })}</span>
               {METHOD_OPTIONS.map((option) => (
                 <button
                   key={option.value}
@@ -143,18 +148,18 @@ function VerifyPage() {
                       : "border border-border text-muted-foreground"
                   }`}
                 >
-                  {option.ar}
+                  {t({ ar: option.ar, en: option.en })}
                 </button>
               ))}
             </section>
 
             <section className="rounded-2xl border border-border bg-surface p-4">
               <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                مواقع ({query.data.nodes.length})
+                {t({ ar: "مواقع", en: "Locations" })} ({query.data.nodes.length})
               </h2>
               <div className="mt-3 space-y-2">
                 {query.data.nodes.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">لا مواقع بانتظار التوثيق.</p>
+                  <p className="text-sm text-muted-foreground">{t({ ar: "لا مواقع بانتظار التوثيق.", en: "No locations awaiting verification." })}</p>
                 ) : null}
                 {query.data.nodes.map((node) => (
                   <div
@@ -164,12 +169,12 @@ function VerifyPage() {
                     <div>
                       <p className="text-sm font-bold">{node.display_name}</p>
                       <p className="text-[11px] text-muted-foreground">
-                        {NODE_TYPE_LABELS[node.node_type] ?? node.node_type} ·{" "}
-                        {[node.neighborhood, node.city].filter(Boolean).join(" — ")} · ثقة{" "}
-                        {node.confidence_score}%
+                        {nodeTypeLabel(node.node_type, lang)} ·{" "}
+                        {[node.neighborhood, node.city].filter(Boolean).join(" — ")} ·{" "}
+                        {t({ ar: "ثقة", en: "trust" })} {node.confidence_score}%
                       </p>
                       <span className="mt-1 inline-block rounded-md bg-secondary px-2 py-0.5 text-[10px] font-bold">
-                        {VERIFICATION_LEVELS[node.verification_level]?.ar ?? node.verification_level}
+                        {verificationLabel(node.verification_level, lang)}
                       </span>
                     </div>
                     <div className="flex shrink-0 gap-1.5">
@@ -179,7 +184,7 @@ function VerifyPage() {
                           target="_blank"
                           rel="noreferrer"
                           className="grid size-8 place-items-center rounded-lg border border-border text-muted-foreground"
-                          aria-label="فتح الموقع على الخريطة"
+                          aria-label={t({ ar: "فتح الموقع على الخريطة", en: "Open location on the map" })}
                         >
                           <MapPin className="size-3.5" />
                         </a>
@@ -190,7 +195,7 @@ function VerifyPage() {
                         onClick={() => verify({ node_id: node.id })}
                         className="flex items-center gap-1.5 rounded-lg bg-allow px-3 py-2 text-[11px] font-bold text-primary-foreground disabled:opacity-50"
                       >
-                        <BadgeCheck className="size-3.5" /> توثيق
+                        <BadgeCheck className="size-3.5" /> {t({ ar: "توثيق", en: "Verify" })}
                       </button>
                     </div>
                   </div>
@@ -200,11 +205,11 @@ function VerifyPage() {
 
             <section className="rounded-2xl border border-border bg-surface p-4">
               <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                مداخل ونقاط وصول ({query.data.access_points.length})
+                {t({ ar: "مداخل ونقاط وصول", en: "Entrances and access points" })} ({query.data.access_points.length})
               </h2>
               <div className="mt-3 space-y-2">
                 {query.data.access_points.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">لا مداخل بانتظار التوثيق.</p>
+                  <p className="text-sm text-muted-foreground">{t({ ar: "لا مداخل بانتظار التوثيق.", en: "No access points awaiting verification." })}</p>
                 ) : null}
                 {query.data.access_points.map((ap) => (
                   <div
@@ -214,8 +219,8 @@ function VerifyPage() {
                     <div>
                       <p className="text-sm font-bold">{ap.display_name}</p>
                       <p className="text-[11px] text-muted-foreground">
-                        {ACCESS_TYPE_LABELS[ap.access_type] ?? ap.access_type} ·{" "}
-                        {ap.location_nodes?.display_name ?? ""} · ثقة {ap.confidence_score}%
+                        {accessTypeLabel(ap.access_type, lang)} ·{" "}
+                        {ap.location_nodes?.display_name ?? ""} · {t({ ar: "ثقة", en: "trust" })} {ap.confidence_score}%
                       </p>
                     </div>
                     <button
@@ -224,7 +229,7 @@ function VerifyPage() {
                       onClick={() => verify({ access_point_id: ap.id })}
                       className="flex shrink-0 items-center gap-1.5 rounded-lg bg-allow px-3 py-2 text-[11px] font-bold text-primary-foreground disabled:opacity-50"
                     >
-                      <BadgeCheck className="size-3.5" /> توثيق
+                      <BadgeCheck className="size-3.5" /> {t({ ar: "توثيق", en: "Verify" })}
                     </button>
                   </div>
                 ))}
@@ -234,7 +239,7 @@ function VerifyPage() {
         ) : null}
 
         {query.isPending ? (
-          <p className="py-10 text-center text-sm text-muted-foreground">جارٍ التحميل…</p>
+          <p className="py-10 text-center text-sm text-muted-foreground">{t({ ar: "جارٍ التحميل…", en: "Loading…" })}</p>
         ) : null}
       </main>
     </div>

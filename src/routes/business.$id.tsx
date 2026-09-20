@@ -24,11 +24,12 @@ import { CadastralMap, type MapPin as CadMapPin } from "@/components/CadastralMa
 import { supabase } from "@/integrations/supabase/client";
 import { getBusinessProfile } from "@/lib/addresses.functions";
 import { myClaims } from "@/lib/claims.functions";
+import { useI18n } from "@/lib/i18n";
 import {
-  ACCESSIBILITY_LABELS,
-  VERIFICATION_LEVELS,
+  accessibilityLabel,
   formatCoords,
   osmDirectionsUrl,
+  verificationLabel,
 } from "@/lib/smart-address";
 
 export const Route = createFileRoute("/business/$id")({
@@ -51,6 +52,7 @@ export const Route = createFileRoute("/business/$id")({
 });
 
 function BusinessPage() {
+  const { t, lang } = useI18n();
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const fetchProfile = useServerFn(getBusinessProfile);
@@ -120,14 +122,18 @@ function BusinessPage() {
       <AppHeader />
       <main className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-6">
         {query.isPending ? (
-          <p className="py-16 text-center text-sm text-muted-foreground">جارٍ التحميل…</p>
+          <p className="py-16 text-center text-sm text-muted-foreground">
+            {t({ ar: "جارٍ التحميل…", en: "Loading…" })}
+          </p>
         ) : null}
 
         {data?.status === "not_found" ? (
           <section className="rounded-2xl border border-border bg-surface p-6 text-center">
-            <p className="font-bold">هذا العمل غير منشور أو غير موجود</p>
+            <p className="font-bold">
+              {t({ ar: "هذا العمل غير منشور أو غير موجود", en: "This business is not published or does not exist" })}
+            </p>
             <Link to="/search" className="mt-3 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground">
-              البحث في الشبكة
+              {t({ ar: "البحث في الشبكة", en: "Search the network" })}
             </Link>
           </section>
         ) : null}
@@ -139,7 +145,7 @@ function BusinessPage() {
                 <div>
                   <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-primary">
                     <Store className="size-3" />
-                    {ok.business!.category ?? "عمل"}
+                    {ok.business!.category ?? t({ ar: "عمل", en: "Business" })}
                   </span>
                   <h1 className="mt-1 text-2xl font-bold leading-tight">{ok.business!.name_ar}</h1>
                   {ok.business!.name_en ? (
@@ -156,7 +162,7 @@ function BusinessPage() {
                   }`}
                 >
                   <BadgeCheck className="size-3" />
-                  {VERIFICATION_LEVELS[ok.business!.verification_level]?.ar ?? "غير موثق"}
+                  {verificationLabel(ok.business!.verification_level, lang) ?? t({ ar: "غير موثق", en: "Unverified" })}
                 </span>
               </div>
 
@@ -184,7 +190,7 @@ function BusinessPage() {
                     rel="noreferrer"
                     className="flex items-center gap-1 text-primary"
                   >
-                    <Globe className="size-3.5" /> الموقع الإلكتروني
+                    <Globe className="size-3.5" /> {t({ ar: "الموقع الإلكتروني", en: "Website" })}
                   </a>
                 ) : null}
               </div>
@@ -200,7 +206,7 @@ function BusinessPage() {
                       search={{ code: ok.smart_code }}
                       className="rounded-lg bg-primary px-3 py-2 text-xs font-bold text-primary-foreground"
                     >
-                      حلّل الوصول
+                      {t({ ar: "حلّل الوصول", en: "Resolve access" })}
                     </Link>
                     <button
                       type="button"
@@ -208,7 +214,7 @@ function BusinessPage() {
                       className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-bold"
                     >
                       <QrCode className="size-3.5" />
-                      بطاقة QR
+                      {t({ ar: "بطاقة QR", en: "QR card" })}
                     </button>
                   </div>
                 </div>
@@ -220,11 +226,11 @@ function BusinessPage() {
             </section>
 
             {[
-              { ap: ok.visitor_access_point, label: "مدخل الزوار", icon: Users },
-              { ap: ok.delivery_access_point, label: "مدخل التوصيل", icon: Bike },
+              { ap: ok.visitor_access_point, label: t({ ar: "مدخل الزوار", en: "Visitor entrance" }), isDelivery: false, icon: Users },
+              { ap: ok.delivery_access_point, label: t({ ar: "مدخل التوصيل", en: "Delivery entrance" }), isDelivery: true, icon: Bike },
             ]
               .filter((entry) => entry.ap)
-              .map(({ ap, label, icon: Icon }) => (
+              .map(({ ap, label, isDelivery, icon: Icon }) => (
                 <section
                   key={label}
                   className="animate-entrance rounded-2xl border border-border bg-surface p-4 shadow-sm"
@@ -237,7 +243,7 @@ function BusinessPage() {
                     {ok.smart_code ? (
                       <DirectionsButton
                         code={ok.smart_code}
-                        mode={label === "مدخل التوصيل" ? "delivery" : "driving"}
+                        mode={isDelivery ? "delivery" : "driving"}
                       />
                     ) : null}
                     <a
@@ -246,7 +252,7 @@ function BusinessPage() {
                       rel="noreferrer"
                       className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-[11px] font-bold"
                     >
-                      <Navigation className="size-3" /> خرائط خارجية
+                      <Navigation className="size-3" /> {t({ ar: "خرائط خارجية", en: "External maps" })}
                     </a>
                   </div>
                   <p className="mt-1 font-mono text-[11px] text-muted-foreground" dir="ltr">
@@ -265,7 +271,7 @@ function BusinessPage() {
                     </span>
                     {ap!.accessibility.map((item) => (
                       <span key={item} className="rounded-md border border-border px-2 py-0.5">
-                        {ACCESSIBILITY_LABELS[item] ?? item}
+                        {accessibilityLabel(item, lang)}
                       </span>
                     ))}
                   </div>
@@ -275,20 +281,25 @@ function BusinessPage() {
             <section className="animate-entrance rounded-2xl border border-border bg-surface p-5">
               {claimState === "owner" ? (
                 <p className="flex items-center gap-2 text-sm font-bold text-allow">
-                  <BadgeCheck className="size-4" /> أنت مالك هذا العمل.
+                  <BadgeCheck className="size-4" /> {t({ ar: "أنت مالك هذا العمل.", en: "You are the owner of this business." })}
                 </p>
               ) : claimState === "pending" ? (
-                <p className="text-sm font-bold">طلب المطالبة قيد المراجعة من فريق التوثيق.</p>
+                <p className="text-sm font-bold">
+                  {t({ ar: "طلب المطالبة قيد المراجعة من فريق التوثيق.", en: "Your ownership claim is under review by our verification team." })}
+                </p>
               ) : (
                 <>
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <h2 className="flex items-center gap-2 text-sm font-bold">
                         <Handshake className="size-4 text-primary" />
-                        هل هذا عملك؟
+                        {t({ ar: "هل هذا عملك؟", en: "Is this your business?" })}
                       </h2>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        المطالبة تمنحك إدارة الملف ومداخله بعد مراجعة بشرية.
+                        {t({
+                          ar: "المطالبة تمنحك إدارة الملف ومداخله بعد مراجعة بشرية.",
+                          en: "Claiming ownership gives you control over this profile and its entrances after human review.",
+                        })}
                       </p>
                     </div>
                     <button
@@ -302,12 +313,16 @@ function BusinessPage() {
                       }}
                       className="shrink-0 rounded-lg bg-foreground px-4 py-2 text-xs font-bold text-background"
                     >
-                      {authed === false ? "سجّل الدخول للمطالبة" : "طالب بالملكية"}
+                      {authed === false
+                        ? t({ ar: "سجّل الدخول للمطالبة", en: "Sign in to claim" })
+                        : t({ ar: "طالب بالملكية", en: "Claim ownership" })}
                     </button>
                   </div>
                   <p className="mt-2 text-[11px] text-muted-foreground">
-                    ستطلب منك الخطوة التالية اسمك وصفتك ووسيلة تواصل ووثيقة إثبات (سجل تجاري، عقد، أو
-                    فاتورة) لمراجعتها من فريق التوثيق.
+                    {t({
+                      ar: "ستطلب منك الخطوة التالية اسمك وصفتك ووسيلة تواصل ووثيقة إثبات (سجل تجاري، عقد، أو فاتورة) لمراجعتها من فريق التوثيق.",
+                      en: "The next step will ask for your name, role, a contact method, and a supporting document (business registration, contract, or invoice) for our verification team to review.",
+                    })}
                   </p>
                 </>
               )}

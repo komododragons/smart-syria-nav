@@ -5,6 +5,7 @@ import { Copy } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
 import { SyriasanAddressField, type CheckoutAddressPayload } from "@/components/SyriasanAddressField";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/checkout-component")({
   head: () => ({
@@ -115,6 +116,7 @@ const SHOPIFY_SNIPPET = `{% comment %} Shopify — checkout / cart page block {%
 </script>`;
 
 function Snippet({ title, code }: { title: string; code: string }) {
+  const { t } = useI18n();
   return (
     <section className={card}>
       <div className="flex items-center justify-between gap-2">
@@ -124,10 +126,10 @@ function Snippet({ title, code }: { title: string; code: string }) {
           className="flex items-center gap-1.5 rounded-lg border border-border px-2 py-1 text-[11px] font-bold"
           onClick={() => {
             void navigator.clipboard.writeText(code);
-            toast.success("تم النسخ");
+            toast.success(t({ ar: "تم النسخ", en: "Copied" }));
           }}
         >
-          <Copy className="size-3" /> نسخ
+          <Copy className="size-3" /> {t({ ar: "نسخ", en: "Copy" })}
         </button>
       </div>
       <pre
@@ -141,6 +143,7 @@ function Snippet({ title, code }: { title: string; code: string }) {
 }
 
 function CheckoutComponentPage() {
+  const { t } = useI18n();
   const [confirmed, setConfirmed] = useState<CheckoutAddressPayload | null>(null);
 
   return (
@@ -148,11 +151,12 @@ function CheckoutComponentPage() {
       <AppHeader />
       <main className="mx-auto grid max-w-5xl gap-4 p-4">
         <header>
-          <h1 className="text-xl font-black">مكوّن العنوان للمتاجر الإلكترونية</h1>
+          <h1 className="text-xl font-black">{t({ ar: "مكوّن العنوان للمتاجر الإلكترونية", en: "Address component for online stores" })}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            بدل أن يكتب العميل عنواناً سورياً طويلاً في كل طلب، يكتب رمز سيرياسان مرة واحدة —
-            يُحل العنوان ويؤكده العميل، ويصل المتجر إلى إحداثيات المدخل مباشرة. لا تُكشف بيانات
-            الشقة الخاصة إلا إذا شاركها صاحب العنوان عبر رابط مؤقت.
+            {t({
+              ar: "بدل أن يكتب العميل عنواناً سورياً طويلاً في كل طلب، يكتب رمز سيرياسان مرة واحدة — يُحل العنوان ويؤكده العميل، ويصل المتجر إلى إحداثيات المدخل مباشرة. لا تُكشف بيانات الشقة الخاصة إلا إذا شاركها صاحب العنوان عبر رابط مؤقت.",
+              en: "Instead of typing a long Syrian address on every order, the customer enters a Syriasan code once — the address resolves and the customer confirms it, giving the store the entrance coordinates directly. Private apartment details are never exposed unless the address owner shares them through a temporary link.",
+            })}
           </p>
         </header>
 
@@ -161,7 +165,7 @@ function CheckoutComponentPage() {
             <SyriasanAddressField onConfirm={setConfirmed} onClear={() => setConfirmed(null)} />
             {confirmed ? (
               <section className={card}>
-                <h3 className="text-sm font-bold">ما يستلمه المتجر عند التأكيد</h3>
+                <h3 className="text-sm font-bold">{t({ ar: "ما يستلمه المتجر عند التأكيد", en: "What the store receives on confirmation" })}</h3>
                 <pre
                   dir="ltr"
                   className="mt-2 max-h-72 overflow-auto rounded-xl bg-muted/50 p-3 text-left text-[11px]"
@@ -173,24 +177,44 @@ function CheckoutComponentPage() {
           </div>
 
           <div className="grid gap-3">
-            <Snippet title="تضمين في أي متجر (HTML + JS)" code={EMBED_SNIPPET} />
-            <Snippet title="React / Next.js" code={REACT_SNIPPET} />
+            <Snippet title={t({ ar: "تضمين في أي متجر (HTML + JS)", en: "Embed in any store (HTML + JS)" })} code={EMBED_SNIPPET} />
+            <Snippet title={t({ ar: "React / Next.js", en: "React / Next.js" })} code={REACT_SNIPPET} />
           </div>
         </div>
 
-        <Snippet title="واجهة REST العامة" code={API_SNIPPET} />
+        <Snippet title={t({ ar: "واجهة REST العامة", en: "Public REST API" })} code={API_SNIPPET} />
         <div className="grid gap-4 lg:grid-cols-2">
-          <Snippet title="WooCommerce" code={WOO_SNIPPET} />
-          <Snippet title="Shopify" code={SHOPIFY_SNIPPET} />
+          <Snippet title={t({ ar: "WooCommerce", en: "WooCommerce" })} code={WOO_SNIPPET} />
+          <Snippet title={t({ ar: "Shopify", en: "Shopify" })} code={SHOPIFY_SNIPPET} />
         </div>
 
         <section className={card}>
-          <h3 className="text-sm font-bold">قواعد الخصوصية في الدفع</h3>
+          <h3 className="text-sm font-bold">{t({ ar: "قواعد الخصوصية في الدفع", en: "Privacy rules at checkout" })}</h3>
           <ul className="mt-2 grid gap-1 text-xs text-muted-foreground">
-            <li>• الرموز العامة تعيد بيانات عامة فقط (محافظة، حي، شارع، بناء، مدخل).</li>
-            <li>• العناوين السكنية الخاصة لا تُحل عبر الرمز — تُستخدم روابط مؤقتة SY-TMP-….</li>
-            <li>• الرابط المؤقت يكشف فقط الحقول التي وافق صاحب العنوان على مشاركتها، وينتهي تلقائياً.</li>
-            <li>• لا يُسلَّم أي عنوان للمتجر قبل أن يضغط العميل «تأكيد هذا العنوان».</li>
+            <li>
+              {t({
+                ar: "• الرموز العامة تعيد بيانات عامة فقط (محافظة، حي، شارع، بناء، مدخل).",
+                en: "• Public codes return only public data (governorate, neighborhood, street, building, entrance).",
+              })}
+            </li>
+            <li>
+              {t({
+                ar: "• العناوين السكنية الخاصة لا تُحل عبر الرمز — تُستخدم روابط مؤقتة SY-TMP-….",
+                en: "• Private residential addresses never resolve through the code — temporary SY-TMP-… links are used instead.",
+              })}
+            </li>
+            <li>
+              {t({
+                ar: "• الرابط المؤقت يكشف فقط الحقول التي وافق صاحب العنوان على مشاركتها، وينتهي تلقائياً.",
+                en: "• A temporary link exposes only the fields the address owner agreed to share, and it expires automatically.",
+              })}
+            </li>
+            <li>
+              {t({
+                ar: "• لا يُسلَّم أي عنوان للمتجر قبل أن يضغط العميل «تأكيد هذا العنوان».",
+                en: "• No address is handed to the store until the customer clicks \"Confirm this address.\"",
+              })}
+            </li>
           </ul>
         </section>
       </main>

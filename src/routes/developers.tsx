@@ -13,6 +13,7 @@ import {
   listApiClients,
   revokeApiKey,
 } from "@/lib/network.functions";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/developers")({
   head: () => ({
@@ -34,6 +35,7 @@ export const Route = createFileRoute("/developers")({
 });
 
 function DevelopersPage() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const listFn = useServerFn(listApiClients);
@@ -63,13 +65,13 @@ function DevelopersPage() {
       <div className="min-h-screen bg-background text-foreground">
         <AppHeader />
         <main className="mx-auto max-w-md px-4 py-16 text-center">
-          <h1 className="text-xl font-bold">يلزم تسجيل الدخول</h1>
+          <h1 className="text-xl font-bold">{t({ ar: "يلزم تسجيل الدخول", en: "Sign-in required" })}</h1>
           <button
             type="button"
             onClick={() => navigate({ to: "/auth", search: { redirect: "/developers" } })}
             className="mt-6 rounded-lg bg-primary px-5 py-3 text-sm font-bold text-primary-foreground"
           >
-            الدخول
+            {t({ ar: "الدخول", en: "Sign in" })}
           </button>
         </main>
       </div>
@@ -81,9 +83,9 @@ function DevelopersPage() {
       <AppHeader />
       <main className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-6">
         <div>
-          <h1 className="text-lg font-bold">واجهة المطورين</h1>
+          <h1 className="text-lg font-bold">{t({ ar: "واجهة المطورين", en: "Developer API" })}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            حلّل العناوين الذكية العامة برمجياً. النقطة العامة:
+            {t({ ar: "حلّل العناوين الذكية العامة برمجياً. النقطة العامة:", en: "Resolve public smart addresses programmatically. Public endpoint:" })}
           </p>
           <code
             dir="ltr"
@@ -93,43 +95,43 @@ function DevelopersPage() {
             Header: x-api-key: san_live_…
           </code>
           <p className="mt-1 text-[11px] text-muted-foreground">
-            المفتاح اختياري للاستخدام العام المحدود، وإلزامي لتتبع الاستهلاك ورفع حدود المعدل.
+            {t({ ar: "المفتاح اختياري للاستخدام العام المحدود، وإلزامي لتتبع الاستهلاك ورفع حدود المعدل.", en: "The key is optional for limited public use, and required for usage tracking and higher rate limits." })}
           </p>
           <Link
             to="/checkout-component"
             className="mt-3 inline-flex rounded-lg border border-primary/50 px-3 py-2 text-xs font-bold text-primary"
           >
-            مكوّن العنوان للمتاجر الإلكترونية (WooCommerce / Shopify / مخصص)
+            {t({ ar: "مكوّن العنوان للمتاجر الإلكترونية (WooCommerce / Shopify / مخصص)", en: "Address component for online stores (WooCommerce / Shopify / custom)" })}
           </Link>
           <Link
             to="/docs"
             className="mt-2 inline-flex rounded-lg bg-primary px-3 py-2 text-xs font-bold text-primary-foreground"
           >
-            بوابة المطورين: توثيق كامل + أمثلة + وضع اختبار
+            {t({ ar: "بوابة المطورين: توثيق كامل + أمثلة + وضع اختبار", en: "Developer portal: full docs + examples + sandbox mode" })}
           </Link>
           <Link
             to="/widget"
             className="mt-2 inline-flex rounded-lg border border-primary/50 px-3 py-2 text-xs font-bold text-primary"
           >
-            أداة العنوان القابلة للتضمين (سطر واحد + بروتوكول الحزم)
+            {t({ ar: "أداة العنوان القابلة للتضمين (سطر واحد + بروتوكول الحزم)", en: "Embeddable address widget (one line + package protocol)" })}
           </Link>
           <Link
             to="/api-reference"
             className="mt-2 inline-flex rounded-lg border border-primary/50 px-3 py-2 text-xs font-bold text-primary"
           >
-            مرجع الواجهة البرمجية v1 (العناوين، الحلّ، البحث، المسارات، QR)
+            {t({ ar: "مرجع الواجهة البرمجية v1 (العناوين، الحلّ، البحث، المسارات، QR)", en: "API v1 reference (addresses, resolve, search, routes, QR)" })}
           </Link>
         </div>
 
         <section className="rounded-2xl border border-border bg-surface p-4">
           <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-            عميل API جديد
+            {t({ ar: "عميل API جديد", en: "New API client" })}
           </h2>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <input
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder="اسم التطبيق أو الشركة"
+              placeholder={t({ ar: "اسم التطبيق أو الشركة", en: "App or company name" })}
               className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
             />
             <div className="flex gap-1.5 text-xs">
@@ -144,7 +146,7 @@ function DevelopersPage() {
                       : "border border-border text-muted-foreground"
                   }`}
                 >
-                  {env === "live" ? "إنتاج" : "تجريبي"}
+                  {env === "live" ? t({ ar: "إنتاج", en: "Live" }) : t({ ar: "تجريبي", en: "Test" })}
                 </button>
               ))}
             </div>
@@ -156,17 +158,17 @@ function DevelopersPage() {
                 try {
                   await createClientFn({ data: { name: name.trim(), environment } });
                   setName("");
-                  toast.success("تم إنشاء العميل");
+                  toast.success(t({ ar: "تم إنشاء العميل", en: "Client created" }));
                   await refresh();
                 } catch {
-                  toast.error("تعذر إنشاء العميل");
+                  toast.error(t({ ar: "تعذر إنشاء العميل", en: "Couldn't create the client" }));
                 } finally {
                   setBusy(false);
                 }
               }}
               className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground disabled:opacity-50"
             >
-              <Plus className="size-3.5" /> إنشاء
+              <Plus className="size-3.5" /> {t({ ar: "إنشاء", en: "Create" })}
             </button>
           </div>
         </section>
@@ -174,7 +176,7 @@ function DevelopersPage() {
         {freshKey ? (
           <section className="rounded-2xl border border-primary/40 bg-surface p-4">
             <h2 className="text-xs font-bold uppercase tracking-widest text-primary">
-              مفتاحك الجديد — يُعرض مرة واحدة فقط
+              {t({ ar: "مفتاحك الجديد — يُعرض مرة واحدة فقط", en: "Your new key — shown only once" })}
             </h2>
             <div className="mt-2 flex items-center gap-2">
               <code dir="ltr" className="flex-1 break-all rounded-lg bg-background p-3 font-mono text-xs">
@@ -184,16 +186,16 @@ function DevelopersPage() {
                 type="button"
                 onClick={() => {
                   void navigator.clipboard.writeText(freshKey);
-                  toast.success("تم النسخ");
+                  toast.success(t({ ar: "تم النسخ", en: "Copied" }));
                 }}
                 className="grid size-9 shrink-0 place-items-center rounded-lg border border-border"
-                aria-label="نسخ المفتاح"
+                aria-label={t({ ar: "نسخ المفتاح", en: "Copy key" })}
               >
                 <Copy className="size-4" />
               </button>
             </div>
             <p className="mt-2 text-[11px] text-muted-foreground">
-              نخزّن بصمة المفتاح فقط — لا يمكن استرجاعه لاحقاً. احفظه الآن.
+              {t({ ar: "نخزّن بصمة المفتاح فقط — لا يمكن استرجاعه لاحقاً. احفظه الآن.", en: "We only store a fingerprint of the key — it can't be retrieved later. Save it now." })}
             </p>
           </section>
         ) : null}
@@ -206,8 +208,9 @@ function DevelopersPage() {
                 <div>
                   <p className="text-sm font-bold">{client.name}</p>
                   <p className="text-[11px] text-muted-foreground">
-                    {client.environment === "live" ? "إنتاج" : "تجريبي"} · حد المعدل{" "}
-                    {client.rate_limit_per_minute}/دقيقة
+                    {client.environment === "live" ? t({ ar: "إنتاج", en: "Live" }) : t({ ar: "تجريبي", en: "Test" })} ·{" "}
+                    {t({ ar: "حد المعدل", en: "Rate limit" })} {client.rate_limit_per_minute}
+                    {t({ ar: "/دقيقة", en: "/min" })}
                   </p>
                 </div>
                 <button
@@ -220,14 +223,14 @@ function DevelopersPage() {
                       setFreshKey(result.key);
                       await refresh();
                     } catch {
-                      toast.error("تعذر إنشاء المفتاح");
+                      toast.error(t({ ar: "تعذر إنشاء المفتاح", en: "Couldn't create the key" }));
                     } finally {
                       setBusy(false);
                     }
                   }}
                   className="flex items-center gap-1.5 rounded-lg bg-foreground px-3 py-2 text-[11px] font-bold text-background disabled:opacity-50"
                 >
-                  <KeyRound className="size-3.5" /> مفتاح جديد
+                  <KeyRound className="size-3.5" /> {t({ ar: "مفتاح جديد", en: "New key" })}
                 </button>
               </div>
               {clientKeys.length ? (
@@ -241,7 +244,7 @@ function DevelopersPage() {
                         {key.key_prefix}…
                       </span>
                       {key.revoked ? (
-                        <span className="font-bold text-prohibit">ملغى</span>
+                        <span className="font-bold text-prohibit">{t({ ar: "ملغى", en: "Revoked" })}</span>
                       ) : (
                         <button
                           type="button"
@@ -250,24 +253,24 @@ function DevelopersPage() {
                             setBusy(true);
                             try {
                               await revokeFn({ data: { id: key.id } });
-                              toast.success("تم إلغاء المفتاح");
+                              toast.success(t({ ar: "تم إلغاء المفتاح", en: "Key revoked" }));
                               await refresh();
                             } catch {
-                              toast.error("تعذر الإلغاء");
+                              toast.error(t({ ar: "تعذر الإلغاء", en: "Couldn't revoke the key" }));
                             } finally {
                               setBusy(false);
                             }
                           }}
                           className="rounded-md border border-border px-2 py-1 font-bold text-muted-foreground disabled:opacity-50"
                         >
-                          إلغاء
+                          {t({ ar: "إلغاء", en: "Revoke" })}
                         </button>
                       )}
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="mt-3 text-[11px] text-muted-foreground">لا مفاتيح بعد.</p>
+                <p className="mt-3 text-[11px] text-muted-foreground">{t({ ar: "لا مفاتيح بعد.", en: "No keys yet." })}</p>
               )}
             </section>
           );
@@ -275,7 +278,7 @@ function DevelopersPage() {
 
         {query.data?.clients.length === 0 ? (
           <p className="rounded-2xl border border-border bg-surface p-6 text-center text-sm text-muted-foreground">
-            لا عملاء API بعد — أنشئ أول عميل لتوليد مفتاح.
+            {t({ ar: "لا عملاء API بعد — أنشئ أول عميل لتوليد مفتاح.", en: "No API clients yet — create your first client to generate a key." })}
           </p>
         ) : null}
       </main>
