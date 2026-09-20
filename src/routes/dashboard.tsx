@@ -10,6 +10,7 @@ import {
   BarChart3,
   Building2,
   Code2,
+  FileSpreadsheet,
   KeyRound,
   LayoutTemplate,
   MapPinned,
@@ -23,6 +24,7 @@ import {
 } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
+import { BulkImportTab } from "@/components/BulkImportTab";
 import { CadastralMap } from "@/components/CadastralMap";
 import { QrCard } from "@/components/QrCard";
 import { supabase } from "@/integrations/supabase/client";
@@ -77,6 +79,7 @@ export const Route = createFileRoute("/dashboard")({
 type TabKey =
   | "locations"
   | "addresses"
+  | "import"
   | "verification"
   | "qr"
   | "plates"
@@ -88,6 +91,7 @@ type TabKey =
 const TABS: { key: TabKey; label: string; icon: typeof Building2 }[] = [
   { key: "locations", label: "المواقع", icon: Building2 },
   { key: "addresses", label: "العناوين", icon: MapPinned },
+  { key: "import", label: "استيراد وتصدير", icon: FileSpreadsheet },
   { key: "verification", label: "التوثيق", icon: BadgeCheck },
   { key: "qr", label: "رموز QR", icon: QrCode },
   { key: "plates", label: "لوحات العنوان", icon: LayoutTemplate },
@@ -217,6 +221,7 @@ function DashboardPage() {
 
             {tab === "locations" ? <LocationsTab orgId={orgId} canManage={canManage} canAdmin={canAdmin} /> : null}
             {tab === "addresses" ? <AddressesTab orgId={orgId} /> : null}
+            {tab === "import" ? <BulkImportTab orgId={orgId} canManage={canManage} /> : null}
             {tab === "verification" ? <VerificationTab orgId={orgId} /> : null}
             {tab === "qr" ? <CodesTab orgId={orgId} plate={false} /> : null}
             {tab === "plates" ? <CodesTab orgId={orgId} plate /> : null}
