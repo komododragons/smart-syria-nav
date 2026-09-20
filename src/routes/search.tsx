@@ -29,21 +29,53 @@ export const Route = createFileRoute("/search")({
   component: SearchPage,
 });
 
+function formatDistance(meters?: number | null) {
+  if (meters == null) return null;
+  return meters < 1000 ? `${meters} م` : `${(meters / 1000).toFixed(1)} كم`;
+}
+
 function SearchPage() {
   const search = useServerFn(searchNetwork);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | undefined>(undefined);
+  const [governorate, setGovernorate] = useState<string | undefined>(undefined);
+  const [origin, setOrigin] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [geoBusy, setGeoBusy] = useState(false);
   const mutation = useMutation({
     mutationFn: (value: string) =>
-      search({ data: { query: value, ...(category ? { category } : {}) } }),
+      search({
+        data: {
+          query: value,
+          ...(category ? { category } : {}),
+          ...(governorate ? { governorate } : {}),
+          ...(origin ?? {}),
+        },
+      }),
   });
+
+  const useMyLocation = () => {
+    if (origin) {
+      setOrigin(null);
+      return;
+    }
+    if (typeof navigator === "undefined" || !navigator.geolocation) return;
+    setGeoBusy(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setOrigin({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
+        setGeoBusy(false);
+      },
+      () => setGeoBusy(false),
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 120000 },
+    );
+  };
 
   useEffect(() => {
     if (query.trim().length < 2) return;
     const timer = setTimeout(() => mutation.mutate(query), 300);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, category]);
+  }, [query, category, governorate, origin]);
 
   const data = mutation.data;
 
