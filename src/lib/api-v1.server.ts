@@ -889,7 +889,12 @@ export async function handleApiV1(request: Request): Promise<Response> {
         "GET /api/v1/qr/{code}",
         "GET /api/v1/route",
         "POST /api/v1/keys/revoke",
+        "GET /api/v1/webhooks",
+        "POST /api/v1/webhooks",
+        "POST /api/v1/webhooks/test",
+        "POST /api/v1/webhooks/delete",
       ],
+      sandbox: "Keys issued on a `test` client run in sandbox mode: reads are real, writes are simulated.",
       privacy: "Private residential addresses are never exposed through this API.",
     });
   }
@@ -956,6 +961,14 @@ export async function handleApiV1(request: Request): Promise<Response> {
     handled = await run("route", () => routeTo(url));
   } else if (resource === "keys" && param === "revoke" && request.method === "POST") {
     handled = await run("keys:manage", () => revokeOwnKey(body, admin, auth));
+  } else if (resource === "webhooks" && request.method === "GET" && !param) {
+    handled = await run("webhooks:manage", () => listWebhooks(admin, auth));
+  } else if (resource === "webhooks" && request.method === "POST" && !param) {
+    handled = await run("webhooks:manage", () => createWebhook(body, admin, auth));
+  } else if (resource === "webhooks" && param === "test" && request.method === "POST") {
+    handled = await run("webhooks:manage", () => testWebhook(body, admin, auth));
+  } else if (resource === "webhooks" && param === "delete" && request.method === "POST") {
+    handled = await run("webhooks:manage", () => deleteWebhook(body, admin, auth));
   }
 
   if (!handled) {
@@ -969,5 +982,6 @@ export async function handleApiV1(request: Request): Promise<Response> {
   const headers = new Headers(handled.response.headers);
   headers.set("X-RateLimit-Limit", String(auth.limit));
   headers.set("X-RateLimit-Remaining", String(Math.max(auth.limit - auth.used - 1, 0)));
+  headers.set("X-Syriasan-Mode", auth.environment);
   return new Response(handled.response.body, { status: handled.response.status, headers });
 }
