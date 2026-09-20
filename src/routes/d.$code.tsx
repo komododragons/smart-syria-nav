@@ -134,7 +134,7 @@ function BigRow({
 }
 
 function DeliveryPage() {
-  const { t, lang } = useI18n();
+  const { t, name } = useI18n();
   const result = Route.useLoaderData();
   const { code: rawCode } = Route.useParams();
   const ok = result.status === "ok" ? result : null;
@@ -329,7 +329,7 @@ function DeliveryPage() {
           >
             <Phone className="size-5" />
             {t({ ar: "اتصل بـ", en: "Call" })}{" "}
-            {lang === "ar" ? (ok.business?.name_ar ?? "المستلم") : (ok.business?.name_ar ?? "the recipient")}
+            {ok.business ? name(ok.business) : t({ ar: "المستلم", en: "the recipient" })}
           </a>
         ) : (
           <p className="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-surface p-3 text-center text-xs text-muted-foreground">

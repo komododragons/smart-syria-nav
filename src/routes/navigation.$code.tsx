@@ -227,7 +227,7 @@ function NavigationWorkspace() {
 
   const useCurrentLocation = useCallback(() => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
-      t ? toast.error(t({ ar: "المتصفح لا يدعم تحديد الموقع", en: "This browser does not support location detection." })) : null;
+      toast.error(t({ ar: "المتصفح لا يدعم تحديد الموقع", en: "This browser does not support location detection." }));
       return;
     }
     navigator.geolocation.getCurrentPosition(
@@ -235,7 +235,7 @@ function NavigationWorkspace() {
         setLocationDenied(false);
         setPickOnMap(false);
         setOriginMethod("current_location");
-        setOriginLabel("موقعي الحالي");
+        setOriginLabel(t({ ar: "موقعي الحالي", en: "My current location" }));
         setOrigin({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
       },
       (err) => {
@@ -249,15 +249,34 @@ function NavigationWorkspace() {
         if (err.code === err.PERMISSION_DENIED) {
           toast.error(
             insecure
-              ? "تحديد الموقع يتطلب اتصالاً آمناً (HTTPS) — حددنا الخريطة لاختيار نقطة الانطلاق"
+              ? t({
+                  ar: "تحديد الموقع يتطلب اتصالاً آمناً (HTTPS) — حددنا الخريطة لاختيار نقطة الانطلاق",
+                  en: "Location detection needs a secure (HTTPS) connection — pick your starting point on the map instead.",
+                })
               : embedded
-                ? "المعاينة داخل إطار تمنع تحديد الموقع — افتح التطبيق في تبويب مستقل أو اختر نقطة الانطلاق من الخريطة"
-                : "تم رفض إذن الموقع من المتصفح — فعّله من إعدادات الموقع، أو اختر نقطة الانطلاق من الخريطة",
+                ? t({
+                    ar: "المعاينة داخل إطار تمنع تحديد الموقع — افتح التطبيق في تبويب مستقل أو اختر نقطة الانطلاق من الخريطة",
+                    en: "This embedded preview blocks location detection — open the app in its own tab or pick a starting point on the map.",
+                  })
+                : t({
+                    ar: "تم رفض إذن الموقع من المتصفح — فعّله من إعدادات الموقع، أو اختر نقطة الانطلاق من الخريطة",
+                    en: "The browser denied location access — enable it in your location settings, or pick a starting point on the map.",
+                  }),
           );
         } else if (err.code === err.TIMEOUT) {
-          toast.error("انتهت مهلة تحديد الموقع — اختر نقطة الانطلاق من الخريطة أو أعد المحاولة");
+          toast.error(
+            t({
+              ar: "انتهت مهلة تحديد الموقع — اختر نقطة الانطلاق من الخريطة أو أعد المحاولة",
+              en: "Location detection timed out — pick a starting point on the map or try again.",
+            }),
+          );
         } else {
-          toast.error("تعذّر تحديد الموقع الحالي — اختر نقطة الانطلاق من الخريطة");
+          toast.error(
+            t({
+              ar: "تعذّر تحديد الموقع الحالي — اختر نقطة الانطلاق من الخريطة",
+              en: "We couldn't detect your current location — pick a starting point on the map.",
+            }),
+          );
         }
       },
       { enableHighAccuracy: true, timeout: 12_000, maximumAge: 60_000 },
@@ -288,7 +307,7 @@ function NavigationWorkspace() {
     if (off > 70 && Date.now() - lastReroute.current > 20_000) {
       lastReroute.current = Date.now();
       routeMutation.mutate({ origin: livePoint, destination: destination.point });
-      toast.info("خرجت عن المسار — يعاد الحساب");
+      toast.info(t({ ar: "خرجت عن المسار — يعاد الحساب", en: "You've gone off route — recalculating." }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [livePoint, navigating]);
@@ -313,7 +332,13 @@ function NavigationWorkspace() {
     if (!target || !destination) return [];
     const list: NavMarker[] = [];
     const current = livePoint ?? origin;
-    if (current) list.push({ id: "origin", kind: "origin", point: current, label: originLabel || "الانطلاق" });
+    if (current)
+      list.push({
+        id: "origin",
+        kind: "origin",
+        point: current,
+        label: originLabel || t({ ar: "الانطلاق", en: "Start" }),
+      });
     list.push({
       id: "destination",
       kind: "destination",
@@ -344,7 +369,7 @@ function NavigationWorkspace() {
         id: `r-${rap.id}`,
         kind: rap.parking_available ? "parking" : "road_access",
         point: { latitude: rap.latitude, longitude: rap.longitude },
-        label: rap.road_name ?? "نقطة وصول طرقية",
+        label: rap.road_name ?? t({ ar: "نقطة وصول طرقية", en: "Road access point" }),
       });
     }
     return list;
@@ -382,12 +407,12 @@ function NavigationWorkspace() {
       }),
     onSuccess: (result) => {
       if (!result.ok) {
-        toast.error("تعذّر إنشاء الرابط");
+        toast.error(t({ ar: "تعذّر إنشاء الرابط", en: "We couldn't create the link." }));
         return;
       }
       const url = `${window.location.origin}/navigation/${code}?token=${result.token}`;
       navigator.clipboard?.writeText(url);
-      toast.success("نُسخ رابط المسار إلى الحافظة");
+      toast.success(t({ ar: "نُسخ رابط المسار إلى الحافظة", en: "Route link copied to clipboard." }));
     },
   });
 
@@ -405,11 +430,14 @@ function NavigationWorkspace() {
         },
       }),
     onSuccess: () => {
-      toast.success("وصل البلاغ إلى قائمة المراجعة");
+      toast.success(t({ ar: "وصل البلاغ إلى قائمة المراجعة", en: "Your report was sent for review." }));
       setReportOpen(false);
       setReportText("");
     },
-    onError: () => toast.error("تعذّر إرسال البلاغ — سجّل الدخول أولاً"),
+    onError: () =>
+      toast.error(
+        t({ ar: "تعذّر إرسال البلاغ — سجّل الدخول أولاً", en: "We couldn't send the report — sign in first." }),
+      ),
   });
 
   const errorCode =
@@ -422,7 +450,7 @@ function NavigationWorkspace() {
   const arrival = target?.arrival ?? null;
 
   return (
-    <div className="flex h-screen flex-col bg-background text-foreground" dir="rtl">
+    <div className="flex h-screen flex-col bg-background text-foreground" dir={lang === "ar" ? "rtl" : "ltr"}>
       <AppHeader />
       <div className="relative flex min-h-0 flex-1 flex-col lg:flex-row-reverse">
         {/* Map */}
@@ -435,7 +463,7 @@ function NavigationWorkspace() {
             onPick={
               pickOnMap
                 ? (point) => {
-                    setOriginPoint(point, "نقطة على الخريطة", "map_pin");
+                    setOriginPoint(point, t({ ar: "نقطة على الخريطة", en: "Map point" }), "map_pin");
                     setPickOnMap(false);
                   }
                 : undefined
@@ -444,7 +472,7 @@ function NavigationWorkspace() {
           />
           {pickOnMap && (
             <div className="pointer-events-none absolute inset-x-0 top-3 mx-auto w-fit rounded-full bg-primary px-4 py-1.5 text-xs font-medium text-primary-foreground shadow">
-              انقر على الخريطة لتحديد نقطة الانطلاق
+              {t({ ar: "انقر على الخريطة لتحديد نقطة الانطلاق", en: "Tap the map to set your starting point" })}
             </div>
           )}
           <div className="absolute bottom-3 start-3 rounded-lg border border-border bg-background/90 p-2 backdrop-blur">
@@ -467,10 +495,12 @@ function NavigationWorkspace() {
           >
             <span className="text-sm font-semibold">
               {activeRoute
-                ? `${formatDistance(activeRoute.distance_m)} · ${formatDuration(activeRoute.duration_s)}`
-                : "تفاصيل المسار"}
+                ? `${formatDistance(activeRoute.distance_m, lang)} · ${formatDuration(activeRoute.duration_s, lang)}`
+                : t({ ar: "تفاصيل المسار", en: "Route details" })}
             </span>
-            <span className="text-xs text-muted-foreground">{sheetOpen ? "إخفاء" : "إظهار"}</span>
+            <span className="text-xs text-muted-foreground">
+              {sheetOpen ? t({ ar: "إخفاء", en: "Hide" }) : t({ ar: "إظهار", en: "Show" })}
+            </span>
           </button>
 
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 pb-6 pt-2">
@@ -478,9 +508,9 @@ function NavigationWorkspace() {
             <section className="rounded-lg border border-border bg-background p-3">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <p className="text-xs text-muted-foreground">الوجهة</p>
+                  <p className="text-xs text-muted-foreground">{t({ ar: "الوجهة", en: "Destination" })}</p>
                   <h1 className="text-base font-semibold">
-                    {target?.property.name ?? "جارٍ تحميل الوجهة…"}
+                    {target?.property.name ?? t({ ar: "جارٍ تحميل الوجهة…", en: "Loading destination…" })}
                   </h1>
                   <p className="font-mono text-xs text-muted-foreground">{code}</p>
                 </div>
@@ -488,22 +518,25 @@ function NavigationWorkspace() {
                   to="/search"
                   className="rounded-md border border-border px-2 py-1 text-xs text-muted-foreground"
                 >
-                  بحث
+                  {t({ ar: "بحث", en: "Search" })}
                 </Link>
               </div>
               {destination && (
                 <p className="mt-2 flex items-center gap-1.5 text-xs text-foreground">
                   <Navigation2 className="size-3.5 text-primary" />
-                  التوجيه إلى: <strong>{destination.point_label_ar}</strong>
+                  {t({ ar: "التوجيه إلى:", en: "Routing to:" })}{" "}
+                  <strong>{lang === "ar" ? destination.point_label_ar : destination.point_label_en ?? destination.point_label_ar}</strong>
                   <span className="text-muted-foreground">
-                    ({DESTINATION_KIND_LABELS[destination.kind].ar})
+                    ({DESTINATION_KIND_LABELS[destination.kind][lang]})
                   </span>
                 </p>
               )}
               {destination?.final_leg_on_foot && (
                 <p className="mt-1 text-xs text-muted-foreground">
-                  آخر {formatDistance(destination.final_leg_meters ?? 0)} سيراً على الأقدام (الخط
-                  المتقطع).
+                  {t({
+                    ar: `آخر ${formatDistance(destination.final_leg_meters ?? 0, lang)} سيراً على الأقدام (الخط المتقطع).`,
+                    en: `Last ${formatDistance(destination.final_leg_meters ?? 0, lang)} on foot (dashed line).`,
+                  })}
                 </p>
               )}
             </section>
@@ -512,42 +545,48 @@ function NavigationWorkspace() {
             {errorCode && (
               <p className="flex items-start gap-2 rounded-lg border border-prohibit/40 bg-prohibit/10 p-3 text-xs">
                 <AlertTriangle className="mt-0.5 size-4 shrink-0 text-prohibit" />
-                {NAV_ERROR_LABELS[errorCode]?.ar ?? "حدث خطأ غير متوقع."}
+                {NAV_ERROR_LABELS[errorCode]?.[lang] ?? t({ ar: "حدث خطأ غير متوقع.", en: "An unexpected error occurred." })}
               </p>
             )}
             {degraded && (
               <p className="rounded-lg border border-border bg-background p-3 text-xs text-muted-foreground">
-                تقدير تقريبي بخط مستقيم — خدمة التوجيه غير متاحة حالياً، لا تعتمد عليه للقيادة.
+                {t({
+                  ar: "تقدير تقريبي بخط مستقيم — خدمة التوجيه غير متاحة حالياً، لا تعتمد عليه للقيادة.",
+                  en: "Straight-line approximation — the routing service is temporarily unavailable; don't rely on it for driving.",
+                })}
               </p>
             )}
             {(activeRoute?.warnings ?? []).concat(destination?.warnings ?? []).map((w) => (
               <p key={w} className="rounded-lg border border-border bg-background p-2 text-xs text-muted-foreground">
-                {WARNING_LABELS[w]?.ar}
+                {WARNING_LABELS[w]?.[lang]}
               </p>
             ))}
 
             {/* Origin */}
             <section className="space-y-2">
-              <p className="text-xs font-semibold text-muted-foreground">نقطة الانطلاق</p>
+              <p className="text-xs font-semibold text-muted-foreground">{t({ ar: "نقطة الانطلاق", en: "Starting point" })}</p>
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
                   onClick={useCurrentLocation}
                   className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground"
                 >
-                  <Locate className="size-3.5" /> موقعي الحالي
+                  <Locate className="size-3.5" /> {t({ ar: "موقعي الحالي", en: "My current location" })}
                 </button>
                 <button
                   type="button"
                   onClick={() => setPickOnMap(true)}
                   className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs"
                 >
-                  <Crosshair className="size-3.5" /> نقطة على الخريطة
+                  <Crosshair className="size-3.5" /> {t({ ar: "نقطة على الخريطة", en: "Map point" })}
                 </button>
               </div>
               {locationDenied && (
                 <p className="text-xs text-muted-foreground">
-                  رُفض إذن الموقع — استخدم البحث أو حدد نقطة على الخريطة أو أدخل إحداثيات.
+                  {t({
+                    ar: "رُفض إذن الموقع — استخدم البحث أو حدد نقطة على الخريطة أو أدخل إحداثيات.",
+                    en: "Location access was denied — use search, pick a point on the map, or enter coordinates.",
+                  })}
                 </p>
               )}
               {originLabel && (
@@ -564,7 +603,7 @@ function NavigationWorkspace() {
                     setOriginQuery(event.target.value);
                     if (event.target.value.trim().length >= 2) originSearch.mutate(event.target.value);
                   }}
-                  placeholder="ابحث عن عنوان ذكي أو عمل تجاري…"
+                  placeholder={t({ ar: "ابحث عن عنوان ذكي أو عمل تجاري…", en: "Search a smart address or business…" })}
                   className="w-full rounded-md border border-border bg-background py-2 pe-3 ps-8 text-xs focus:border-primary focus:outline-none"
                 />
               </div>
@@ -593,19 +632,25 @@ function NavigationWorkspace() {
                   type="button"
                   onClick={() => {
                     const node = biz.location_nodes as { display_name?: string } | null;
-                    toast.info("اختر الموقع من نتائج الأماكن لتحديد الإحداثيات");
+                    toast.info(
+                      t({
+                        ar: "اختر الموقع من نتائج الأماكن لتحديد الإحداثيات",
+                        en: "Pick the location from place results to set the coordinates",
+                      }),
+                    );
                     setOriginQuery(node?.display_name ?? biz.name_ar);
                   }}
                   className="block w-full rounded-md border border-dashed border-border px-2 py-1.5 text-start text-xs"
                 >
-                  {biz.name_ar} <span className="text-muted-foreground">— عمل تجاري</span>
+                  {lang === "ar" ? biz.name_ar : biz.name_en ?? biz.name_ar}{" "}
+                  <span className="text-muted-foreground">— {t({ ar: "عمل تجاري", en: "Business" })}</span>
                 </button>
               ))}
 
               {signedIn && (savedQuery.data ?? []).length > 0 && (
                 <details className="rounded-md border border-border bg-background p-2 text-xs">
                   <summary className="cursor-pointer text-muted-foreground">
-                    <Bookmark className="me-1 inline size-3.5" /> عناويني المحفوظة
+                    <Bookmark className="me-1 inline size-3.5" /> {t({ ar: "عناويني المحفوظة", en: "My saved addresses" })}
                   </summary>
                   <div className="mt-2 space-y-1">
                     {(savedQuery.data ?? []).map((addr: any) => {
@@ -647,7 +692,12 @@ function NavigationWorkspace() {
                 </div>
               )}
 
-              <CoordinateEntry onSubmit={(point) => setOriginPoint(point, "إحداثيات يدوية", "coordinates")} />
+              <CoordinateEntry
+                lang={lang}
+                onSubmit={(point) =>
+                  setOriginPoint(point, t({ ar: "إحداثيات يدوية", en: "Manual coordinates" }), "coordinates")
+                }
+              />
             </section>
 
             {/* Routing context — Phase 18 */}

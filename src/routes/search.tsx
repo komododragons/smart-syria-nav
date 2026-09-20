@@ -89,7 +89,7 @@ function verificationLabel(level: string | undefined, lang: Lang) {
   if (!level || !VERIFICATION_LEVELS[level]) {
     return lang === "ar" ? "غير موثق" : "Unverified";
   }
-  return lang === "ar" ? VERIFICATION_LEVELS[level].ar : VERIFICATION_EN[level] ?? VERIFICATION_EN.unverified;
+  return lang === "ar" ? VERIFICATION_LEVELS[level].ar : VERIFICATION_EN[level] ?? VERIFICATION_EN["unverified"];
 }
 
 function SearchPage() {

@@ -352,7 +352,7 @@ function AddressCardPage() {
                     </p>
                   </div>
                   <span className="shrink-0 rounded-md bg-background px-2 py-1 text-[10px] font-bold">
-                    {VERIFICATION_LEVELS[ok.business.verification_level]?.ar ?? "غير موثق"}
+                    {VERIFICATION_LEVELS[ok.business.verification_level]?.ar ?? t({ ar: "غير موثق", en: "Not verified" })}
                   </span>
                 </div>
                 {ok.business.opening_hours ? (
@@ -377,7 +377,7 @@ function AddressCardPage() {
                       rel="noreferrer"
                       className="rounded-lg border border-border px-3 py-1.5"
                     >
-                      الموقع الإلكتروني
+                      {t({ ar: "الموقع الإلكتروني", en: "Website" })}
                     </a>
                   ) : null}
                   <Link
@@ -385,42 +385,50 @@ function AddressCardPage() {
                     params={{ id: ok.business.id }}
                     className="rounded-lg border border-border px-3 py-1.5"
                   >
-                    صفحة النشاط
+                    {t({ ar: "صفحة النشاط", en: "Business page" })}
                   </Link>
                 </div>
               </div>
             ) : null}
 
             <div className="grid gap-2 sm:grid-cols-2">
-              <Row icon={MapPin} label="الإحداثيات" value={formatCoords(lat, lng)} mono />
+              <Row icon={MapPin} label={t({ ar: "الإحداثيات", en: "Coordinates" })} value={formatCoords(lat, lng)} mono />
               <Row
                 icon={Building2}
-                label="المبنى"
+                label={t({ ar: "المبنى", en: "Building" })}
                 value={
                   building
-                    ? `${building.display_name}${ok.site.building_number ? ` · رقم ${ok.site.building_number}` : ""}`
+                    ? `${building.display_name}${
+                        ok.site.building_number
+                          ? ` · ${t({ ar: "رقم", en: "No." })} ${ok.site.building_number}`
+                          : ""
+                      }`
                     : ok.site.building_number
-                      ? `رقم ${ok.site.building_number}`
+                      ? `${t({ ar: "رقم", en: "No." })} ${ok.site.building_number}`
                       : null
                 }
               />
-              <Row icon={DoorOpen} label="المدخل" value={ap?.display_name ?? null} />
-              <Row icon={Layers} label="الطابق" value={floor?.floor_label ?? null} />
-              <Row icon={Layers} label="الوحدة / الشقة" value={unit?.unit_label ?? null} />
-              <Row icon={MapPin} label="أقرب معلم" value={ok.site.landmark} />
+              <Row icon={DoorOpen} label={t({ ar: "المدخل", en: "Entrance" })} value={ap?.display_name ?? null} />
+              <Row icon={Layers} label={t({ ar: "الطابق", en: "Floor" })} value={floor?.floor_label ?? null} />
+              <Row icon={Layers} label={t({ ar: "الوحدة / الشقة", en: "Unit / apartment" })} value={unit?.unit_label ?? null} />
+              <Row icon={MapPin} label={t({ ar: "أقرب معلم", en: "Nearest landmark" })} value={ok.site.landmark} />
               <Row
                 icon={ParkingSquare}
-                label="المواقف"
+                label={t({ ar: "المواقف", en: "Parking" })}
                 value={ap?.parking_info ?? ok.site.parking_info}
               />
-              <Row icon={Truck} label="التحميل والتنزيل" value={ap?.loading_info ?? ok.site.loading_info} />
+              <Row
+                icon={Truck}
+                label={t({ ar: "التحميل والتنزيل", en: "Loading and unloading" })}
+                value={ap?.loading_info ?? ok.site.loading_info}
+              />
               <Row
                 icon={Clock}
-                label="ساعات المدخل"
+                label={t({ ar: "ساعات المدخل", en: "Entrance hours" })}
                 value={
                   ap
                     ? ap.hours.always_open
-                      ? "مفتوح 24/7"
+                      ? t({ ar: "مفتوح 24/7", en: "Open 24/7" })
                       : `${ap.hours.opens_at?.slice(0, 5) ?? "—"} – ${ap.hours.closes_at?.slice(0, 5) ?? "—"}`
                     : null
                 }
@@ -428,14 +436,14 @@ function AddressCardPage() {
               />
               <Row
                 icon={Accessibility}
-                label="إمكانية الوصول"
+                label={t({ ar: "إمكانية الوصول", en: "Accessibility" })}
                 value={
                   ap && ap.accessibility.length
-                    ? ap.accessibility.map((a) => ACCESSIBILITY_LABELS[a] ?? a).join("، ")
+                    ? ap.accessibility.map((a) => ACCESSIBILITY_LABELS[a] ?? a).join(lang === "ar" ? "، " : ", ")
                     : ok.site.wheelchair_accessible
-                      ? "مناسب لكرسي متحرك"
+                      ? t({ ar: "مناسب لكرسي متحرك", en: "Wheelchair accessible" })
                       : ok.site.has_elevator
-                        ? "يوجد مصعد"
+                        ? t({ ar: "يوجد مصعد", en: "Elevator available" })
                         : null
                 }
               />
@@ -443,7 +451,7 @@ function AddressCardPage() {
 
             <div>
               <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                سياق الوصول
+                {t({ ar: "سياق الوصول", en: "Routing context" })}
               </span>
               <div className="mt-1.5 flex flex-wrap gap-1.5">
                 {ROUTING_CONTEXTS.map((c) => (
@@ -460,28 +468,32 @@ function AddressCardPage() {
                         : "border-border bg-surface hover:border-primary/50"
                     }`}
                   >
-                    {c.ar}
+                    {routingContextLabel(c.value, lang)}
                   </button>
                 ))}
               </div>
               <p className="mt-1.5 text-[11px] text-muted-foreground">
                 {switching
-                  ? "جارٍ تحديث المدخل الموصى به…"
-                  : (ROUTING_CONTEXTS.find((c) => c.value === context)?.hintAr ?? "")}
+                  ? t({ ar: "جارٍ تحديث المدخل الموصى به…", en: "Updating the recommended entrance…" })
+                  : routingContextHint(context, lang)}
               </p>
             </div>
 
             {ap?.context_approach ? (
               <div className="rounded-lg border border-primary/40 bg-primary/10 p-3">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-primary">
-                  تعليمات {ROUTING_CONTEXTS.find((c) => c.value === context)?.ar}
+                  {t({ ar: "تعليمات", en: "Instructions for" })} {routingContextLabel(context, lang)}
                 </span>
                 <p className="mt-1 text-sm font-bold">{ap.context_approach}</p>
                 {ap.context_preferred_road ? (
-                  <p className="mt-1 text-[12px]">الطريق المفضل: {ap.context_preferred_road}</p>
+                  <p className="mt-1 text-[12px]">
+                    {t({ ar: "الطريق المفضل:", en: "Preferred road:" })} {ap.context_preferred_road}
+                  </p>
                 ) : null}
                 {ap.context_vehicle_note ? (
-                  <p className="mt-0.5 text-[12px]">المركبة: {ap.context_vehicle_note}</p>
+                  <p className="mt-0.5 text-[12px]">
+                    {t({ ar: "المركبة:", en: "Vehicle:" })} {ap.context_vehicle_note}
+                  </p>
                 ) : null}
                 {ap.context_note ? (
                   <p className="mt-0.5 text-[12px] text-muted-foreground">{ap.context_note}</p>
@@ -492,7 +504,7 @@ function AddressCardPage() {
             {ap?.instructions ? (
               <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-primary">
-                  تعليمات الوصول
+                  {t({ ar: "تعليمات الوصول", en: "Access instructions" })}
                 </span>
                 <p className="mt-1 text-sm">{ap.instructions}</p>
               </div>
