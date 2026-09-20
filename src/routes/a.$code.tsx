@@ -664,7 +664,7 @@ function AddressCardPage() {
               url={`${shareUrl}?s=qr`}
               code={ok.code}
               title={ok.site.display_name}
-              subtitle={[ok.site.neighborhood, ok.site.city].filter(Boolean).join(" — ")}
+              subtitle={formatLocality({ neighborhood: ok.site.neighborhood, city: ok.site.city }, lang)}
               logoUrl={ok.business?.logo_url}
               onClose={() => setShowQr(false)}
             />
@@ -674,7 +674,7 @@ function AddressCardPage() {
         {ok.alternatives.length ? (
           <section className="rounded-xl border border-border bg-background p-4">
             <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-              مداخل بديلة
+              {t({ ar: "مداخل بديلة", en: "Alternative entrances" })}
             </h2>
             <div className="space-y-2">
               {ok.alternatives.map((alt) => (
@@ -689,7 +689,7 @@ function AddressCardPage() {
                     </p>
                   </div>
                   <span className={`text-[11px] font-bold ${alt.open_now ? "text-allow" : "text-prohibit"}`}>
-                    {alt.open_now ? "مفتوح" : "مغلق"}
+                    {alt.open_now ? t({ ar: "مفتوح", en: "Open" }) : t({ ar: "مغلق", en: "Closed" })}
                   </span>
                 </div>
               ))}
@@ -698,7 +698,10 @@ function AddressCardPage() {
         ) : null}
 
         <p className="pb-6 text-center text-[10px] text-muted-foreground">
-          تفاصيل الوحدات السكنية وأسماء السكان لا تُعرض علناً — تُشارك فقط عبر رابط مؤقت من صاحب العنوان.
+          {t({
+            ar: "تفاصيل الوحدات السكنية وأسماء السكان لا تُعرض علناً — تُشارك فقط عبر رابط مؤقت من صاحب العنوان.",
+            en: "Residential unit details and resident names aren't shown publicly — they're shared only via a temporary link from the address owner.",
+          })}
         </p>
       </div>
     </div>

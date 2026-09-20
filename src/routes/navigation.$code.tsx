@@ -872,14 +872,14 @@ function NavigationWorkspace() {
                 }}
                 className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground disabled:opacity-50"
               >
-                <Play className="size-3.5" /> ابدأ التوجيه
+                <Play className="size-3.5" /> {t({ ar: "ابدأ التوجيه", en: "Start navigation" })}
               </button>
               <button
                 type="button"
                 onClick={() => shareMutation.mutate("public_destination")}
                 className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-xs"
               >
-                <Share2 className="size-3.5" /> مشاركة الوجهة
+                <Share2 className="size-3.5" /> {t({ ar: "مشاركة الوجهة", en: "Share destination" })}
               </button>
               {signedIn && (
                 <button
@@ -887,7 +887,7 @@ function NavigationWorkspace() {
                   onClick={() => shareMutation.mutate("private_delivery")}
                   className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-xs"
                 >
-                  <Link2 className="size-3.5" /> رابط توصيل خاص
+                  <Link2 className="size-3.5" /> {t({ ar: "رابط توصيل خاص", en: "Private delivery link" })}
                 </button>
               )}
               <button
@@ -895,7 +895,7 @@ function NavigationWorkspace() {
                 onClick={() => setReportOpen((v) => !v)}
                 className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-xs"
               >
-                <Flag className="size-3.5" /> الإبلاغ عن مشكلة
+                <Flag className="size-3.5" /> {t({ ar: "الإبلاغ عن مشكلة", en: "Report a problem" })}
               </button>
             </div>
 
@@ -908,7 +908,7 @@ function NavigationWorkspace() {
                 >
                   {ROUTE_REPORT_CATEGORIES.map((category) => (
                     <option key={category.value} value={category.value}>
-                      {category.ar}
+                      {lang === "ar" ? category.ar : category.en}
                     </option>
                   ))}
                 </select>
@@ -916,7 +916,7 @@ function NavigationWorkspace() {
                   value={reportText}
                   onChange={(event) => setReportText(event.target.value)}
                   rows={3}
-                  placeholder="وصف المشكلة (اختياري)"
+                  placeholder={t({ ar: "وصف المشكلة (اختياري)", en: "Describe the problem (optional)" })}
                   className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-xs"
                 />
                 <button
@@ -925,7 +925,7 @@ function NavigationWorkspace() {
                   disabled={reportMutation.isPending}
                   className="rounded-md bg-primary px-3 py-1.5 text-xs text-primary-foreground"
                 >
-                  إرسال البلاغ
+                  {t({ ar: "إرسال البلاغ", en: "Submit report" })}
                 </button>
               </section>
             )}
@@ -933,14 +933,14 @@ function NavigationWorkspace() {
             {/* Turn-by-turn */}
             {activeRoute && activeRoute.steps.length > 0 && (
               <section className="space-y-1">
-                <p className="text-xs font-semibold text-muted-foreground">التعليمات خطوة بخطوة</p>
+                <p className="text-xs font-semibold text-muted-foreground">{t({ ar: "التعليمات خطوة بخطوة", en: "Turn-by-turn directions" })}</p>
                 <ol className="space-y-1">
                   {activeRoute.steps.map((step) => (
                     <li
                       key={step.index}
                       className="rounded-md border border-border bg-background px-2 py-1.5 text-xs"
                     >
-                      {instructionWithDistance(step, "ar")}
+                      {instructionWithDistance(step, lang)}
                     </li>
                   ))}
                 </ol>

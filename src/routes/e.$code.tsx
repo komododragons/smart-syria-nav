@@ -22,7 +22,18 @@ import { toast } from "sonner";
 import { CadastralMap, type MapPin as Pin } from "@/components/CadastralMap";
 import { DirectionsButton } from "@/components/DirectionsButton";
 import { resolveAddress } from "@/lib/addresses.functions";
+import { type Lang, useI18n } from "@/lib/i18n";
 import { normalizeCode, VERIFICATION_LEVELS } from "@/lib/smart-address";
+
+const VERIFICATION_LABELS_EN: Record<string, string> = {
+  unverified: "Unverified",
+  user_confirmed: "Confirmed by owner",
+  community_confirmed: "Community confirmed",
+  courier_verified: "Verified by courier company",
+  business_verified: "Verified business",
+  organization_verified: "Verified organization",
+  official_verified: "Officially verified",
+};
 
 export const Route = createFileRoute("/e/$code")({
   loader: ({ params }) => resolveAddress({ data: { code: params.code, purpose: "emergency" } }),
@@ -46,17 +57,39 @@ export const Route = createFileRoute("/e/$code")({
   }),
   errorComponent: () => (
     <Shell>
-      <p className="text-center text-lg font-bold">تعذر تحميل بطاقة الطوارئ</p>
-      <p className="mt-2 text-center text-sm text-muted-foreground">أعد المحاولة بعد قليل.</p>
+      <ErrorBody />
     </Shell>
   ),
   notFoundComponent: () => (
     <Shell>
-      <p className="text-center text-lg font-bold">لا يوجد عنوان بهذا الرمز</p>
+      <NotFoundBody />
     </Shell>
   ),
   component: EmergencyPage,
 });
+
+function ErrorBody() {
+  const { t } = useI18n();
+  return (
+    <>
+      <p className="text-center text-lg font-bold">
+        {t({ ar: "تعذر تحميل بطاقة الطوارئ", en: "We couldn't load the emergency card" })}
+      </p>
+      <p className="mt-2 text-center text-sm text-muted-foreground">
+        {t({ ar: "أعد المحاولة بعد قليل.", en: "Please try again in a moment." })}
+      </p>
+    </>
+  );
+}
+
+function NotFoundBody() {
+  const { t } = useI18n();
+  return (
+    <p className="text-center text-lg font-bold">
+      {t({ ar: "لا يوجد عنوان بهذا الرمز", en: "No address matches this code" })}
+    </p>
+  );
+}
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
@@ -99,7 +132,60 @@ function BigRow({
   );
 }
 
+/** Plain-text emergency summary — dispatch-friendly, one message, in the active language. */
+function buildEmergencyText(
+  lang: Lang,
+  t: (v: { ar: string; en: string }) => string,
+  ok: NonNullable<ReturnType<typeof Route.useLoaderData>> & { status: "ok" },
+  building: ReturnType<typeof Route.useLoaderData> extends never ? never : { display_name: string } | undefined,
+  emergencyEntrance: { display_name: string } | null,
+  ap: { display_name: string; instructions?: string | null } | null | undefined,
+  floor: { floor_label?: string | null } | undefined,
+  vehicleApproach: string | null,
+  coords: string | null,
+  accessNotes: string[],
+): string {
+  return [
+    `${t({ ar: "عنوان طوارئ سيرياسان", en: "Syriasan emergency address" })}: ${ok.code}`,
+    ok.site.display_name,
+    [ok.site.neighborhood, ok.site.city, ok.site.governorate].filter(Boolean).join(lang === "ar" ? " - " : ", "),
+    ok.site.street ? `${t({ ar: "الشارع", en: "Street" })}: ${ok.site.street}` : null,
+    building || ok.site.building_number
+      ? `${t({ ar: "المبنى", en: "Building" })}: ${building?.display_name ?? ""}${
+          ok.site.building_number ? ` ${t({ ar: "رقم", en: "No." })} ${ok.site.building_number}` : ""
+        }`.trim()
+      : null,
+    emergencyEntrance
+      ? `${t({ ar: "مدخل الطوارئ", en: "Emergency entrance" })}: ${emergencyEntrance.display_name}`
+      : null,
+    ap ? `${t({ ar: "المدخل الموصى به", en: "Recommended entrance" })}: ${ap.display_name}` : null,
+    floor?.floor_label ? `${t({ ar: "الطابق", en: "Floor" })}: ${floor.floor_label}` : null,
+    vehicleApproach ? `${t({ ar: "وصول المركبات", en: "Vehicle access" })}: ${vehicleApproach}` : null,
+    ok.site.has_elevator != null
+      ? `${t({ ar: "المصعد", en: "Elevator" })}: ${
+          ok.site.has_elevator ? t({ ar: "متوفر", en: "Available" }) : t({ ar: "غير متوفر", en: "Not available" })
+        }`
+      : null,
+    ok.site.wheelchair_accessible != null
+      ? `${t({ ar: "وصول الكراسي المتحركة", en: "Wheelchair access" })}: ${
+          ok.site.wheelchair_accessible
+            ? t({ ar: "متاح", en: "Available" })
+            : t({ ar: "غير متاح", en: "Not available" })
+        }`
+      : null,
+    ok.site.landmark ? `${t({ ar: "أقرب معلم", en: "Nearest landmark" })}: ${ok.site.landmark}` : null,
+    coords ? `${t({ ar: "الإحداثيات", en: "Coordinates" })}: ${coords}` : null,
+    accessNotes.length
+      ? `${t({ ar: "ملاحظات الوصول", en: "Access notes" })}: ${accessNotes.join(" | ")}`
+      : null,
+    typeof window !== "undefined" ? `${window.location.origin}/e/${ok.code}` : null,
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
 function EmergencyPage() {
+  const { t, lang } = useI18n();
   const result = Route.useLoaderData();
   const { code: rawCode } = Route.useParams();
   const ok = result.status === "ok" ? result : null;
@@ -110,19 +196,22 @@ function EmergencyPage() {
       <Shell>
         <p className="text-center text-lg font-bold">
           {result.status === "not_found"
-            ? "لا يوجد عنوان ذكي عام بهذا الرمز"
+            ? t({ ar: "لا يوجد عنوان ذكي عام بهذا الرمز", en: "No public smart address matches this code" })
             : result.status === "retired"
-              ? "هذا الرمز مُتقاعد"
-              : "هذا العنوان خاص ولا يمكن عرضه علناً"}
+              ? t({ ar: "هذا الرمز مُتقاعد", en: "This code has been retired" })
+              : t({ ar: "هذا العنوان خاص ولا يمكن عرضه علناً", en: "This address is private and can't be shown publicly" })}
         </p>
         <p className="mt-2 text-center text-sm text-muted-foreground">
-          العناوين السكنية خاصة افتراضياً — يلزم رابط مؤقت من صاحب العنوان لعرض تفاصيله.
+          {t({
+            ar: "العناوين السكنية خاصة افتراضياً — يلزم رابط مؤقت من صاحب العنوان لعرض تفاصيله.",
+            en: "Residential addresses are private by default — a temporary link from the owner is needed to view details.",
+          })}
         </p>
         <p className="mt-4 text-center font-mono text-xs text-muted-foreground" dir="ltr">
           {normalizeCode(rawCode)}
         </p>
         <Link to="/" className="mt-5 block text-center text-sm font-bold text-primary">
-          العودة إلى البحث
+          {t({ ar: "العودة إلى البحث", en: "Back to search" })}
         </Link>
       </Shell>
     );
@@ -153,9 +242,12 @@ function EmergencyPage() {
       : [];
 
   const vehicleApproach = ap?.vehicle_access
-    ? "وصول المركبات حتى المدخل"
+    ? t({ ar: "وصول المركبات حتى المدخل", en: "Vehicle access right to the entrance" })
     : ap
-      ? "لا وصول للمركبات حتى المدخل — التوقف خارجاً وإكمال الطريق مشياً"
+      ? t({
+          ar: "لا وصول للمركبات حتى المدخل — التوقف خارجاً وإكمال الطريق مشياً",
+          en: "No vehicle access to the entrance — park outside and continue on foot",
+        })
       : null;
 
   const accessNotes = [
@@ -164,30 +256,23 @@ function EmergencyPage() {
     ...ok.restrictions,
   ].filter((v): v is string => Boolean(v));
 
-  /** Plain-text emergency summary — dispatch-friendly, one message. */
-  const emergencyText = [
-    `عنوان طوارئ سيرياسان: ${ok.code}`,
-    ok.site.display_name,
-    [ok.site.neighborhood, ok.site.city, ok.site.governorate].filter(Boolean).join(" - "),
-    ok.site.street ? `الشارع: ${ok.site.street}` : null,
-    building || ok.site.building_number
-      ? `المبنى: ${building?.display_name ?? ""}${ok.site.building_number ? ` رقم ${ok.site.building_number}` : ""}`.trim()
-      : null,
-    emergencyEntrance ? `مدخل الطوارئ: ${emergencyEntrance.display_name}` : null,
-    ap ? `المدخل الموصى به: ${ap.display_name}` : null,
-    floor?.floor_label ? `الطابق: ${floor.floor_label}` : null,
-    vehicleApproach ? `وصول المركبات: ${vehicleApproach}` : null,
-    ok.site.has_elevator != null ? `المصعد: ${ok.site.has_elevator ? "متوفر" : "غير متوفر"}` : null,
-    ok.site.wheelchair_accessible != null
-      ? `وصول الكراسي المتحركة: ${ok.site.wheelchair_accessible ? "متاح" : "غير متاح"}`
-      : null,
-    ok.site.landmark ? `أقرب معلم: ${ok.site.landmark}` : null,
-    coords ? `الإحداثيات: ${coords}` : null,
-    accessNotes.length ? `ملاحظات الوصول: ${accessNotes.join(" | ")}` : null,
-    typeof window !== "undefined" ? `${window.location.origin}/e/${ok.code}` : null,
-  ]
-    .filter(Boolean)
-    .join("\n");
+  const emergencyText = buildEmergencyText(
+    lang,
+    t,
+    ok as NonNullable<ReturnType<typeof Route.useLoaderData>> & { status: "ok" },
+    building,
+    emergencyEntrance,
+    ap,
+    floor,
+    vehicleApproach,
+    coords,
+    accessNotes,
+  );
+
+  const verificationLabel = t({
+    ar: VERIFICATION_LEVELS[ok.verification_level]?.ar ?? "غير موثق",
+    en: VERIFICATION_LABELS_EN[ok.verification_level] ?? "Unverified",
+  });
 
   return (
     <div className="min-h-screen bg-secondary">
@@ -196,7 +281,7 @@ function EmergencyPage() {
           <div className="min-w-0">
             <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-destructive">
               <Siren className="size-3.5" />
-              وضع الطوارئ
+              {t({ ar: "وضع الطوارئ", en: "Emergency mode" })}
             </span>
             <span className="mt-0.5 block font-mono text-sm font-bold tracking-widest" dir="ltr">
               {ok.code}
@@ -208,7 +293,7 @@ function EmergencyPage() {
           </div>
           <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-background px-2 py-1 text-[10px] font-bold">
             <BadgeCheck className="size-3.5 text-primary" />
-            {VERIFICATION_LEVELS[ok.verification_level]?.ar ?? "غير موثق"}
+            {verificationLabel}
           </span>
         </div>
       </header>
@@ -228,13 +313,13 @@ function EmergencyPage() {
             type="button"
             onClick={async () => {
               await navigator.clipboard.writeText(coords);
-              toast.success("تم نسخ الإحداثيات");
+              toast.success(t({ ar: "تم نسخ الإحداثيات", en: "Coordinates copied" }));
             }}
             className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-surface p-4 text-start"
           >
             <span className="min-w-0">
               <span className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-                الإحداثيات
+                {t({ ar: "الإحداثيات", en: "Coordinates" })}
               </span>
               <span className="mt-0.5 block font-mono text-base font-bold" dir="ltr">
                 {coords}
@@ -247,7 +332,7 @@ function EmergencyPage() {
         <DirectionsButton
           code={ok.code}
           mode="driving"
-          label="ابدأ التوجيه إلى الموقع"
+          label={t({ ar: "ابدأ التوجيه إلى الموقع", en: "Start directions to the location" })}
           className="flex w-full items-center justify-center gap-2 rounded-2xl bg-destructive px-4 py-4 text-lg font-bold text-destructive-foreground shadow-plate"
         />
 
@@ -257,13 +342,15 @@ function EmergencyPage() {
             onClick={async () => {
               await navigator.clipboard.writeText(emergencyText);
               setCopied(true);
-              toast.success("تم نسخ بطاقة الطوارئ");
+              toast.success(t({ ar: "تم نسخ بطاقة الطوارئ", en: "Emergency card copied" }));
               setTimeout(() => setCopied(false), 2000);
             }}
             className="flex items-center justify-center gap-2 rounded-xl border-2 border-destructive/40 bg-destructive/5 px-3 py-3.5 text-sm font-bold text-destructive"
           >
             <Copy className="size-4" />
-            {copied ? "تم النسخ" : "نسخ عنوان الطوارئ"}
+            {copied
+              ? t({ ar: "تم النسخ", en: "Copied" })
+              : t({ ar: "نسخ عنوان الطوارئ", en: "Copy emergency address" })}
           </button>
           <button
             type="button"
@@ -271,83 +358,95 @@ function EmergencyPage() {
               const url = `${window.location.origin}/e/${ok.code}`;
               if (typeof navigator !== "undefined" && navigator.share) {
                 try {
-                  await navigator.share({ title: `طوارئ ${ok.code}`, text: emergencyText, url });
+                  await navigator.share({
+                    title: `${t({ ar: "طوارئ", en: "Emergency" })} ${ok.code}`,
+                    text: emergencyText,
+                    url,
+                  });
                   return;
                 } catch {
                   // share sheet dismissed — fall back to copying
                 }
               }
               await navigator.clipboard.writeText(`${emergencyText}`);
-              toast.success("تم نسخ موقع الطوارئ");
+              toast.success(t({ ar: "تم نسخ موقع الطوارئ", en: "Emergency location copied" }));
             }}
             className="flex items-center justify-center gap-2 rounded-xl border border-border bg-surface px-3 py-3.5 text-sm font-bold"
           >
             <Share2 className="size-4" />
-            مشاركة موقع الطوارئ
+            {t({ ar: "مشاركة موقع الطوارئ", en: "Share emergency location" })}
           </button>
         </div>
 
         <div className="space-y-2">
           <BigRow
             icon={LifeBuoy}
-            label="مدخل الطوارئ"
+            label={t({ ar: "مدخل الطوارئ", en: "Emergency entrance" })}
             value={emergencyEntrance?.display_name ?? null}
             highlight
           />
           <BigRow
             icon={Truck}
-            label="أفضل وصول معروف للمركبات"
+            label={t({ ar: "أفضل وصول معروف للمركبات", en: "Best known vehicle access" })}
             value={vehicleApproach}
             highlight={!emergencyEntrance}
           />
-          <BigRow icon={DoorOpen} label="المدخل الموصى به" value={ap?.display_name ?? null} />
+          <BigRow
+            icon={DoorOpen}
+            label={t({ ar: "المدخل الموصى به", en: "Recommended entrance" })}
+            value={ap?.display_name ?? null}
+          />
           <BigRow
             icon={Building2}
-            label="المبنى"
+            label={t({ ar: "المبنى", en: "Building" })}
             value={
               building
-                ? `${building.display_name}${ok.site.building_number ? ` · رقم ${ok.site.building_number}` : ""}`
+                ? `${building.display_name}${
+                    ok.site.building_number
+                      ? ` · ${t({ ar: "رقم", en: "No." })} ${ok.site.building_number}`
+                      : ""
+                  }`
                 : ok.site.building_number
-                  ? `رقم ${ok.site.building_number}`
+                  ? `${t({ ar: "رقم", en: "No." })} ${ok.site.building_number}`
                   : null
             }
           />
-          <BigRow icon={Layers} label="الطابق" value={floor?.floor_label ?? null} />
+          <BigRow icon={Layers} label={t({ ar: "الطابق", en: "Floor" })} value={floor?.floor_label ?? null} />
           <BigRow
             icon={ArrowUpFromLine}
-            label="المصعد"
+            label={t({ ar: "المصعد", en: "Elevator" })}
             value={
               ok.site.has_elevator == null
                 ? null
                 : ok.site.has_elevator
-                  ? "متوفر"
-                  : "غير متوفر — الدرج فقط"
+                  ? t({ ar: "متوفر", en: "Available" })
+                  : t({ ar: "غير متوفر — الدرج فقط", en: "Not available — stairs only" })
             }
           />
           <BigRow
             icon={Accessibility}
-            label="وصول الكراسي المتحركة"
+            label={t({ ar: "وصول الكراسي المتحركة", en: "Wheelchair access" })}
             value={
               ok.site.wheelchair_accessible == null
                 ? null
                 : ok.site.wheelchair_accessible
-                  ? "متاح"
-                  : "غير متاح"
+                  ? t({ ar: "متاح", en: "Available" })
+                  : t({ ar: "غير متاح", en: "Not available" })
             }
           />
           <BigRow
             icon={ArrowUpFromLine}
-            label="نقطة التوقف / التحميل"
+            label={t({ ar: "نقطة التوقف / التحميل", en: "Stopping / loading point" })}
             value={ap?.loading_info ?? ok.site.loading_info}
           />
-          <BigRow icon={MapPin} label="أقرب معلم" value={ok.site.landmark} />
+          <BigRow icon={MapPin} label={t({ ar: "أقرب معلم", en: "Nearest landmark" })} value={ok.site.landmark} />
         </div>
 
         {accessNotes.length ? (
           <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-4">
             <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-destructive">
               <ShieldAlert className="size-3.5" />
-              ملاحظات الوصول
+              {t({ ar: "ملاحظات الوصول", en: "Access notes" })}
             </span>
             <ul className="mt-1.5 space-y-1">
               {accessNotes.map((note) => (
@@ -362,9 +461,10 @@ function EmergencyPage() {
         {/* No official emergency-service integration exists — say so plainly. */}
         <p className="flex items-start gap-2 rounded-xl border border-border bg-surface p-3 text-[11px] leading-relaxed text-muted-foreground">
           <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
-          هذه بطاقة معلومات وصول من سيرياسان، وليست خدمة استدعاء إسعاف أو دفاع مدني، ولا ترتبط حالياً
-          بأي جهة رسمية. اتصل بأرقام الطوارئ المعتمدة مباشرة، ويمكنك إرسال هذه البطاقة إليهم لتسهيل
-          الوصول. البنية جاهزة للربط المستقبلي بأنظمة الإسعاف والدفاع المدني عند وجود اتفاق مؤسسي فعلي.
+          {t({
+            ar: "هذه بطاقة معلومات وصول من سيرياسان، وليست خدمة استدعاء إسعاف أو دفاع مدني، ولا ترتبط حالياً بأي جهة رسمية. اتصل بأرقام الطوارئ المعتمدة مباشرة، ويمكنك إرسال هذه البطاقة إليهم لتسهيل الوصول. البنية جاهزة للربط المستقبلي بأنظمة الإسعاف والدفاع المدني عند وجود اتفاق مؤسسي فعلي.",
+            en: "This is a Syriasan access-information card, not an ambulance or civil-defense dispatch service, and it isn't currently linked to any official agency. Call your local emergency numbers directly, and feel free to forward this card to them to make the trip easier. The platform is built to connect with ambulance and civil-defense systems in the future, once a real institutional agreement is in place.",
+          })}
         </p>
 
         <Link
@@ -373,7 +473,7 @@ function EmergencyPage() {
           className="flex items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 py-3 text-sm font-bold"
         >
           <Navigation className="size-4" />
-          عرض بطاقة العنوان الكاملة
+          {t({ ar: "عرض بطاقة العنوان الكاملة", en: "View the full address card" })}
         </Link>
       </main>
     </div>
