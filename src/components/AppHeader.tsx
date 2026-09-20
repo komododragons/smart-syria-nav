@@ -9,6 +9,7 @@ import {
   Search,
   ShieldCheck,
   Truck,
+  Landmark,
 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
