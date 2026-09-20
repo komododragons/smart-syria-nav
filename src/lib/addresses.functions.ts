@@ -424,6 +424,11 @@ export const updateMyAddress = createServerFn({ method: "POST" })
         public_notes: data.public_notes ?? null,
         latitude: data.latitude ?? null,
         longitude: data.longitude ?? null,
+        building_number: data.building_number ?? null,
+        parking_info: data.parking_info ?? null,
+        loading_info: data.loading_info ?? null,
+        wheelchair_accessible: data.wheelchair_accessible ?? null,
+        has_elevator: data.has_elevator ?? null,
       })
       .eq("id", data.node_id);
     if (nodeErr) throw new Error(nodeErr.message);
@@ -434,6 +439,8 @@ export const updateMyAddress = createServerFn({ method: "POST" })
         .update({
           ...(data.entrance_name ? { display_name: data.entrance_name } : {}),
           instructions_ar: data.entrance_instructions ?? null,
+          parking_info: data.entrance_parking_info ?? null,
+          loading_info: data.entrance_loading_info ?? null,
         })
         .eq("id", data.access_point_id);
       if (apErr) throw new Error(apErr.message);
