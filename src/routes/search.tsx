@@ -7,6 +7,7 @@ import { Building2, Landmark, Search as SearchIcon, Store } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { DirectionsButton } from "@/components/DirectionsButton";
 import { searchNetwork } from "@/lib/addresses.functions";
+import { PLACE_CATEGORIES, PLACE_CATEGORY_META } from "@/lib/place-categories";
 import { NODE_TYPE_LABELS, VERIFICATION_LEVELS } from "@/lib/smart-address";
 
 export const Route = createFileRoute("/search")({
