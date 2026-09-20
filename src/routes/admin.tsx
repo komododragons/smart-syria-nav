@@ -169,6 +169,12 @@ function AdminPage() {
             <BarChart3 className="size-3.5" /> تحليلات الشبكة
           </Link>
           <Link
+            to="/admin/plans"
+            className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-bold text-foreground"
+          >
+            <CreditCard className="size-3.5" /> إدارة الخطط
+          </Link>
+          <Link
             to="/admin/quality"
             className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-bold text-foreground"
           >
