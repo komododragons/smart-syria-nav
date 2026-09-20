@@ -108,6 +108,12 @@ function DevelopersPage() {
             بوابة المطورين: توثيق كامل + أمثلة + وضع اختبار
           </Link>
           <Link
+            to="/widget"
+            className="mt-2 inline-flex rounded-lg border border-primary/50 px-3 py-2 text-xs font-bold text-primary"
+          >
+            أداة العنوان القابلة للتضمين (سطر واحد + بروتوكول الحزم)
+          </Link>
+          <Link
             to="/api-reference"
             className="mt-2 inline-flex rounded-lg border border-primary/50 px-3 py-2 text-xs font-bold text-primary"
           >

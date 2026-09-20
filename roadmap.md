@@ -69,3 +69,9 @@
 - [x] Live sandbox console (paste key, run real request, shows status + mode + rate-limit headers)
 - [x] Sandbox mode: `test` clients simulate writes, X-Syriasan-Mode header on every response
 - [x] Webhooks: api_webhooks table, create/list/test/delete endpoints, HMAC-SHA256 signed deliveries on address events
+
+## Phase 12 — Embeddable Address Widget [DONE]
+- [x] /widget.js loader: auto-init via data-syriasan-address, Syriasan.mount(), Syriasan.resolve(), hidden-field binding, auto height
+- [x] /embed/address params (lang ar|en, compact, code, auto, title, origin) + widget protocol v1 messages
+- [x] Bilingual field (Address found / Confirm Address), change-address flow
+- [x] /widget page: live demo, HTML/JS/React/Flutter/native/REST snippets, protocol table, SDK architecture

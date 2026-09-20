@@ -22,6 +22,7 @@ import { Route as DocsRouteImport } from './routes/docs'
 import { Route as MyAddressesRouteImport } from './routes/my-addresses'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as VerifyRouteImport } from './routes/verify'
+import { Route as WidgetRouteImport } from './routes/widget'
 import { Route as ACodeRouteImport } from './routes/a.$code'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminClaimsRouteImport } from './routes/admin.claims'
@@ -100,6 +101,11 @@ const SearchRoute = SearchRouteImport.update({
 const VerifyRoute = VerifyRouteImport.update({
   id: '/verify',
   path: '/verify',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WidgetRoute = WidgetRouteImport.update({
+  id: '/widget',
+  path: '/widget',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ACodeRoute = ACodeRouteImport.update({
@@ -187,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/my-addresses': typeof MyAddressesRoute
   '/search': typeof SearchRoute
   '/verify': typeof VerifyRoute
+  '/widget': typeof WidgetRoute
   '/a/$code': typeof ACodeRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/claims': typeof AdminClaimsRoute
@@ -216,6 +223,7 @@ export interface FileRoutesByTo {
   '/my-addresses': typeof MyAddressesRoute
   '/search': typeof SearchRoute
   '/verify': typeof VerifyRoute
+  '/widget': typeof WidgetRoute
   '/a/$code': typeof ACodeRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/claims': typeof AdminClaimsRoute
@@ -246,6 +254,7 @@ export interface FileRoutesById {
   '/my-addresses': typeof MyAddressesRoute
   '/search': typeof SearchRoute
   '/verify': typeof VerifyRoute
+  '/widget': typeof WidgetRoute
   '/a/$code': typeof ACodeRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/claims': typeof AdminClaimsRoute
@@ -277,6 +286,7 @@ export interface FileRouteTypes {
     | '/my-addresses'
     | '/search'
     | '/verify'
+    | '/widget'
     | '/a/$code'
     | '/admin/audit'
     | '/admin/claims'
@@ -306,6 +316,7 @@ export interface FileRouteTypes {
     | '/my-addresses'
     | '/search'
     | '/verify'
+    | '/widget'
     | '/a/$code'
     | '/admin/audit'
     | '/admin/claims'
@@ -335,6 +346,7 @@ export interface FileRouteTypes {
     | '/my-addresses'
     | '/search'
     | '/verify'
+    | '/widget'
     | '/a/$code'
     | '/admin/audit'
     | '/admin/claims'
@@ -365,6 +377,7 @@ export interface RootRouteChildren {
   MyAddressesRoute: typeof MyAddressesRoute
   SearchRoute: typeof SearchRoute
   VerifyRoute: typeof VerifyRoute
+  WidgetRoute: typeof WidgetRoute
   ACodeRoute: typeof ACodeRoute
   BusinessIdRoute: typeof BusinessIdRoute
   ClaimIdRoute: typeof ClaimIdRoute
@@ -469,6 +482,13 @@ declare module '@tanstack/react-router' {
       path: '/verify'
       fullPath: '/verify'
       preLoaderRoute: typeof VerifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/widget': {
+      id: '/widget'
+      path: '/widget'
+      fullPath: '/widget'
+      preLoaderRoute: typeof WidgetRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/a/$code': {
@@ -600,6 +620,7 @@ const rootRouteChildren: RootRouteChildren = {
   MyAddressesRoute: MyAddressesRoute,
   SearchRoute: SearchRoute,
   VerifyRoute: VerifyRoute,
+  WidgetRoute: WidgetRoute,
   ACodeRoute: ACodeRoute,
   BusinessIdRoute: BusinessIdRoute,
   ClaimIdRoute: ClaimIdRoute,
