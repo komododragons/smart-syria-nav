@@ -195,29 +195,18 @@ export function escapeLike(value: string): string {
 }
 
 /**
- * Spelling variations of an Arabic query (أ/إ/آ/ا, ي/ى, ه/ة, ؤ/و, and the
- * leading "ال"), so a user typing "ابو رمانه" still finds "أبو رمانة".
+ * A LIKE pattern that tolerates Arabic spelling variations (أ/إ/آ/ا, ي/ى,
+ * ه/ة, ؤ/و) by matching those letters with a single-character wildcard, so a
+ * user typing "المزه" still finds "المزة". Results are re-scored afterwards.
  */
-export function arabicVariants(value: string, max = 6): string[] {
+export function tolerantPatterns(value: string): string[] {
   const base = escapeLike(value.trim().toLowerCase());
   if (!base) return [];
-  const seeds = [base];
-  if (base.startsWith("ال") && base.length > 4) seeds.push(base.slice(2));
-  const out = new Set<string>();
-  for (const seed of seeds) {
-    let combos: string[] = [""];
-    for (const char of seed) {
-      const options = ARABIC_EQUIVALENTS[char];
-      if (!options || combos.length * options.length > max) {
-        combos = combos.map((c) => c + char);
-      } else {
-        combos = combos.flatMap((c) => options.map((o) => c + o));
-      }
-    }
-    for (const combo of combos) out.add(combo);
-    if (out.size >= max * 2) break;
-  }
-  return [...out].slice(0, max * 2);
+  const loose = (input: string) => input.replace(/[اأإآيىهةوؤ]/g, "_");
+  const out = new Set<string>([loose(base)]);
+  if (base.startsWith("ال") && base.length > 4) out.add(loose(base.slice(2)));
+  out.add(base);
+  return [...out];
 }
 
 export function confidenceBand(score: number): { ar: string; tone: "high" | "medium" | "low" } {

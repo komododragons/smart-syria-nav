@@ -50,14 +50,14 @@ export const searchNetwork = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const { serverPublicClient, haversineMeters } = await import("./addresses.server");
-    const { normalizeArabic, normalizeCode, arabicVariants, escapeLike } = await import("./smart-address");
+    const { normalizeArabic, normalizeCode, tolerantPatterns, escapeLike } = await import("./smart-address");
     const { RESIDENTIAL_NODE_TYPES } = await import("./place-categories");
     const supa = serverPublicClient();
     const raw = data.query.trim();
     if (raw.length < 2) return { businesses: [], places: [], code: null, codes: [] };
 
     const normalized = normalizeArabic(raw);
-    const variants = arabicVariants(raw);
+    const variants = tolerantPatterns(raw);
     if (!variants.length) variants.push(escapeLike(raw).toLowerCase());
     const patterns = variants.map((v) => `%${v}%`);
     const hasOrigin = data.latitude != null && data.longitude != null;
