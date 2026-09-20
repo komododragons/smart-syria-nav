@@ -166,7 +166,9 @@ export const searchNetwork = createServerFn({ method: "POST" })
 
     const distanceOf = (lat?: number | null, lng?: number | null) => {
       if (!hasOrigin || lat == null || lng == null) return null;
-      return Math.round(haversineMeters(data.latitude!, data.longitude!, lat, lng));
+      return Math.round(
+        haversineMeters({ lat: data.latitude!, lng: data.longitude! }, { lat, lng }),
+      );
     };
 
     /** Nearer is better, with a gentle decay: 0 m → +45, 5 km → ~+9, 25 km → ~+2. */
