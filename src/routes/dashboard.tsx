@@ -77,6 +77,7 @@ export const Route = createFileRoute("/dashboard")({
 type TabKey =
   | "locations"
   | "addresses"
+  | "import"
   | "verification"
   | "qr"
   | "plates"
@@ -88,6 +89,7 @@ type TabKey =
 const TABS: { key: TabKey; label: string; icon: typeof Building2 }[] = [
   { key: "locations", label: "المواقع", icon: Building2 },
   { key: "addresses", label: "العناوين", icon: MapPinned },
+  { key: "import", label: "استيراد وتصدير", icon: FileSpreadsheet },
   { key: "verification", label: "التوثيق", icon: BadgeCheck },
   { key: "qr", label: "رموز QR", icon: QrCode },
   { key: "plates", label: "لوحات العنوان", icon: LayoutTemplate },
