@@ -31,7 +31,7 @@ const TOGGLES: (keyof PrivacyPreferences)[] = [
   "allow_share_parking",
 ];
 
-const PRIVACY_LABELS: Partial<Record<keyof PrivacyPreferences, { ar: string; en: string }>> = {
+const PRIVACY_LABELS: Record<keyof PrivacyPreferences, { ar: string; en: string }> = {
   allow_share_phone: { ar: "مشاركة الهاتف", en: "Share phone number" },
   allow_share_unit: { ar: "مشاركة رقم الشقة", en: "Share unit number" },
   allow_share_floor: { ar: "مشاركة الطابق", en: "Share floor" },
@@ -40,6 +40,7 @@ const PRIVACY_LABELS: Partial<Record<keyof PrivacyPreferences, { ar: string; en:
   allow_share_parking: { ar: "مشاركة معلومات المواقف", en: "Share parking information" },
   default_share_hours: { ar: "المدة الافتراضية للمشاركة (ساعات)", en: "Default share duration (hours)" },
   max_share_hours: { ar: "الحد الأقصى لمدة المشاركة (ساعات)", en: "Maximum share duration (hours)" },
+  require_expiry: { ar: "إلزام انتهاء صلاحية كل رابط", en: "Require an expiry on every share link" },
 };
 
 const HELP: Partial<Record<keyof PrivacyPreferences, { ar: string; en: string }>> = {

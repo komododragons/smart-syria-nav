@@ -876,7 +876,10 @@ function MyClaimsSection() {
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="text-sm font-bold">{biz?.name_ar ?? "عمل"}</span>
                 <span className="text-xs text-muted-foreground">
-                  {CLAIM_STATUS_LABELS[claim.status] ?? claim.status} ·{" "}
+                  {(() => {
+                    const cs = CLAIM_STATUS_LABELS[claim.status];
+                    return typeof cs === "string" ? cs : cs ? t(cs) : claim.status;
+                  })()} ·{" "}
                   {new Date(claim.created_at).toLocaleDateString("ar-SY")}
                 </span>
               </div>
