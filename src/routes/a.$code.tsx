@@ -134,6 +134,13 @@ function AddressCardPage() {
   const ok = result.status === "ok" ? result : null;
 
   useEffect(() => {
+    if (!ok) return;
+    void logAddressEvent({ data: { code: normalizeCode(rawCode), event: "resolve", source: "card" } }).catch(
+      () => undefined,
+    );
+  }, [ok, rawCode]);
+
+  useEffect(() => {
     let active = true;
     void (async () => {
       const { data } = await supabase.auth.getSession();
