@@ -28,6 +28,7 @@ import { Route as ClaimIdRouteImport } from './routes/claim.$id'
 import { Route as DCodeRouteImport } from './routes/d.$code'
 import { Route as NavigationCodeRouteImport } from './routes/navigation.$code'
 import { Route as TTokenRouteImport } from './routes/t.$token'
+import { Route as ApiPublicCheckoutRouteImport } from './routes/api.public.checkout'
 import { Route as ApiPublicResolveRouteImport } from './routes/api.public.resolve'
 
 const IndexRoute = IndexRouteImport.update({
@@ -125,6 +126,11 @@ const TTokenRoute = TTokenRouteImport.update({
   path: '/t/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCheckoutRoute = ApiPublicCheckoutRouteImport.update({
+  id: '/api/public/checkout',
+  path: '/api/public/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicResolveRoute = ApiPublicResolveRouteImport.update({
   id: '/api/public/resolve',
   path: '/api/public/resolve',
@@ -151,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/d/$code': typeof DCodeRoute
   '/navigation/$code': typeof NavigationCodeRoute
   '/t/$token': typeof TTokenRoute
+  '/api/public/checkout': typeof ApiPublicCheckoutRoute
   '/api/public/resolve': typeof ApiPublicResolveRoute
 }
 export interface FileRoutesByTo {
@@ -173,6 +180,7 @@ export interface FileRoutesByTo {
   '/d/$code': typeof DCodeRoute
   '/navigation/$code': typeof NavigationCodeRoute
   '/t/$token': typeof TTokenRoute
+  '/api/public/checkout': typeof ApiPublicCheckoutRoute
   '/api/public/resolve': typeof ApiPublicResolveRoute
 }
 export interface FileRoutesById {
@@ -196,6 +204,7 @@ export interface FileRoutesById {
   '/d/$code': typeof DCodeRoute
   '/navigation/$code': typeof NavigationCodeRoute
   '/t/$token': typeof TTokenRoute
+  '/api/public/checkout': typeof ApiPublicCheckoutRoute
   '/api/public/resolve': typeof ApiPublicResolveRoute
 }
 export interface FileRouteTypes {
@@ -220,6 +229,7 @@ export interface FileRouteTypes {
     | '/d/$code'
     | '/navigation/$code'
     | '/t/$token'
+    | '/api/public/checkout'
     | '/api/public/resolve'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -242,6 +252,7 @@ export interface FileRouteTypes {
     | '/d/$code'
     | '/navigation/$code'
     | '/t/$token'
+    | '/api/public/checkout'
     | '/api/public/resolve'
   id:
     | '__root__'
@@ -264,6 +275,7 @@ export interface FileRouteTypes {
     | '/d/$code'
     | '/navigation/$code'
     | '/t/$token'
+    | '/api/public/checkout'
     | '/api/public/resolve'
   fileRoutesById: FileRoutesById
 }
@@ -284,6 +296,7 @@ export interface RootRouteChildren {
   DCodeRoute: typeof DCodeRoute
   NavigationCodeRoute: typeof NavigationCodeRoute
   TTokenRoute: typeof TTokenRoute
+  ApiPublicCheckoutRoute: typeof ApiPublicCheckoutRoute
   ApiPublicResolveRoute: typeof ApiPublicResolveRoute
 }
 
@@ -422,6 +435,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/checkout': {
+      id: '/api/public/checkout'
+      path: '/api/public/checkout'
+      fullPath: '/api/public/checkout'
+      preLoaderRoute: typeof ApiPublicCheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/resolve': {
       id: '/api/public/resolve'
       path: '/api/public/resolve'
@@ -463,6 +483,7 @@ const rootRouteChildren: RootRouteChildren = {
   DCodeRoute: DCodeRoute,
   NavigationCodeRoute: NavigationCodeRoute,
   TTokenRoute: TTokenRoute,
+  ApiPublicCheckoutRoute: ApiPublicCheckoutRoute,
   ApiPublicResolveRoute: ApiPublicResolveRoute,
 }
 export const routeTree = rootRouteImport
