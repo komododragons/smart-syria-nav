@@ -18,6 +18,7 @@ import { Route as DevelopersRouteImport } from './routes/developers'
 import { Route as MyAddressesRouteImport } from './routes/my-addresses'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as VerifyRouteImport } from './routes/verify'
+import { Route as ACodeRouteImport } from './routes/a.$code'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminNavigationRouteImport } from './routes/admin.navigation'
 import { Route as BusinessIdRouteImport } from './routes/business.$id'
@@ -70,6 +71,11 @@ const VerifyRoute = VerifyRouteImport.update({
   path: '/verify',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ACodeRoute = ACodeRouteImport.update({
+  id: '/a/$code',
+  path: '/a/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminAuditRoute = AdminAuditRouteImport.update({
   id: '/audit',
   path: '/audit',
@@ -111,6 +117,7 @@ export interface FileRoutesByFullPath {
   '/my-addresses': typeof MyAddressesRoute
   '/search': typeof SearchRoute
   '/verify': typeof VerifyRoute
+  '/a/$code': typeof ACodeRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/navigation': typeof AdminNavigationRoute
   '/business/$id': typeof BusinessIdRoute
@@ -128,6 +135,7 @@ export interface FileRoutesByTo {
   '/my-addresses': typeof MyAddressesRoute
   '/search': typeof SearchRoute
   '/verify': typeof VerifyRoute
+  '/a/$code': typeof ACodeRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/navigation': typeof AdminNavigationRoute
   '/business/$id': typeof BusinessIdRoute
@@ -146,6 +154,7 @@ export interface FileRoutesById {
   '/my-addresses': typeof MyAddressesRoute
   '/search': typeof SearchRoute
   '/verify': typeof VerifyRoute
+  '/a/$code': typeof ACodeRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/navigation': typeof AdminNavigationRoute
   '/business/$id': typeof BusinessIdRoute
@@ -165,6 +174,7 @@ export interface FileRouteTypes {
     | '/my-addresses'
     | '/search'
     | '/verify'
+    | '/a/$code'
     | '/admin/audit'
     | '/admin/navigation'
     | '/business/$id'
@@ -182,6 +192,7 @@ export interface FileRouteTypes {
     | '/my-addresses'
     | '/search'
     | '/verify'
+    | '/a/$code'
     | '/admin/audit'
     | '/admin/navigation'
     | '/business/$id'
@@ -199,6 +210,7 @@ export interface FileRouteTypes {
     | '/my-addresses'
     | '/search'
     | '/verify'
+    | '/a/$code'
     | '/admin/audit'
     | '/admin/navigation'
     | '/business/$id'
@@ -217,6 +229,7 @@ export interface RootRouteChildren {
   MyAddressesRoute: typeof MyAddressesRoute
   SearchRoute: typeof SearchRoute
   VerifyRoute: typeof VerifyRoute
+  ACodeRoute: typeof ACodeRoute
   BusinessIdRoute: typeof BusinessIdRoute
   NavigationCodeRoute: typeof NavigationCodeRoute
   TTokenRoute: typeof TTokenRoute
@@ -288,6 +301,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VerifyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/a/$code': {
+      id: '/a/$code'
+      path: '/a/$code'
+      fullPath: '/a/$code'
+      preLoaderRoute: typeof ACodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/audit': {
       id: '/admin/audit'
       path: '/audit'
@@ -355,6 +375,7 @@ const rootRouteChildren: RootRouteChildren = {
   MyAddressesRoute: MyAddressesRoute,
   SearchRoute: SearchRoute,
   VerifyRoute: VerifyRoute,
+  ACodeRoute: ACodeRoute,
   BusinessIdRoute: BusinessIdRoute,
   NavigationCodeRoute: NavigationCodeRoute,
   TTokenRoute: TTokenRoute,

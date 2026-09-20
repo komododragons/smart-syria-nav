@@ -142,8 +142,8 @@ function AddressCardPage() {
       setSignedIn(isIn);
       if (isIn && ok) {
         try {
-          const favs = await listFavs({ data: {} });
-          if (active) setSaved(favs.some((f) => f.code === ok.code));
+          const favs = await listFavs();
+          if (active) setSaved(favs.some((f) => f.smart_addresses?.code === ok.code));
         } catch {
           // favourites unavailable — save button simply starts unselected
         }
