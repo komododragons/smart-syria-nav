@@ -9,7 +9,7 @@
  * addresses. Private residential nodes resolve to `{"error":"private"}` with
  * no hierarchy, coordinates, owner or contact data disclosed.
  */
-import { createHash } from "node:crypto";
+import { createHash, createHmac, randomBytes } from "node:crypto";
 
 import { z } from "zod";
 
