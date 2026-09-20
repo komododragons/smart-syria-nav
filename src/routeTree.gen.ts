@@ -30,6 +30,7 @@ import { Route as ACodeRouteImport } from './routes/a.$code'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminClaimsRouteImport } from './routes/admin.claims'
 import { Route as AdminNavigationRouteImport } from './routes/admin.navigation'
+import { Route as AdminQualityRouteImport } from './routes/admin.quality'
 import { Route as BusinessIdRouteImport } from './routes/business.$id'
 import { Route as ClaimIdRouteImport } from './routes/claim.$id'
 import { Route as DCodeRouteImport } from './routes/d.$code'
@@ -147,6 +148,11 @@ const AdminNavigationRoute = AdminNavigationRouteImport.update({
   path: '/navigation',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminQualityRoute = AdminQualityRouteImport.update({
+  id: '/quality',
+  path: '/quality',
+  getParentRoute: () => AdminRoute,
+} as any)
 const BusinessIdRoute = BusinessIdRouteImport.update({
   id: '/business/$id',
   path: '/business/$id',
@@ -225,6 +231,7 @@ export interface FileRoutesByFullPath {
   '/admin/audit': typeof AdminAuditRoute
   '/admin/claims': typeof AdminClaimsRoute
   '/admin/navigation': typeof AdminNavigationRoute
+  '/admin/quality': typeof AdminQualityRoute
   '/business/$id': typeof BusinessIdRoute
   '/claim/$id': typeof ClaimIdRoute
   '/d/$code': typeof DCodeRoute
@@ -259,6 +266,7 @@ export interface FileRoutesByTo {
   '/admin/audit': typeof AdminAuditRoute
   '/admin/claims': typeof AdminClaimsRoute
   '/admin/navigation': typeof AdminNavigationRoute
+  '/admin/quality': typeof AdminQualityRoute
   '/business/$id': typeof BusinessIdRoute
   '/claim/$id': typeof ClaimIdRoute
   '/d/$code': typeof DCodeRoute
@@ -294,6 +302,7 @@ export interface FileRoutesById {
   '/admin/audit': typeof AdminAuditRoute
   '/admin/claims': typeof AdminClaimsRoute
   '/admin/navigation': typeof AdminNavigationRoute
+  '/admin/quality': typeof AdminQualityRoute
   '/business/$id': typeof BusinessIdRoute
   '/claim/$id': typeof ClaimIdRoute
   '/d/$code': typeof DCodeRoute
@@ -330,6 +339,7 @@ export interface FileRouteTypes {
     | '/admin/audit'
     | '/admin/claims'
     | '/admin/navigation'
+    | '/admin/quality'
     | '/business/$id'
     | '/claim/$id'
     | '/d/$code'
@@ -364,6 +374,7 @@ export interface FileRouteTypes {
     | '/admin/audit'
     | '/admin/claims'
     | '/admin/navigation'
+    | '/admin/quality'
     | '/business/$id'
     | '/claim/$id'
     | '/d/$code'
@@ -398,6 +409,7 @@ export interface FileRouteTypes {
     | '/admin/audit'
     | '/admin/claims'
     | '/admin/navigation'
+    | '/admin/quality'
     | '/business/$id'
     | '/claim/$id'
     | '/d/$code'
@@ -592,6 +604,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminNavigationRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/quality': {
+      id: '/admin/quality'
+      path: '/quality'
+      fullPath: '/admin/quality'
+      preLoaderRoute: typeof AdminQualityRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/business/$id': {
       id: '/business/$id'
       path: '/business/$id'
@@ -676,12 +695,14 @@ interface AdminRouteChildren {
   AdminAuditRoute: typeof AdminAuditRoute
   AdminClaimsRoute: typeof AdminClaimsRoute
   AdminNavigationRoute: typeof AdminNavigationRoute
+  AdminQualityRoute: typeof AdminQualityRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAuditRoute: AdminAuditRoute,
   AdminClaimsRoute: AdminClaimsRoute,
   AdminNavigationRoute: AdminNavigationRoute,
+  AdminQualityRoute: AdminQualityRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)

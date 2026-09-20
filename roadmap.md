@@ -108,3 +108,8 @@ PHASE 18 — ROUTING CONTEXTS — DONE
 - access_point_contexts table (7 contexts, allowed/approach/preferred road/vehicle note, RLS owner+staff)
 - resolver + navigation pick the entrance mapped to the active context
 - context switcher on /a/CODE and /navigation/CODE, owner editor in /my-addresses
+
+PHASE 19 — ADDRESS QUALITY ENGINE — DONE
+- Internal 0-100 quality score per public node (src/lib/quality.server.ts): coordinates, street/neighborhood, building number, entrance, landmark, verification level, recent confirmation (<=180d), duplicate confidence, routing accessibility.
+- qualityDashboard server fn (src/lib/quality.functions.ts), staff-only (verifier/moderator/admin).
+- /admin/quality dashboard with six lists: incomplete, potential duplicates, stale, unverified businesses, missing coordinates, reported locations. Score never shown publicly.
