@@ -74,6 +74,11 @@ export type NavDestination = {
   final_leg_on_foot: boolean;
   final_leg_meters: number | null;
   warnings: NavWarning[];
+  /** Phase 18 — routing context used and its approach instructions. */
+  context: string;
+  context_approach: string | null;
+  context_preferred_road: string | null;
+  context_vehicle_note: string | null;
 };
 
 export type NavEntranceOption = {
@@ -97,6 +102,15 @@ export type NavEntranceOption = {
   instructions_en: string | null;
   confidence_score: number;
   verification_level: string;
+  contexts: {
+    context: string;
+    allowed: boolean;
+    approach_ar: string | null;
+    approach_en: string | null;
+    preferred_road: string | null;
+    vehicle_note: string | null;
+    note: string | null;
+  }[];
 };
 
 export type NavRoadAccessPoint = {
