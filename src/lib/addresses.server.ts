@@ -354,6 +354,7 @@ export async function resolvePublicCode(
     code: record.code,
     redirected_from: redirectedFrom,
     purpose,
+    context,
     label: record.label,
     site: {
       id: site.id,
