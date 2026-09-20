@@ -50,8 +50,6 @@ function readStoredLang(): Lang {
   try {
     const stored = window.localStorage.getItem(LANG_STORAGE_KEY);
     if (isLang(stored)) return stored;
-    const nav = window.navigator?.language?.toLowerCase() ?? "";
-    if (nav.startsWith("en")) return "en";
   } catch {
     /* storage may be unavailable */
   }
