@@ -220,6 +220,7 @@ function DashboardPage() {
 
             {tab === "locations" ? <LocationsTab orgId={orgId} canManage={canManage} canAdmin={canAdmin} /> : null}
             {tab === "addresses" ? <AddressesTab orgId={orgId} /> : null}
+            {tab === "import" ? <BulkImportTab orgId={orgId} canManage={canManage} /> : null}
             {tab === "verification" ? <VerificationTab orgId={orgId} /> : null}
             {tab === "qr" ? <CodesTab orgId={orgId} plate={false} /> : null}
             {tab === "plates" ? <CodesTab orgId={orgId} plate /> : null}
