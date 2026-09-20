@@ -106,11 +106,11 @@ function AdminPage() {
     }
   };
 
-  const handleReview = async (id: string, status: "reviewed" | "dismissed") => {
+  const handleReview = async (id: string, decision: "approved" | "rejected") => {
     setBusyId(id);
     try {
-      await review({ data: { id, status } });
-      toast.success(status === "reviewed" ? "تمت مراجعة التقرير" : "تم رفض التقرير");
+      await review({ data: { id, decision, apply: false } });
+      toast.success(decision === "approved" ? "تم قبول التقرير" : "تم رفض التقرير");
       await queryClient.invalidateQueries({ queryKey: ["admin-overview"] });
     } catch {
       toast.error("تعذّر تحديث التقرير — تحتاج صلاحية مشرف أو مراجع");
