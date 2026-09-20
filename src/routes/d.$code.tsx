@@ -18,6 +18,7 @@ import {
 import { CadastralMap, type MapPin as Pin } from "@/components/CadastralMap";
 import { DirectionsButton } from "@/components/DirectionsButton";
 import { resolveAddress } from "@/lib/addresses.functions";
+import { logAddressEvent } from "@/lib/orgs.functions";
 import { normalizeCode, VERIFICATION_LEVELS } from "@/lib/smart-address";
 
 export const Route = createFileRoute("/d/$code")({
