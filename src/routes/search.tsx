@@ -2,13 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { Building2, Landmark, Search as SearchIcon, Store } from "lucide-react";
+import { Building2, Landmark, Navigation2, Search as SearchIcon, Store } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
 import { DirectionsButton } from "@/components/DirectionsButton";
 import { searchNetwork } from "@/lib/addresses.functions";
 import { PLACE_CATEGORIES, PLACE_CATEGORY_META } from "@/lib/place-categories";
-import { NODE_TYPE_LABELS, VERIFICATION_LEVELS } from "@/lib/smart-address";
+import { GOVERNORATES, NODE_TYPE_LABELS, VERIFICATION_LEVELS } from "@/lib/smart-address";
 
 export const Route = createFileRoute("/search")({
   head: () => ({
@@ -132,7 +132,7 @@ function SearchPage() {
                   : "border-border bg-background text-muted-foreground hover:text-foreground"
               }`}
             >
-              <Navigation className="size-3" />
+              <Navigation2 className="size-3" />
               {geoBusy ? "جارٍ تحديد موقعك…" : origin ? "الأقرب إليّ (مفعّل)" : "الأقرب إليّ"}
             </button>
             <button
