@@ -102,6 +102,12 @@ function DevelopersPage() {
             مكوّن العنوان للمتاجر الإلكترونية (WooCommerce / Shopify / مخصص)
           </Link>
           <Link
+            to="/docs"
+            className="mt-2 inline-flex rounded-lg bg-primary px-3 py-2 text-xs font-bold text-primary-foreground"
+          >
+            بوابة المطورين: توثيق كامل + أمثلة + وضع اختبار
+          </Link>
+          <Link
             to="/api-reference"
             className="mt-2 inline-flex rounded-lg border border-primary/50 px-3 py-2 text-xs font-bold text-primary"
           >

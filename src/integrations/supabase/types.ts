@@ -354,6 +354,59 @@ export type Database = {
           },
         ]
       }
+      api_webhooks: {
+        Row: {
+          client_id: string
+          created_at: string
+          delivery_count: number
+          environment: string
+          events: string[]
+          failure_count: number
+          id: string
+          is_active: boolean
+          last_delivery_at: string | null
+          last_status: number | null
+          secret: string
+          url: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          delivery_count?: number
+          environment?: string
+          events?: string[]
+          failure_count?: number
+          id?: string
+          is_active?: boolean
+          last_delivery_at?: string | null
+          last_status?: number | null
+          secret: string
+          url: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          delivery_count?: number
+          environment?: string
+          events?: string[]
+          failure_count?: number
+          id?: string
+          is_active?: boolean
+          last_delivery_at?: string | null
+          last_status?: number | null
+          secret?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_webhooks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "api_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string

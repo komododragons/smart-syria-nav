@@ -18,6 +18,7 @@ import { Route as CourierRouteImport } from './routes/courier'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DevelopersRouteImport } from './routes/developers'
+import { Route as DocsRouteImport } from './routes/docs'
 import { Route as MyAddressesRouteImport } from './routes/my-addresses'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as VerifyRouteImport } from './routes/verify'
@@ -79,6 +80,11 @@ const DashboardRoute = DashboardRouteImport.update({
 const DevelopersRoute = DevelopersRouteImport.update({
   id: '/developers',
   path: '/developers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MyAddressesRoute = MyAddressesRouteImport.update({
@@ -177,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/create': typeof CreateRoute
   '/dashboard': typeof DashboardRoute
   '/developers': typeof DevelopersRoute
+  '/docs': typeof DocsRoute
   '/my-addresses': typeof MyAddressesRoute
   '/search': typeof SearchRoute
   '/verify': typeof VerifyRoute
@@ -205,6 +212,7 @@ export interface FileRoutesByTo {
   '/create': typeof CreateRoute
   '/dashboard': typeof DashboardRoute
   '/developers': typeof DevelopersRoute
+  '/docs': typeof DocsRoute
   '/my-addresses': typeof MyAddressesRoute
   '/search': typeof SearchRoute
   '/verify': typeof VerifyRoute
@@ -234,6 +242,7 @@ export interface FileRoutesById {
   '/create': typeof CreateRoute
   '/dashboard': typeof DashboardRoute
   '/developers': typeof DevelopersRoute
+  '/docs': typeof DocsRoute
   '/my-addresses': typeof MyAddressesRoute
   '/search': typeof SearchRoute
   '/verify': typeof VerifyRoute
@@ -264,6 +273,7 @@ export interface FileRouteTypes {
     | '/create'
     | '/dashboard'
     | '/developers'
+    | '/docs'
     | '/my-addresses'
     | '/search'
     | '/verify'
@@ -292,6 +302,7 @@ export interface FileRouteTypes {
     | '/create'
     | '/dashboard'
     | '/developers'
+    | '/docs'
     | '/my-addresses'
     | '/search'
     | '/verify'
@@ -320,6 +331,7 @@ export interface FileRouteTypes {
     | '/create'
     | '/dashboard'
     | '/developers'
+    | '/docs'
     | '/my-addresses'
     | '/search'
     | '/verify'
@@ -349,6 +361,7 @@ export interface RootRouteChildren {
   CreateRoute: typeof CreateRoute
   DashboardRoute: typeof DashboardRoute
   DevelopersRoute: typeof DevelopersRoute
+  DocsRoute: typeof DocsRoute
   MyAddressesRoute: typeof MyAddressesRoute
   SearchRoute: typeof SearchRoute
   VerifyRoute: typeof VerifyRoute
@@ -428,6 +441,13 @@ declare module '@tanstack/react-router' {
       path: '/developers'
       fullPath: '/developers'
       preLoaderRoute: typeof DevelopersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs': {
+      id: '/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/my-addresses': {
@@ -576,6 +596,7 @@ const rootRouteChildren: RootRouteChildren = {
   CreateRoute: CreateRoute,
   DashboardRoute: DashboardRoute,
   DevelopersRoute: DevelopersRoute,
+  DocsRoute: DocsRoute,
   MyAddressesRoute: MyAddressesRoute,
   SearchRoute: SearchRoute,
   VerifyRoute: VerifyRoute,

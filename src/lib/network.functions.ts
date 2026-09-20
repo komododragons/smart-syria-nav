@@ -372,7 +372,18 @@ export const createApiClient = createServerFn({ method: "POST" })
         environment: data.environment,
         owner_id: context.userId,
         // Read-only v1 scopes by default; `addresses:write` is granted on request.
-        scopes: ["addresses:read", "resolve", "search", "validate", "geocode", "route", "qr"],
+        // The owner may always manage their own keys and webhook subscriptions.
+        scopes: [
+          "addresses:read",
+          "resolve",
+          "search",
+          "validate",
+          "geocode",
+          "route",
+          "qr",
+          "keys:manage",
+          "webhooks:manage",
+        ],
       })
       .select("id")
       .single();
