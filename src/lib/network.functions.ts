@@ -371,7 +371,8 @@ export const createApiClient = createServerFn({ method: "POST" })
         name: data.name,
         environment: data.environment,
         owner_id: context.userId,
-        scopes: ["resolve"],
+        // Read-only v1 scopes by default; `addresses:write` is granted on request.
+        scopes: ["addresses:read", "resolve", "search", "validate", "geocode", "route", "qr"],
       })
       .select("id")
       .single();
