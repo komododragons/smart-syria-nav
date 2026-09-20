@@ -324,7 +324,7 @@ function ResolverPage() {
 
       <div className="flex min-h-0 flex-1 flex-col-reverse md:flex-row">
         {/* Resolver panel (slim, side) */}
-        <aside className="flex w-full flex-1 flex-col overflow-y-auto border-t border-border bg-surface md:flex-none md:border-t-0 md:border-s md:w-[420px]">
+        <aside className="flex w-full flex-1 flex-col overflow-y-auto border-t border-border bg-surface pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0 md:flex-none md:border-t-0 md:border-s md:w-[420px]">
           <div className="sticky top-0 z-10 border-b border-border bg-surface/95 px-5 py-4 backdrop-blur-md">
             <h1 className="text-base font-bold leading-tight text-foreground">{t({ ar: "محلّل العنوان الذكي", en: "Smart Address Resolver" })}</h1>
             <p className="mt-0.5 text-[11px] font-medium uppercase tracking-widest text-muted-foreground" dir="ltr">

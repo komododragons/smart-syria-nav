@@ -170,8 +170,11 @@ export function MobileTabBar() {
           {t({ ar: "المزيد", en: "More" })}
         </button>
       </nav>
-      {/* Keeps page content clear of the fixed bar. */}
-      <div aria-hidden className="h-[calc(4.25rem+env(safe-area-inset-bottom))] md:hidden" />
+      {/* Keeps page content clear of the fixed bar. The home screen is a
+          full-height split view that scrolls internally, so it pads itself. */}
+      {pathname === "/" ? null : (
+        <div aria-hidden className="h-[calc(4.25rem+env(safe-area-inset-bottom))] md:hidden" />
+      )}
     </>
   );
 }
