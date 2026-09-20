@@ -31,9 +31,14 @@ export const PLACE_CATEGORY_VALUES = PLACE_CATEGORIES.map((c) => c.value) as Pla
 export const PLACE_CATEGORY_META: Record<string, { ar: string; en: string; emoji: string }> =
   Object.fromEntries(PLACE_CATEGORIES.map((c) => [c.value, { ar: c.ar, en: c.en, emoji: c.emoji }]));
 
-export function placeCategoryLabel(value: string | null | undefined): string | null {
+export function placeCategoryLabel(
+  value: string | null | undefined,
+  lang: "ar" | "en" = "ar",
+): string | null {
   if (!value) return null;
-  return PLACE_CATEGORY_META[value]?.ar ?? null;
+  const meta = PLACE_CATEGORY_META[value];
+  if (!meta) return null;
+  return lang === "ar" ? meta.ar : meta.en;
 }
 
 /**
