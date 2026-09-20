@@ -581,13 +581,12 @@ async function routeTo(url: URL) {
     const r = await resolvePublicCode(to.toUpperCase(), "parcel_delivery" as never, {});
     if (r.status === "not_found") return fail("not_found", 404, "Unknown smart code.");
     if (r.status !== "ok") return fail("private", 403, "This address is private.");
-    const point = r.recommended
-      ? { latitude: r.recommended.latitude, longitude: r.recommended.longitude }
-      : r.site.latitude != null && r.site.longitude != null
-        ? { latitude: r.site.latitude, longitude: r.site.longitude }
-        : null;
-    if (!point) return fail("no_coordinates", 422, "Destination has no coordinates.");
-    destination = point;
+    const lat = r.recommended?.latitude ?? r.site.latitude;
+    const lng = r.recommended?.longitude ?? r.site.longitude;
+    if (lat == null || lng == null) {
+      return fail("no_coordinates", 422, "Destination has no coordinates.");
+    }
+    destination = { latitude: lat, longitude: lng };
     destinationKind = r.recommended ? "entrance" : "site";
     code = r.code;
   } else {
