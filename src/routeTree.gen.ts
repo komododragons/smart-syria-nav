@@ -25,6 +25,7 @@ import { Route as OfflineRouteImport } from './routes/offline'
 import { Route as PlacesRouteImport } from './routes/places'
 import { Route as PlansRouteImport } from './routes/plans'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as ScanRouteImport } from './routes/scan'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as VaultRouteImport } from './routes/vault'
 import { Route as VerifyRouteImport } from './routes/verify'
@@ -127,6 +128,11 @@ const PlansRoute = PlansRouteImport.update({
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScanRoute = ScanRouteImport.update({
+  id: '/scan',
+  path: '/scan',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SearchRoute = SearchRouteImport.update({
@@ -262,6 +268,7 @@ export interface FileRoutesByFullPath {
   '/places': typeof PlacesRoute
   '/plans': typeof PlansRoute
   '/privacy': typeof PrivacyRoute
+  '/scan': typeof ScanRoute
   '/search': typeof SearchRoute
   '/vault': typeof VaultRoute
   '/verify': typeof VerifyRoute
@@ -303,6 +310,7 @@ export interface FileRoutesByTo {
   '/places': typeof PlacesRoute
   '/plans': typeof PlansRoute
   '/privacy': typeof PrivacyRoute
+  '/scan': typeof ScanRoute
   '/search': typeof SearchRoute
   '/vault': typeof VaultRoute
   '/verify': typeof VerifyRoute
@@ -345,6 +353,7 @@ export interface FileRoutesById {
   '/places': typeof PlacesRoute
   '/plans': typeof PlansRoute
   '/privacy': typeof PrivacyRoute
+  '/scan': typeof ScanRoute
   '/search': typeof SearchRoute
   '/vault': typeof VaultRoute
   '/verify': typeof VerifyRoute
@@ -388,6 +397,7 @@ export interface FileRouteTypes {
     | '/places'
     | '/plans'
     | '/privacy'
+    | '/scan'
     | '/search'
     | '/vault'
     | '/verify'
@@ -429,6 +439,7 @@ export interface FileRouteTypes {
     | '/places'
     | '/plans'
     | '/privacy'
+    | '/scan'
     | '/search'
     | '/vault'
     | '/verify'
@@ -470,6 +481,7 @@ export interface FileRouteTypes {
     | '/places'
     | '/plans'
     | '/privacy'
+    | '/scan'
     | '/search'
     | '/vault'
     | '/verify'
@@ -512,6 +524,7 @@ export interface RootRouteChildren {
   PlacesRoute: typeof PlacesRoute
   PlansRoute: typeof PlansRoute
   PrivacyRoute: typeof PrivacyRoute
+  ScanRoute: typeof ScanRoute
   SearchRoute: typeof SearchRoute
   VaultRoute: typeof VaultRoute
   VerifyRoute: typeof VerifyRoute
@@ -642,6 +655,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/scan': {
+      id: '/scan'
+      path: '/scan'
+      fullPath: '/scan'
+      preLoaderRoute: typeof ScanRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/search': {
@@ -847,6 +867,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlacesRoute: PlacesRoute,
   PlansRoute: PlansRoute,
   PrivacyRoute: PrivacyRoute,
+  ScanRoute: ScanRoute,
   SearchRoute: SearchRoute,
   VaultRoute: VaultRoute,
   VerifyRoute: VerifyRoute,

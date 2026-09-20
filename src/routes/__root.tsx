@@ -10,6 +10,8 @@ import {
 import { useEffect, type ReactNode } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { OfflineBanner } from "@/components/OfflineBanner";
+import { MobileTabBar } from "@/components/MobileTabBar";
+import { InstallPrompt } from "@/components/InstallPrompt";
 import { registerOfflineWorker } from "@/lib/offline/register-sw";
 import { LocaleProvider, useI18n } from "@/lib/i18n";
 
@@ -90,7 +92,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "شبكة العنوان الذكي السورية" },
       {
         name: "description",
@@ -148,6 +150,8 @@ function RootComponent() {
         <OfflineBanner />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
+        <MobileTabBar />
+        <InstallPrompt />
         <Toaster position="top-center" />
       </LocaleProvider>
     </QueryClientProvider>
