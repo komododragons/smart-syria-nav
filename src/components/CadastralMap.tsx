@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Crosshair, LocateFixed } from "lucide-react";
 
+import { useI18n } from "@/lib/i18n";
+
 export type MapPin = {
   id: string;
   latitude: number | null;
@@ -95,6 +97,7 @@ export function CadastralMap({
   onLocate,
   className,
 }: Props) {
+  const { t } = useI18n();
   const ref = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState<string | null>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -244,7 +247,11 @@ export function CadastralMap({
         onPointerMove={handlePointerMove}
         role={onPick ? "button" : undefined}
         tabIndex={onPick ? 0 : undefined}
-        aria-label={onPick ? "اختر موقعاً على الخريطة" : "خريطة المواقع"}
+        aria-label={
+          onPick
+            ? t({ ar: "اختر موقعاً على الخريطة", en: "Pick a point on the map" })
+            : t({ ar: "خريطة المواقع", en: "Locations map" })
+        }
         style={{ touchAction: "none" }}
         className={plateClass}
       >
@@ -284,7 +291,7 @@ export function CadastralMap({
         <div className="absolute top-3 start-1/2 flex -translate-x-1/2 gap-1">
           <button
             type="button"
-            aria-label="تصغير"
+            aria-label={t({ ar: "تصغير", en: "Zoom out" })}
             onClick={(e) => {
               e.stopPropagation();
               zoomBy(2);
@@ -295,7 +302,7 @@ export function CadastralMap({
           </button>
           <button
             type="button"
-            aria-label="تكبير"
+            aria-label={t({ ar: "تكبير", en: "Zoom in" })}
             onClick={(e) => {
               e.stopPropagation();
               zoomBy(0.5);
@@ -306,18 +313,18 @@ export function CadastralMap({
           </button>
           <button
             type="button"
-            aria-label="كل سوريا"
+            aria-label={t({ ar: "كل سوريا", en: "Whole of Syria" })}
             onClick={(e) => {
               e.stopPropagation();
               setView({ latitude: 34.8, longitude: 38.5, span: 700_000 });
             }}
             className="grid h-9 place-items-center rounded-full border border-border bg-surface/95 px-3 text-[11px] font-bold text-foreground shadow-plate"
           >
-            سوريا
+            {t({ ar: "سوريا", en: "Syria" })}
           </button>
           <button
             type="button"
-            aria-label="إعادة الضبط"
+            aria-label={t({ ar: "إعادة الضبط", en: "Reset view" })}
             onClick={(e) => {
               e.stopPropagation();
               setView({ ...center, span: spanMeters });
@@ -340,7 +347,11 @@ export function CadastralMap({
                 key={pin.id}
                 role={selectable ? "button" : undefined}
                 tabIndex={selectable ? 0 : undefined}
-                aria-label={selectable ? `فتح ${pin.label}` : undefined}
+                aria-label={
+                  selectable
+                    ? t({ ar: `فتح ${pin.label}`, en: `Open ${pin.label}` })
+                    : undefined
+                }
                 className={`animate-entrance absolute -translate-x-1/2 -translate-y-1/2 ${selectable ? "cursor-pointer" : "pointer-events-none"}`}
                 style={{ left: `${clampedLeft}%`, top: `${clampedTop}%` }}
                 onMouseEnter={() => setHover(pin.id)}
@@ -379,7 +390,7 @@ export function CadastralMap({
         {onPick ? (
           <div className="pointer-events-none absolute top-3 end-3 flex items-center gap-1 rounded-lg border border-border bg-surface/90 px-2 py-1 text-[10px] font-medium">
             <Crosshair className="size-3 text-primary" />
-            انقر لتحديد الموقع
+            {t({ ar: "انقر لتحديد الموقع", en: "Tap to set the location" })}
           </div>
         ) : null}
       </div>
@@ -389,11 +400,11 @@ export function CadastralMap({
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1.5">
               <span className="size-2 rounded-full bg-primary" />
-              نقطة الوصول الموصى بها
+              {t({ ar: "نقطة الوصول الموصى بها", en: "Recommended access point" })}
             </span>
             <span className="flex items-center gap-1.5">
               <span className="size-2 rounded-full bg-foreground" />
-              المبنى / الموقع
+              {t({ ar: "المبنى / الموقع", en: "Building / site" })}
             </span>
           </div>
           {onLocate ? (
@@ -403,7 +414,7 @@ export function CadastralMap({
               className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2 py-1 font-medium text-foreground"
             >
               <LocateFixed className="size-3.5 text-primary" />
-              موقعي الحالي
+              {t({ ar: "موقعي الحالي", en: "My current location" })}
             </button>
           ) : null}
         </div>
