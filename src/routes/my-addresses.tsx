@@ -379,6 +379,54 @@ function MyAddressesPage() {
                         className="rounded-lg border border-border bg-surface px-3 py-2 text-sm"
                       />
                     </label>
+                    <label className="flex flex-col gap-1 text-xs font-medium">
+                      رقم المبنى
+                      <input
+                        value={editForm.building_number}
+                        onChange={(e) => setEditForm({ ...editForm, building_number: e.target.value })}
+                        className="rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1 text-xs font-medium">
+                      معلومات المواقف
+                      <input
+                        value={editForm.parking_info}
+                        onChange={(e) => setEditForm({ ...editForm, parking_info: e.target.value })}
+                        placeholder="موقف أمام المبنى، مجاني بعد الساعة 6"
+                        className="rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1 text-xs font-medium">
+                      التحميل والتنزيل
+                      <input
+                        value={editForm.loading_info}
+                        onChange={(e) => setEditForm({ ...editForm, loading_info: e.target.value })}
+                        placeholder="التنزيل من الجهة الخلفية"
+                        className="rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                      />
+                    </label>
+                    <div className="flex flex-wrap items-center gap-4 self-end text-xs font-medium">
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={editForm.wheelchair_accessible}
+                          onChange={(e) =>
+                            setEditForm({ ...editForm, wheelchair_accessible: e.target.checked })
+                          }
+                          className="size-3.5"
+                        />
+                        مناسب لكرسي متحرك
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={editForm.has_elevator}
+                          onChange={(e) => setEditForm({ ...editForm, has_elevator: e.target.checked })}
+                          className="size-3.5"
+                        />
+                        يوجد مصعد
+                      </label>
+                    </div>
                     <label className="flex items-center gap-2 self-end text-xs font-medium">
                       <input
                         type="checkbox"
