@@ -24,11 +24,12 @@ export const resolveAddress = createServerFn({ method: "POST" })
 
 export const searchNetwork = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
-    z.object({ query: z.string().max(120) }).parse(input),
+    z.object({ query: z.string().max(120), category: z.string().max(40).optional() }).parse(input),
   )
   .handler(async ({ data }) => {
     const { serverPublicClient } = await import("./addresses.server");
     const { normalizeArabic, normalizeCode } = await import("./smart-address");
+    const { RESIDENTIAL_NODE_TYPES } = await import("./place-categories");
     const supa = serverPublicClient();
     const raw = data.query.trim();
     if (raw.length < 2) return { businesses: [], places: [], code: null };
