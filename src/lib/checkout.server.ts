@@ -163,13 +163,30 @@ async function resolveTokenForCheckout(token: string): Promise<CheckoutResult> {
   let parking: string | null = null;
 
   for (let i = 0; i < 8 && currentId; i += 1) {
-    const { data: node } = await supabaseAdmin
+    const nodeResult = await supabaseAdmin
       .from("location_nodes")
       .select(
         "id, parent_id, node_type, display_name, unit_label, floor_label, building_number, latitude, longitude, governorate, city, district, neighborhood, street, landmark, parking_info",
       )
       .eq("id", currentId)
       .maybeSingle();
+    const node = nodeResult.data as {
+      parent_id: string | null;
+      node_type: string;
+      display_name: string;
+      unit_label: string | null;
+      floor_label: string | null;
+      building_number: string | null;
+      latitude: number | null;
+      longitude: number | null;
+      governorate: string | null;
+      city: string | null;
+      district: string | null;
+      neighborhood: string | null;
+      street: string | null;
+      landmark: string | null;
+      parking_info: string | null;
+    } | null;
     if (!node) break;
     governorate ??= node.governorate;
     city ??= node.city;
