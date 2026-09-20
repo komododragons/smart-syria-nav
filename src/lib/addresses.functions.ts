@@ -657,10 +657,17 @@ export const createTemporaryAddress = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
+    const { readPrivacy, filterSharedFields, clampShareHours } = await import("./privacy.functions");
+    const prefs = await readPrivacy(context.supabase, context.userId);
+
     const alphabet = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
     const token = `SY-TMP-${Array.from({ length: 5 }, () => alphabet[Math.floor(Math.random() * alphabet.length)]).join("")}`;
-    const expires = new Date(Date.now() + data.hours * 3600_000).toISOString();
-    const fields = data.shared_fields ?? ["location", "building", "entrance", "instructions"];
+    const hours = clampShareHours(data.hours, prefs);
+    const expires = new Date(Date.now() + hours * 3600_000).toISOString();
+    // Owner privacy switches win over whatever the caller requested.
+    const requested = data.shared_fields ?? ["location", "building", "entrance", "instructions"];
+    const fields = filterSharedFields(requested, prefs);
+    if (fields.length === 0) fields.push("location");
 
     const { data: row, error } = await context.supabase
       .from("temporary_addresses")
