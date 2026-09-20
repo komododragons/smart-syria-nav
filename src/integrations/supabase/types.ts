@@ -14,6 +14,68 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_point_contexts: {
+        Row: {
+          access_point_id: string
+          allowed: boolean
+          always_open: boolean
+          approach_ar: string | null
+          approach_en: string | null
+          closes_at: string | null
+          context: string
+          created_at: string
+          created_by: string | null
+          id: string
+          note: string | null
+          opens_at: string | null
+          preferred_road: string | null
+          updated_at: string
+          vehicle_note: string | null
+        }
+        Insert: {
+          access_point_id: string
+          allowed?: boolean
+          always_open?: boolean
+          approach_ar?: string | null
+          approach_en?: string | null
+          closes_at?: string | null
+          context: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+          opens_at?: string | null
+          preferred_road?: string | null
+          updated_at?: string
+          vehicle_note?: string | null
+        }
+        Update: {
+          access_point_id?: string
+          allowed?: boolean
+          always_open?: boolean
+          approach_ar?: string | null
+          approach_en?: string | null
+          closes_at?: string | null
+          context?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+          opens_at?: string | null
+          preferred_road?: string | null
+          updated_at?: string
+          vehicle_note?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "access_point_contexts_access_point_id_fkey"
+            columns: ["access_point_id"]
+            isOneToOne: false
+            referencedRelation: "access_points"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       access_point_purposes: {
         Row: {
           access_point_id: string
