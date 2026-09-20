@@ -122,19 +122,80 @@ export const ACCESSIBILITY_LABELS: Record<string, string> = {
   accessible_parking: "موقف مخصص",
 };
 
+/** Community correction types. `field` drives what a moderator may apply
+ *  after approval; corrections never overwrite verified data automatically. */
 export const CORRECTION_TYPES = [
-  { value: "wrong_building_pin", ar: "موقع المبنى خاطئ" },
-  { value: "wrong_entrance", ar: "المدخل خاطئ" },
-  { value: "entrance_closed", ar: "المدخل مغلق" },
-  { value: "delivery_prohibited", ar: "التوصيل ممنوع من هذا المدخل" },
-  { value: "wrong_floor", ar: "الطابق خاطئ" },
-  { value: "business_moved", ar: "العمل التجاري انتقل" },
-  { value: "duplicate_location", ar: "موقع مكرر" },
-  { value: "incorrect_name", ar: "الاسم غير صحيح" },
-  { value: "incorrect_hours", ar: "ساعات العمل غير صحيحة" },
-  { value: "unsafe_access", ar: "وصول غير آمن" },
-  { value: "other", ar: "أخرى" },
+  {
+    value: "wrong_location",
+    ar: "الموقع على الخريطة خاطئ",
+    field: "node_coordinates",
+    valueLabel: "الإحداثيات الصحيحة (خط العرض، خط الطول)",
+    placeholder: "33.5102, 36.2913",
+  },
+  {
+    value: "wrong_business_name",
+    ar: "اسم النشاط خاطئ",
+    field: "business_name",
+    valueLabel: "الاسم الصحيح",
+    placeholder: "صيدلية النور",
+  },
+  {
+    value: "business_closed",
+    ar: "النشاط مغلق نهائياً",
+    field: "business_status",
+    valueLabel: null,
+    placeholder: null,
+  },
+  {
+    value: "entrance_changed",
+    ar: "المدخل تغيّر",
+    field: "entrance",
+    valueLabel: "وصف المدخل الصحيح",
+    placeholder: "المدخل الخلفي من شارع الثورة",
+  },
+  {
+    value: "duplicate_location",
+    ar: "موقع مكرر",
+    field: "other",
+    valueLabel: "رمز العنوان المكرر (إن وُجد)",
+    placeholder: "SY-DAM-XXXX",
+  },
+  {
+    value: "incorrect_category",
+    ar: "التصنيف غير صحيح",
+    field: "place_category",
+    valueLabel: "التصنيف الصحيح",
+    placeholder: "pharmacy",
+  },
+  {
+    value: "access_issue",
+    ar: "مشكلة في الوصول",
+    field: "access",
+    valueLabel: "ما المشكلة؟",
+    placeholder: "البوابة مقفلة بعد الساعة 6 مساءً",
+  },
+  { value: "other", ar: "أخرى", field: "other", valueLabel: "الاقتراح", placeholder: null },
 ] as const;
+
+/** Labels for every correction type, including legacy values on old reports. */
+export const CORRECTION_TYPE_LABELS: Record<string, string> = {
+  ...Object.fromEntries(CORRECTION_TYPES.map((t) => [t.value, t.ar])),
+  wrong_building_pin: "موقع المبنى خاطئ",
+  wrong_entrance: "المدخل خاطئ",
+  entrance_closed: "المدخل مغلق",
+  delivery_prohibited: "التوصيل ممنوع من هذا المدخل",
+  wrong_floor: "الطابق خاطئ",
+  business_moved: "العمل التجاري انتقل",
+  incorrect_name: "الاسم غير صحيح",
+  incorrect_hours: "ساعات العمل غير صحيحة",
+  unsafe_access: "وصول غير آمن",
+};
+
+export const CORRECTION_DECISION_LABELS: Record<string, string> = {
+  approved: "مقبول",
+  rejected: "مرفوض",
+  needs_more_info: "بحاجة لمعلومات إضافية",
+};
 
 export const GOVERNORATES = [
   { code: "DAM", ar: "دمشق" },
