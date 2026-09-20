@@ -53,13 +53,10 @@ function BusinessPage() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const fetchProfile = useServerFn(getBusinessProfile);
-  const claim = useServerFn(claimBusiness);
+  const fetchMyClaims = useServerFn(myClaims);
 
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [showQr, setShowQr] = useState(false);
-  const [claimOpen, setClaimOpen] = useState(false);
-  const [evidence, setEvidence] = useState("");
-  const [claimState, setClaimState] = useState<"idle" | "pending" | "owner">("idle");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setAuthed(Boolean(data.session)));
@@ -70,23 +67,19 @@ function BusinessPage() {
     queryFn: () => fetchProfile({ data: { id } }),
   });
 
-  const claimMutation = useMutation({
-    mutationFn: () => claim({ data: { business_id: id, evidence: evidence.trim() || undefined } }),
-    onSuccess: (result) => {
-      if (result.status === "submitted") {
-        setClaimState("pending");
-        setClaimOpen(false);
-        toast.success("أُرسل طلب المطالبة — سيراجعه فريق التوثيق");
-      } else if (result.status === "already_pending") {
-        setClaimState("pending");
-        toast.info("لديك طلب مطالبة معلّق لهذا العمل");
-      } else {
-        setClaimState("owner");
-        toast.info("أنت مالك هذا العمل بالفعل");
-      }
-    },
-    onError: () => toast.error("تعذّر إرسال المطالبة"),
+  const claimsQuery = useQuery({
+    queryKey: ["my-claims", id],
+    queryFn: () => fetchMyClaims({ data: undefined as never }),
+    enabled: authed === true,
   });
+
+  const mine = (claimsQuery.data?.claims ?? []).filter((c) => c.business_id === id);
+  const claimState: "idle" | "pending" | "owner" = mine.some((c) => c.status === "approved")
+    ? "owner"
+    : mine.some((c) => c.status === "pending")
+      ? "pending"
+      : "idle";
+
 
   const data = query.data;
   const ok = data?.status === "ok" && data.business ? data : null;
