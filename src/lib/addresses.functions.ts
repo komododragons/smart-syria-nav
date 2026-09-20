@@ -849,6 +849,10 @@ export const resolveTemporaryToken = createServerFn({ method: "POST" })
     };
   });
 
+/**
+ * Community correction. Stores the original value alongside the suggestion so
+ * moderators can compare; it never overwrites live data.
+ */
 export const reportCorrection = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
@@ -859,16 +863,81 @@ export const reportCorrection = createServerFn({ method: "POST" })
         details: z.string().max(600).optional(),
         node_id: z.string().uuid().nullable().optional(),
         access_point_id: z.string().uuid().nullable().optional(),
+        business_id: z.string().uuid().nullable().optional(),
+        target_field: z
+          .enum([
+            "node_coordinates",
+            "business_name",
+            "business_status",
+            "business_category",
+            "place_category",
+            "entrance",
+            "access",
+            "other",
+          ])
+          .optional(),
+        suggested_value: z.string().max(300).optional(),
       })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("correction_reports").insert({
+    const supa = context.supabase;
+
+    // Snapshot the current value so the review shows original vs suggested.
+    let original: string | null = null;
+    const field = data.target_field ?? "other";
+    if (data.node_id && (field === "node_coordinates" || field === "place_category")) {
+      const { data: node } = await supa
+        .from("location_nodes")
+        .select("latitude, longitude, place_category")
+        .eq("id", data.node_id)
+        .maybeSingle();
+      if (node) {
+        original =
+          field === "node_coordinates"
+            ? node.latitude != null && node.longitude != null
+              ? `${node.latitude}, ${node.longitude}`
+              : null
+            : node.place_category;
+      }
+    } else if (data.business_id) {
+      const { data: biz } = await supa
+        .from("businesses")
+        .select("name_ar, category, is_published")
+        .eq("id", data.business_id)
+        .maybeSingle();
+      if (biz) {
+        original =
+          field === "business_name"
+            ? biz.name_ar
+            : field === "business_category"
+              ? biz.category
+              : field === "business_status"
+                ? biz.is_published
+                  ? "مفتوح ومنشور"
+                  : "غير منشور"
+                : null;
+      }
+    } else if (data.access_point_id && (field === "entrance" || field === "access")) {
+      const { data: ap } = await supa
+        .from("access_points")
+        .select("display_name, instructions_ar")
+        .eq("id", data.access_point_id)
+        .maybeSingle();
+      if (ap) original = [ap.display_name, ap.instructions_ar].filter(Boolean).join(" — ");
+    }
+
+    const { error } = await supa.from("correction_reports").insert({
       smart_code: data.smart_code ?? null,
       issue_type: data.issue_type,
       details: data.details ?? null,
       node_id: data.node_id ?? null,
       access_point_id: data.access_point_id ?? null,
+      business_id: data.business_id ?? null,
+      target_field: field,
+      suggested_value: data.suggested_value?.trim() || null,
+      original_value: original,
+      status: "pending",
       reporter_id: context.userId,
     });
     if (error) throw new Error(error.message);
@@ -901,25 +970,120 @@ export const submitVisitFeedback = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/**
+ * Moderation decision on a community correction. The suggested change is only
+ * written to live data when the reviewer approves AND asks to apply it.
+ */
 export const reviewCorrection = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
     z
       .object({
         id: z.string().uuid(),
-        status: z.enum(["reviewed", "dismissed"]),
+        decision: z.enum(["approved", "rejected", "needs_more_info"]),
+        note: z.string().max(400).optional(),
+        apply: z.boolean().default(false),
       })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    // RLS restricts this update to moderators/admins.
-    const { error } = await context.supabase
+    const supa = context.supabase;
+    const { data: isAdmin } = await supa.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    const { data: isModerator } = await supa.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "moderator",
+    });
+    if (!isAdmin && !isModerator) throw new Error("غير مصرح بمراجعة التصحيحات");
+
+    const { data: report, error: readError } = await supa
       .from("correction_reports")
-      .update({ status: data.status, reviewed_by: context.userId })
+      .select("id, node_id, access_point_id, business_id, target_field, suggested_value, status")
       .eq("id", data.id)
-      .eq("status", "pending");
+      .maybeSingle();
+    if (readError) throw new Error(readError.message);
+    if (!report) throw new Error("التقرير غير موجود");
+
+    let applied = false;
+    let appliedNote: string | null = null;
+
+    if (data.decision === "approved" && data.apply) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const value = report.suggested_value?.trim() ?? "";
+      const field = report.target_field ?? "other";
+
+      if (field === "node_coordinates" && report.node_id) {
+        const [latRaw, lngRaw] = value.split(/[,،]/);
+        const lat = Number(latRaw);
+        const lng = Number(lngRaw);
+        if (Number.isFinite(lat) && Number.isFinite(lng)) {
+          await supabaseAdmin
+            .from("location_nodes")
+            .update({ latitude: lat, longitude: lng, verification_level: "user_confirmed" })
+            .eq("id", report.node_id);
+          applied = true;
+        } else {
+          appliedNote = "الإحداثيات المقترحة غير صالحة — لم يُطبّق التغيير";
+        }
+      } else if (field === "business_name" && report.business_id && value) {
+        await supabaseAdmin.from("businesses").update({ name_ar: value }).eq("id", report.business_id);
+        applied = true;
+      } else if (field === "business_category" && report.business_id && value) {
+        await supabaseAdmin.from("businesses").update({ category: value }).eq("id", report.business_id);
+        applied = true;
+      } else if (field === "place_category" && value) {
+        if (report.business_id) {
+          await supabaseAdmin
+            .from("businesses")
+            .update({ place_category: value })
+            .eq("id", report.business_id);
+        }
+        if (report.node_id) {
+          await supabaseAdmin
+            .from("location_nodes")
+            .update({ place_category: value })
+            .eq("id", report.node_id);
+        }
+        applied = true;
+      } else if (field === "business_status" && report.business_id) {
+        await supabaseAdmin
+          .from("businesses")
+          .update({ is_published: false, is_archived: true })
+          .eq("id", report.business_id);
+        applied = true;
+      } else {
+        appliedNote = "هذا النوع يحتاج تعديلاً يدوياً — سُجّل القرار فقط";
+      }
+    }
+
+    const status =
+      data.decision === "approved" ? "approved" : data.decision === "rejected" ? "rejected" : "under_review";
+
+    const { error } = await supa
+      .from("correction_reports")
+      .update({
+        status,
+        decision: data.decision,
+        decision_note: [data.note?.trim(), appliedNote].filter(Boolean).join(" · ") || null,
+        reviewed_by: context.userId,
+        reviewed_at: new Date().toISOString(),
+        applied,
+        applied_at: applied ? new Date().toISOString() : null,
+      })
+      .eq("id", data.id);
     if (error) throw new Error(error.message);
-    return { ok: true };
+
+    await supa.from("audit_logs").insert({
+      actor_id: context.userId,
+      action: `correction_${data.decision}`,
+      resource_type: "correction_report",
+      resource_id: data.id,
+      metadata: { applied, target_field: report.target_field },
+    });
+
+    return { ok: true, applied };
   });
 
 export const getBusinessProfile = createServerFn({ method: "POST" })

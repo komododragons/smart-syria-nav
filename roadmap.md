@@ -113,3 +113,10 @@ PHASE 19 — ADDRESS QUALITY ENGINE — DONE
 - Internal 0-100 quality score per public node (src/lib/quality.server.ts): coordinates, street/neighborhood, building number, entrance, landmark, verification level, recent confirmation (<=180d), duplicate confidence, routing accessibility.
 - qualityDashboard server fn (src/lib/quality.functions.ts), staff-only (verifier/moderator/admin).
 - /admin/quality dashboard with six lists: incomplete, potential duplicates, stale, unverified businesses, missing coordinates, reported locations. Score never shown publicly.
+
+PHASE 20 — COMMUNITY CORRECTIONS — DONE
+- Correction types: wrong_location, wrong_business_name, business_closed, entrance_changed, duplicate_location, incorrect_category, access_issue, other (legacy labels kept).
+- correction_reports extended: business_id, target_field, original_value, suggested_value, decision, decision_note, reviewed_by, reviewed_at, applied, applied_at, updated_at + validate_correction_report() trigger.
+- reportCorrection snapshots the original value; nothing is written to live data on submit.
+- reviewCorrection = moderator decision (approved/rejected/needs_more_info) with optional apply (coords, business name/category, place category, closed) via admin client after role check, + audit_logs entry.
+- /admin/corrections moderation queue (original vs suggested, filters, reviewer note); /my-corrections reporter tracking.

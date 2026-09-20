@@ -20,6 +20,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DevelopersRouteImport } from './routes/developers'
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as MyAddressesRouteImport } from './routes/my-addresses'
+import { Route as MyCorrectionsRouteImport } from './routes/my-corrections'
 import { Route as OfflineRouteImport } from './routes/offline'
 import { Route as PlacesRouteImport } from './routes/places'
 import { Route as SearchRouteImport } from './routes/search'
@@ -29,6 +30,7 @@ import { Route as WidgetRouteImport } from './routes/widget'
 import { Route as ACodeRouteImport } from './routes/a.$code'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminClaimsRouteImport } from './routes/admin.claims'
+import { Route as AdminCorrectionsRouteImport } from './routes/admin.corrections'
 import { Route as AdminNavigationRouteImport } from './routes/admin.navigation'
 import { Route as AdminQualityRouteImport } from './routes/admin.quality'
 import { Route as BusinessIdRouteImport } from './routes/business.$id'
@@ -98,6 +100,11 @@ const MyAddressesRoute = MyAddressesRouteImport.update({
   path: '/my-addresses',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MyCorrectionsRoute = MyCorrectionsRouteImport.update({
+  id: '/my-corrections',
+  path: '/my-corrections',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OfflineRoute = OfflineRouteImport.update({
   id: '/offline',
   path: '/offline',
@@ -141,6 +148,11 @@ const AdminAuditRoute = AdminAuditRouteImport.update({
 const AdminClaimsRoute = AdminClaimsRouteImport.update({
   id: '/claims',
   path: '/claims',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCorrectionsRoute = AdminCorrectionsRouteImport.update({
+  id: '/corrections',
+  path: '/corrections',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminNavigationRoute = AdminNavigationRouteImport.update({
@@ -221,6 +233,7 @@ export interface FileRoutesByFullPath {
   '/developers': typeof DevelopersRoute
   '/docs': typeof DocsRoute
   '/my-addresses': typeof MyAddressesRoute
+  '/my-corrections': typeof MyCorrectionsRoute
   '/offline': typeof OfflineRoute
   '/places': typeof PlacesRoute
   '/search': typeof SearchRoute
@@ -230,6 +243,7 @@ export interface FileRoutesByFullPath {
   '/a/$code': typeof ACodeRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/claims': typeof AdminClaimsRoute
+  '/admin/corrections': typeof AdminCorrectionsRoute
   '/admin/navigation': typeof AdminNavigationRoute
   '/admin/quality': typeof AdminQualityRoute
   '/business/$id': typeof BusinessIdRoute
@@ -256,6 +270,7 @@ export interface FileRoutesByTo {
   '/developers': typeof DevelopersRoute
   '/docs': typeof DocsRoute
   '/my-addresses': typeof MyAddressesRoute
+  '/my-corrections': typeof MyCorrectionsRoute
   '/offline': typeof OfflineRoute
   '/places': typeof PlacesRoute
   '/search': typeof SearchRoute
@@ -265,6 +280,7 @@ export interface FileRoutesByTo {
   '/a/$code': typeof ACodeRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/claims': typeof AdminClaimsRoute
+  '/admin/corrections': typeof AdminCorrectionsRoute
   '/admin/navigation': typeof AdminNavigationRoute
   '/admin/quality': typeof AdminQualityRoute
   '/business/$id': typeof BusinessIdRoute
@@ -292,6 +308,7 @@ export interface FileRoutesById {
   '/developers': typeof DevelopersRoute
   '/docs': typeof DocsRoute
   '/my-addresses': typeof MyAddressesRoute
+  '/my-corrections': typeof MyCorrectionsRoute
   '/offline': typeof OfflineRoute
   '/places': typeof PlacesRoute
   '/search': typeof SearchRoute
@@ -301,6 +318,7 @@ export interface FileRoutesById {
   '/a/$code': typeof ACodeRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/claims': typeof AdminClaimsRoute
+  '/admin/corrections': typeof AdminCorrectionsRoute
   '/admin/navigation': typeof AdminNavigationRoute
   '/admin/quality': typeof AdminQualityRoute
   '/business/$id': typeof BusinessIdRoute
@@ -329,6 +347,7 @@ export interface FileRouteTypes {
     | '/developers'
     | '/docs'
     | '/my-addresses'
+    | '/my-corrections'
     | '/offline'
     | '/places'
     | '/search'
@@ -338,6 +357,7 @@ export interface FileRouteTypes {
     | '/a/$code'
     | '/admin/audit'
     | '/admin/claims'
+    | '/admin/corrections'
     | '/admin/navigation'
     | '/admin/quality'
     | '/business/$id'
@@ -364,6 +384,7 @@ export interface FileRouteTypes {
     | '/developers'
     | '/docs'
     | '/my-addresses'
+    | '/my-corrections'
     | '/offline'
     | '/places'
     | '/search'
@@ -373,6 +394,7 @@ export interface FileRouteTypes {
     | '/a/$code'
     | '/admin/audit'
     | '/admin/claims'
+    | '/admin/corrections'
     | '/admin/navigation'
     | '/admin/quality'
     | '/business/$id'
@@ -399,6 +421,7 @@ export interface FileRouteTypes {
     | '/developers'
     | '/docs'
     | '/my-addresses'
+    | '/my-corrections'
     | '/offline'
     | '/places'
     | '/search'
@@ -408,6 +431,7 @@ export interface FileRouteTypes {
     | '/a/$code'
     | '/admin/audit'
     | '/admin/claims'
+    | '/admin/corrections'
     | '/admin/navigation'
     | '/admin/quality'
     | '/business/$id'
@@ -435,6 +459,7 @@ export interface RootRouteChildren {
   DevelopersRoute: typeof DevelopersRoute
   DocsRoute: typeof DocsRoute
   MyAddressesRoute: typeof MyAddressesRoute
+  MyCorrectionsRoute: typeof MyCorrectionsRoute
   OfflineRoute: typeof OfflineRoute
   PlacesRoute: typeof PlacesRoute
   SearchRoute: typeof SearchRoute
@@ -534,6 +559,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MyAddressesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/my-corrections': {
+      id: '/my-corrections'
+      path: '/my-corrections'
+      fullPath: '/my-corrections'
+      preLoaderRoute: typeof MyCorrectionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/offline': {
       id: '/offline'
       path: '/offline'
@@ -595,6 +627,13 @@ declare module '@tanstack/react-router' {
       path: '/claims'
       fullPath: '/admin/claims'
       preLoaderRoute: typeof AdminClaimsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/corrections': {
+      id: '/admin/corrections'
+      path: '/corrections'
+      fullPath: '/admin/corrections'
+      preLoaderRoute: typeof AdminCorrectionsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/navigation': {
@@ -694,6 +733,7 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminAuditRoute: typeof AdminAuditRoute
   AdminClaimsRoute: typeof AdminClaimsRoute
+  AdminCorrectionsRoute: typeof AdminCorrectionsRoute
   AdminNavigationRoute: typeof AdminNavigationRoute
   AdminQualityRoute: typeof AdminQualityRoute
 }
@@ -701,6 +741,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAuditRoute: AdminAuditRoute,
   AdminClaimsRoute: AdminClaimsRoute,
+  AdminCorrectionsRoute: AdminCorrectionsRoute,
   AdminNavigationRoute: AdminNavigationRoute,
   AdminQualityRoute: AdminQualityRoute,
 }
@@ -719,6 +760,7 @@ const rootRouteChildren: RootRouteChildren = {
   DevelopersRoute: DevelopersRoute,
   DocsRoute: DocsRoute,
   MyAddressesRoute: MyAddressesRoute,
+  MyCorrectionsRoute: MyCorrectionsRoute,
   OfflineRoute: OfflineRoute,
   PlacesRoute: PlacesRoute,
   SearchRoute: SearchRoute,

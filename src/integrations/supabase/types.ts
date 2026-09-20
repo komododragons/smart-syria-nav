@@ -720,39 +720,69 @@ export type Database = {
       correction_reports: {
         Row: {
           access_point_id: string | null
+          applied: boolean
+          applied_at: string | null
+          business_id: string | null
           created_at: string
+          decision: string | null
+          decision_note: string | null
           details: string | null
           id: string
           issue_type: string
           node_id: string | null
+          original_value: string | null
           reporter_id: string | null
+          reviewed_at: string | null
           reviewed_by: string | null
           smart_code: string | null
           status: string
+          suggested_value: string | null
+          target_field: string | null
+          updated_at: string
         }
         Insert: {
           access_point_id?: string | null
+          applied?: boolean
+          applied_at?: string | null
+          business_id?: string | null
           created_at?: string
+          decision?: string | null
+          decision_note?: string | null
           details?: string | null
           id?: string
           issue_type: string
           node_id?: string | null
+          original_value?: string | null
           reporter_id?: string | null
+          reviewed_at?: string | null
           reviewed_by?: string | null
           smart_code?: string | null
           status?: string
+          suggested_value?: string | null
+          target_field?: string | null
+          updated_at?: string
         }
         Update: {
           access_point_id?: string | null
+          applied?: boolean
+          applied_at?: string | null
+          business_id?: string | null
           created_at?: string
+          decision?: string | null
+          decision_note?: string | null
           details?: string | null
           id?: string
           issue_type?: string
           node_id?: string | null
+          original_value?: string | null
           reporter_id?: string | null
+          reviewed_at?: string | null
           reviewed_by?: string | null
           smart_code?: string | null
           status?: string
+          suggested_value?: string | null
+          target_field?: string | null
+          updated_at?: string
         }
         Relationships: [
           {
@@ -760,6 +790,13 @@ export type Database = {
             columns: ["access_point_id"]
             isOneToOne: false
             referencedRelation: "access_points"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "correction_reports_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
           {

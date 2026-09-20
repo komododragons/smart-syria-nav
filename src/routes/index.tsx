@@ -666,6 +666,7 @@ function ResolverPage() {
                   purpose={purpose}
                   nodeId={ok.site.id}
                   accessPointId={ok.recommended?.id ?? null}
+                  businessId={ok.business?.id ?? null}
                 />
               </>
             ) : null}

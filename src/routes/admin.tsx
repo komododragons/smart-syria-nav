@@ -14,7 +14,7 @@ import {
   reviewDuplicate,
   verifierQueue,
 } from "@/lib/network.functions";
-import { CORRECTION_TYPES, NODE_TYPE_LABELS, PURPOSE_LABELS } from "@/lib/smart-address";
+import { CORRECTION_TYPE_LABELS, NODE_TYPE_LABELS, PURPOSE_LABELS } from "@/lib/smart-address";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -106,11 +106,11 @@ function AdminPage() {
     }
   };
 
-  const handleReview = async (id: string, status: "reviewed" | "dismissed") => {
+  const handleReview = async (id: string, decision: "approved" | "rejected") => {
     setBusyId(id);
     try {
-      await review({ data: { id, status } });
-      toast.success(status === "reviewed" ? "تمت مراجعة التقرير" : "تم رفض التقرير");
+      await review({ data: { id, decision, apply: false } });
+      toast.success(decision === "approved" ? "تم قبول التقرير" : "تم رفض التقرير");
       await queryClient.invalidateQueries({ queryKey: ["admin-overview"] });
     } catch {
       toast.error("تعذّر تحديث التقرير — تحتاج صلاحية مشرف أو مراجع");
@@ -251,9 +251,14 @@ function AdminPage() {
             </section>
 
             <section className="rounded-2xl border border-border bg-surface p-4">
-              <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                تقارير تصحيح معلّقة
-              </h2>
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                  تقارير تصحيح معلّقة
+                </h2>
+                <Link to="/admin/corrections" className="text-xs font-bold text-primary underline">
+                  لوحة مراجعة التصحيحات
+                </Link>
+              </div>
               {query.data.pending.length === 0 ? (
                 <p className="mt-3 text-sm text-muted-foreground">لا تقارير معلّقة.</p>
               ) : (
@@ -262,8 +267,7 @@ function AdminPage() {
                     <div key={item.id} className="rounded-lg border border-border bg-background p-3">
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-sm font-bold">
-                          {CORRECTION_TYPES.find((t) => t.value === item.issue_type)?.ar ??
-                            item.issue_type}
+                          {CORRECTION_TYPE_LABELS[item.issue_type] ?? item.issue_type}
                         </span>
                         {item.smart_code ? (
                           <span className="font-mono text-[11px]" dir="ltr">
@@ -282,15 +286,15 @@ function AdminPage() {
                           <button
                             type="button"
                             disabled={busyId === item.id}
-                            onClick={() => handleReview(item.id, "reviewed")}
+                            onClick={() => handleReview(item.id, "approved")}
                             className="rounded-md bg-allow px-2.5 py-1 text-[11px] font-bold text-primary-foreground disabled:opacity-50"
                           >
-                            تمت المراجعة
+                            قبول
                           </button>
                           <button
                             type="button"
                             disabled={busyId === item.id}
-                            onClick={() => handleReview(item.id, "dismissed")}
+                            onClick={() => handleReview(item.id, "rejected")}
                             className="rounded-md border border-border px-2.5 py-1 text-[11px] font-bold text-muted-foreground disabled:opacity-50"
                           >
                             رفض
