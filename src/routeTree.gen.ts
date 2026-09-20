@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CheckoutComponentRouteImport } from './routes/checkout-component'
 import { Route as CourierRouteImport } from './routes/courier'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -45,6 +46,11 @@ const AdminRoute = AdminRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutComponentRoute = CheckoutComponentRouteImport.update({
+  id: '/checkout-component',
+  path: '/checkout-component',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CourierRoute = CourierRouteImport.update({
@@ -147,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/checkout-component': typeof CheckoutComponentRoute
   '/courier': typeof CourierRoute
   '/create': typeof CreateRoute
   '/dashboard': typeof DashboardRoute
@@ -171,6 +178,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/checkout-component': typeof CheckoutComponentRoute
   '/courier': typeof CourierRoute
   '/create': typeof CreateRoute
   '/dashboard': typeof DashboardRoute
@@ -196,6 +204,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/checkout-component': typeof CheckoutComponentRoute
   '/courier': typeof CourierRoute
   '/create': typeof CreateRoute
   '/dashboard': typeof DashboardRoute
@@ -222,6 +231,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/checkout-component'
     | '/courier'
     | '/create'
     | '/dashboard'
@@ -246,6 +256,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/checkout-component'
     | '/courier'
     | '/create'
     | '/dashboard'
@@ -270,6 +281,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/checkout-component'
     | '/courier'
     | '/create'
     | '/dashboard'
@@ -295,6 +307,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
+  CheckoutComponentRoute: typeof CheckoutComponentRoute
   CourierRoute: typeof CourierRoute
   CreateRoute: typeof CreateRoute
   DashboardRoute: typeof DashboardRoute
@@ -334,6 +347,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout-component': {
+      id: '/checkout-component'
+      path: '/checkout-component'
+      fullPath: '/checkout-component'
+      preLoaderRoute: typeof CheckoutComponentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/courier': {
@@ -490,6 +510,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
+  CheckoutComponentRoute: CheckoutComponentRoute,
   CourierRoute: CourierRoute,
   CreateRoute: CreateRoute,
   DashboardRoute: DashboardRoute,
