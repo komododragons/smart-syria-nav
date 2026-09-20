@@ -193,7 +193,7 @@ export const claimQueue = createServerFn({ method: "POST" })
             .from("claim-evidence")
             .createSignedUrls(paths, 60 * 30);
           files = (signed ?? [])
-            .filter((s) => s.signedUrl)
+            .filter((s): s is typeof s & { signedUrl: string } => Boolean(s.signedUrl))
             .map((s) => ({ path: s.path ?? "", url: s.signedUrl }));
         }
         return {
