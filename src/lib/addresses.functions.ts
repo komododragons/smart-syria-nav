@@ -970,25 +970,120 @@ export const submitVisitFeedback = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/**
+ * Moderation decision on a community correction. The suggested change is only
+ * written to live data when the reviewer approves AND asks to apply it.
+ */
 export const reviewCorrection = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
     z
       .object({
         id: z.string().uuid(),
-        status: z.enum(["reviewed", "dismissed"]),
+        decision: z.enum(["approved", "rejected", "needs_more_info"]),
+        note: z.string().max(400).optional(),
+        apply: z.boolean().default(false),
       })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    // RLS restricts this update to moderators/admins.
-    const { error } = await context.supabase
+    const supa = context.supabase;
+    const { data: isAdmin } = await supa.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    const { data: isModerator } = await supa.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "moderator",
+    });
+    if (!isAdmin && !isModerator) throw new Error("غير مصرح بمراجعة التصحيحات");
+
+    const { data: report, error: readError } = await supa
       .from("correction_reports")
-      .update({ status: data.status, reviewed_by: context.userId })
+      .select("id, node_id, access_point_id, business_id, target_field, suggested_value, status")
       .eq("id", data.id)
-      .eq("status", "pending");
+      .maybeSingle();
+    if (readError) throw new Error(readError.message);
+    if (!report) throw new Error("التقرير غير موجود");
+
+    let applied = false;
+    let appliedNote: string | null = null;
+
+    if (data.decision === "approved" && data.apply) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const value = report.suggested_value?.trim() ?? "";
+      const field = report.target_field ?? "other";
+
+      if (field === "node_coordinates" && report.node_id) {
+        const [latRaw, lngRaw] = value.split(/[,،]/);
+        const lat = Number(latRaw);
+        const lng = Number(lngRaw);
+        if (Number.isFinite(lat) && Number.isFinite(lng)) {
+          await supabaseAdmin
+            .from("location_nodes")
+            .update({ latitude: lat, longitude: lng, verification_level: "user_confirmed" })
+            .eq("id", report.node_id);
+          applied = true;
+        } else {
+          appliedNote = "الإحداثيات المقترحة غير صالحة — لم يُطبّق التغيير";
+        }
+      } else if (field === "business_name" && report.business_id && value) {
+        await supabaseAdmin.from("businesses").update({ name_ar: value }).eq("id", report.business_id);
+        applied = true;
+      } else if (field === "business_category" && report.business_id && value) {
+        await supabaseAdmin.from("businesses").update({ category: value }).eq("id", report.business_id);
+        applied = true;
+      } else if (field === "place_category" && value) {
+        if (report.business_id) {
+          await supabaseAdmin
+            .from("businesses")
+            .update({ place_category: value })
+            .eq("id", report.business_id);
+        }
+        if (report.node_id) {
+          await supabaseAdmin
+            .from("location_nodes")
+            .update({ place_category: value })
+            .eq("id", report.node_id);
+        }
+        applied = true;
+      } else if (field === "business_status" && report.business_id) {
+        await supabaseAdmin
+          .from("businesses")
+          .update({ is_published: false, is_archived: true })
+          .eq("id", report.business_id);
+        applied = true;
+      } else {
+        appliedNote = "هذا النوع يحتاج تعديلاً يدوياً — سُجّل القرار فقط";
+      }
+    }
+
+    const status =
+      data.decision === "approved" ? "approved" : data.decision === "rejected" ? "rejected" : "under_review";
+
+    const { error } = await supa
+      .from("correction_reports")
+      .update({
+        status,
+        decision: data.decision,
+        decision_note: [data.note?.trim(), appliedNote].filter(Boolean).join(" · ") || null,
+        reviewed_by: context.userId,
+        reviewed_at: new Date().toISOString(),
+        applied,
+        applied_at: applied ? new Date().toISOString() : null,
+      })
+      .eq("id", data.id);
     if (error) throw new Error(error.message);
-    return { ok: true };
+
+    await supa.from("audit_logs").insert({
+      actor_id: context.userId,
+      action: `correction_${data.decision}`,
+      resource_type: "correction_report",
+      resource_id: data.id,
+      metadata: { applied, target_field: report.target_field },
+    });
+
+    return { ok: true, applied };
   });
 
 export const getBusinessProfile = createServerFn({ method: "POST" })
