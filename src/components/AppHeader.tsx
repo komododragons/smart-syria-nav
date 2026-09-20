@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   Truck,
   Landmark,
+  Layers,
 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
