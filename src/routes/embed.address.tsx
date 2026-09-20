@@ -4,14 +4,19 @@ import { z } from "zod";
 
 import { SyriasanAddressField, type CheckoutAddressPayload } from "@/components/SyriasanAddressField";
 
+/** Search values arrive as strings, numbers or booleans depending on the host. */
+const flag = z.union([z.string(), z.number(), z.boolean()]).optional();
+
 const searchSchema = z.object({
   lang: z.enum(["ar", "en"]).catch("ar").optional(),
-  compact: z.string().optional(),
-  code: z.string().max(40).optional(),
-  auto: z.string().optional(),
-  title: z.string().max(80).optional(),
-  origin: z.string().max(200).optional(),
+  compact: flag,
+  code: flag,
+  auto: flag,
+  title: flag,
+  origin: flag,
 });
+
+const str = (v: string | number | boolean | undefined) => (v === undefined ? "" : String(v));
 
 /**
  * Iframe-embeddable address widget. Any host (WooCommerce, Shopify, custom
