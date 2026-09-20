@@ -22,7 +22,8 @@ import { QrCard } from "@/components/QrCard";
 import { DirectionsButton } from "@/components/DirectionsButton";
 import { CadastralMap, type MapPin as CadMapPin } from "@/components/CadastralMap";
 import { supabase } from "@/integrations/supabase/client";
-import { claimBusiness, getBusinessProfile } from "@/lib/addresses.functions";
+import { getBusinessProfile } from "@/lib/addresses.functions";
+import { myClaims } from "@/lib/claims.functions";
 import {
   ACCESSIBILITY_LABELS,
   VERIFICATION_LEVELS,
