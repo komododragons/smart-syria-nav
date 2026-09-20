@@ -103,3 +103,8 @@
 - Category pickers in create wizard business step and dashboard branch form.
 
 PHASE 17 — SEARCH IMPROVEMENT — DONE
+
+PHASE 18 — ROUTING CONTEXTS — DONE
+- access_point_contexts table (7 contexts, allowed/approach/preferred road/vehicle note, RLS owner+staff)
+- resolver + navigation pick the entrance mapped to the active context
+- context switcher on /a/CODE and /navigation/CODE, owner editor in /my-addresses
