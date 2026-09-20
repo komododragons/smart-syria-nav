@@ -598,19 +598,84 @@ function MyAddressesPage() {
                       </button>
                     ))}
                   </div>
-                  <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-                    {[6, 24, 72].map((value) => (
+
+                  <p className="mt-4 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                    ما الذي يراه المستلم؟
+                  </p>
+                  <div className="mt-2 grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+                    {SHARE_FIELD_LABELS.map((f) => {
+                      const on = fields.includes(f.value);
+                      return (
+                        <button
+                          key={f.value}
+                          type="button"
+                          onClick={() =>
+                            setFields((prev) =>
+                              prev.includes(f.value)
+                                ? prev.filter((v) => v !== f.value)
+                                : [...prev, f.value],
+                            )
+                          }
+                          className={`flex items-center justify-between rounded-lg border px-2.5 py-2 text-xs ${
+                            on
+                              ? "border-primary/50 bg-primary/10 font-bold text-primary"
+                              : "border-border text-muted-foreground"
+                          }`}
+                        >
+                          <span>{f.ar}</span>
+                          <span>{on ? "✓" : "✕"}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {fields.includes("phone") ? (
+                    <input
+                      value={contactPhone}
+                      onChange={(e) => setContactPhone(e.target.value)}
+                      placeholder="رقم الهاتف الذي سيظهر للمستلم"
+                      dir="ltr"
+                      className="mt-2 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                    />
+                  ) : null}
+                  {fields.includes("name") ? (
+                    <input
+                      value={contactName}
+                      onChange={(e) => setContactName(e.target.value)}
+                      placeholder="الاسم الذي سيظهر للمستلم"
+                      className="mt-2 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                    />
+                  ) : null}
+
+                  <p className="mt-4 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                    مدة الصلاحية
+                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                    {EXPIRY_PRESETS.map((preset) => (
                       <button
-                        key={value}
+                        key={preset.hours}
                         type="button"
-                        onClick={() => setHours(value)}
+                        onClick={() => {
+                          setCustomExpiry(false);
+                          setHours(preset.hours);
+                        }}
                         className={`rounded-lg px-3 py-1.5 ${
-                          hours === value ? "bg-foreground text-background" : "border border-border"
+                          !customExpiry && hours === preset.hours
+                            ? "bg-foreground text-background"
+                            : "border border-border"
                         }`}
                       >
-                        {value} ساعة
+                        {preset.ar}
                       </button>
                     ))}
+                    <button
+                      type="button"
+                      onClick={() => setCustomExpiry(true)}
+                      className={`rounded-lg px-3 py-1.5 ${
+                        customExpiry ? "bg-foreground text-background" : "border border-border"
+                      }`}
+                    >
+                      مدة مخصصة
+                    </button>
                     <label className="flex items-center gap-1.5">
                       <input
                         type="checkbox"
@@ -621,20 +686,44 @@ function MyAddressesPage() {
                       استخدام واحد
                     </label>
                   </div>
+                  {customExpiry ? (
+                    <label className="mt-2 flex items-center gap-2 text-xs">
+                      <input
+                        type="number"
+                        min={1}
+                        max={8760}
+                        value={hours}
+                        onChange={(e) => setHours(Math.max(1, Number(e.target.value) || 1))}
+                        className="w-28 rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                      />
+                      ساعة
+                    </label>
+                  ) : null}
+
+                  <input
+                    value={linkLabel}
+                    onChange={(e) => setLinkLabel(e.target.value)}
+                    placeholder="وسم للرابط (اختياري) — مثلاً: طلب طعام"
+                    className="mt-3 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                  />
+
                   <button
                     type="button"
-                    disabled={mutation.isPending}
+                    disabled={mutation.isPending || fields.length === 0}
                     onClick={() => mutation.mutate(row.id)}
                     className="mt-3 w-full rounded-lg bg-primary py-2.5 text-xs font-bold text-primary-foreground disabled:opacity-60"
                   >
-                    إنشاء رمز مؤقت
+                    إنشاء رابط مؤقت
                   </button>
+                  <p className="mt-2 text-[11px] text-muted-foreground">
+                    الرابط المؤقت لا يجعل عنوانك قابلاً للبحث — يبقى خاصاً وينتهي تلقائياً.
+                  </p>
 
                   {issued ? (
                     <QrCard
                       url={
                         typeof window === "undefined"
-                          ? `https://smartaddress.sy/t/${issued.token}`
+                          ? `https://syriasan.com/t/${issued.token}`
                           : `${window.location.origin}/t/${issued.token}`
                       }
                       code={issued.token}
@@ -643,6 +732,8 @@ function MyAddressesPage() {
                       onClose={() => setIssued(null)}
                     />
                   ) : null}
+
+                  <TemporaryLinksList smartAddressId={row.id} />
                 </div>
               ) : null}
             </section>
