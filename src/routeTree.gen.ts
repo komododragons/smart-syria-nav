@@ -22,6 +22,7 @@ import { Route as ACodeRouteImport } from './routes/a.$code'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminNavigationRouteImport } from './routes/admin.navigation'
 import { Route as BusinessIdRouteImport } from './routes/business.$id'
+import { Route as ClaimIdRouteImport } from './routes/claim.$id'
 import { Route as NavigationCodeRouteImport } from './routes/navigation.$code'
 import { Route as TTokenRouteImport } from './routes/t.$token'
 import { Route as ApiPublicResolveRouteImport } from './routes/api.public.resolve'
@@ -91,6 +92,11 @@ const BusinessIdRoute = BusinessIdRouteImport.update({
   path: '/business/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClaimIdRoute = ClaimIdRouteImport.update({
+  id: '/claim/$id',
+  path: '/claim/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NavigationCodeRoute = NavigationCodeRouteImport.update({
   id: '/navigation/$code',
   path: '/navigation/$code',
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/admin/audit': typeof AdminAuditRoute
   '/admin/navigation': typeof AdminNavigationRoute
   '/business/$id': typeof BusinessIdRoute
+  '/claim/$id': typeof ClaimIdRoute
   '/navigation/$code': typeof NavigationCodeRoute
   '/t/$token': typeof TTokenRoute
   '/api/public/resolve': typeof ApiPublicResolveRoute
@@ -139,6 +146,7 @@ export interface FileRoutesByTo {
   '/admin/audit': typeof AdminAuditRoute
   '/admin/navigation': typeof AdminNavigationRoute
   '/business/$id': typeof BusinessIdRoute
+  '/claim/$id': typeof ClaimIdRoute
   '/navigation/$code': typeof NavigationCodeRoute
   '/t/$token': typeof TTokenRoute
   '/api/public/resolve': typeof ApiPublicResolveRoute
@@ -158,6 +166,7 @@ export interface FileRoutesById {
   '/admin/audit': typeof AdminAuditRoute
   '/admin/navigation': typeof AdminNavigationRoute
   '/business/$id': typeof BusinessIdRoute
+  '/claim/$id': typeof ClaimIdRoute
   '/navigation/$code': typeof NavigationCodeRoute
   '/t/$token': typeof TTokenRoute
   '/api/public/resolve': typeof ApiPublicResolveRoute
@@ -178,6 +187,7 @@ export interface FileRouteTypes {
     | '/admin/audit'
     | '/admin/navigation'
     | '/business/$id'
+    | '/claim/$id'
     | '/navigation/$code'
     | '/t/$token'
     | '/api/public/resolve'
@@ -196,6 +206,7 @@ export interface FileRouteTypes {
     | '/admin/audit'
     | '/admin/navigation'
     | '/business/$id'
+    | '/claim/$id'
     | '/navigation/$code'
     | '/t/$token'
     | '/api/public/resolve'
@@ -214,6 +225,7 @@ export interface FileRouteTypes {
     | '/admin/audit'
     | '/admin/navigation'
     | '/business/$id'
+    | '/claim/$id'
     | '/navigation/$code'
     | '/t/$token'
     | '/api/public/resolve'
@@ -231,6 +243,7 @@ export interface RootRouteChildren {
   VerifyRoute: typeof VerifyRoute
   ACodeRoute: typeof ACodeRoute
   BusinessIdRoute: typeof BusinessIdRoute
+  ClaimIdRoute: typeof ClaimIdRoute
   NavigationCodeRoute: typeof NavigationCodeRoute
   TTokenRoute: typeof TTokenRoute
   ApiPublicResolveRoute: typeof ApiPublicResolveRoute
@@ -329,6 +342,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BusinessIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/claim/$id': {
+      id: '/claim/$id'
+      path: '/claim/$id'
+      fullPath: '/claim/$id'
+      preLoaderRoute: typeof ClaimIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/navigation/$code': {
       id: '/navigation/$code'
       path: '/navigation/$code'
@@ -377,6 +397,7 @@ const rootRouteChildren: RootRouteChildren = {
   VerifyRoute: VerifyRoute,
   ACodeRoute: ACodeRoute,
   BusinessIdRoute: BusinessIdRoute,
+  ClaimIdRoute: ClaimIdRoute,
   NavigationCodeRoute: NavigationCodeRoute,
   TTokenRoute: TTokenRoute,
   ApiPublicResolveRoute: ApiPublicResolveRoute,
