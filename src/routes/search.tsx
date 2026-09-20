@@ -31,8 +31,10 @@ export const Route = createFileRoute("/search")({
 function SearchPage() {
   const search = useServerFn(searchNetwork);
   const [query, setQuery] = useState("");
+  const [category, setCategory] = useState<string | undefined>(undefined);
   const mutation = useMutation({
-    mutationFn: (value: string) => search({ data: { query: value } }),
+    mutationFn: (value: string) =>
+      search({ data: { query: value, ...(category ? { category } : {}) } }),
   });
 
   useEffect(() => {
@@ -40,7 +42,7 @@ function SearchPage() {
     const timer = setTimeout(() => mutation.mutate(query), 300);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query]);
+  }, [query, category]);
 
   const data = mutation.data;
 
