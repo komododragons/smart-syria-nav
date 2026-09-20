@@ -342,30 +342,60 @@ export type Database = {
       business_claims: {
         Row: {
           business_id: string
+          claim_method: string
           claimant_id: string
+          claimant_name: string | null
+          claimant_role: string | null
+          contact_email: string | null
+          contact_phone: string | null
           created_at: string
           evidence: string | null
+          evidence_urls: string[]
+          granted_level: string | null
           id: string
+          review_notes: string | null
+          reviewed_at: string | null
           reviewed_by: string | null
           status: string
+          updated_at: string
         }
         Insert: {
           business_id: string
+          claim_method?: string
           claimant_id: string
+          claimant_name?: string | null
+          claimant_role?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string
           evidence?: string | null
+          evidence_urls?: string[]
+          granted_level?: string | null
           id?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string
+          updated_at?: string
         }
         Update: {
           business_id?: string
+          claim_method?: string
           claimant_id?: string
+          claimant_name?: string | null
+          claimant_role?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string
           evidence?: string | null
+          evidence_urls?: string[]
+          granted_level?: string | null
           id?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string
+          updated_at?: string
         }
         Relationships: [
           {
