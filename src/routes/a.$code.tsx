@@ -601,28 +601,28 @@ function AddressCardPage() {
                   }
                 }
                 await navigator.clipboard.writeText(shareUrl);
-                toast.success("تم نسخ رابط العنوان");
+                toast.success(t({ ar: "تم نسخ رابط العنوان", en: "Address link copied" }));
               }}
               className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2.5 text-sm font-bold"
             >
-              <Share2 className="size-4" /> مشاركة
+              <Share2 className="size-4" /> {t({ ar: "مشاركة", en: "Share" })}
             </button>
             <button
               type="button"
               onClick={() => {
                 void navigator.clipboard.writeText(ok.code);
-                toast.success("تم نسخ العنوان الذكي");
+                toast.success(t({ ar: "تم نسخ العنوان الذكي", en: "Smart address copied" }));
               }}
               className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2.5 text-sm font-bold"
             >
-              <Copy className="size-4" /> نسخ الرمز
+              <Copy className="size-4" /> {t({ ar: "نسخ الرمز", en: "Copy code" })}
             </button>
             <button
               type="button"
               onClick={() => setShowQr((v) => !v)}
               className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2.5 text-sm font-bold"
             >
-              <QrCode className="size-4" /> رمز QR
+              <QrCode className="size-4" /> {t({ ar: "رمز QR", en: "QR code" })}
             </button>
             {signedIn ? (
               <button
@@ -633,9 +633,13 @@ function AddressCardPage() {
                       data: { code: ok.code, label: ok.site.display_name },
                     });
                     setSaved(res.saved);
-                    toast.success(res.saved ? "حُفظ في المفضلة" : "أُزيل من المفضلة");
+                    toast.success(
+                      res.saved
+                        ? t({ ar: "حُفظ في المفضلة", en: "Saved to favourites" })
+                        : t({ ar: "أُزيل من المفضلة", en: "Removed from favourites" }),
+                    );
                   } catch {
-                    toast.error("تعذر تحديث المفضلة");
+                    toast.error(t({ ar: "تعذر تحديث المفضلة", en: "Couldn't update favourites" }));
                   }
                 }}
                 className={`flex items-center gap-1.5 rounded-lg border px-3 py-2.5 text-sm font-bold ${
@@ -643,14 +647,14 @@ function AddressCardPage() {
                 }`}
               >
                 <Star className="size-4" fill={saved ? "currentColor" : "none"} />
-                {saved ? "محفوظ" : "حفظ العنوان"}
+                {saved ? t({ ar: "محفوظ", en: "Saved" }) : t({ ar: "حفظ العنوان", en: "Save address" })}
               </button>
             ) : (
               <Link
                 to="/auth"
                 className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2.5 text-sm font-bold"
               >
-                <Star className="size-4" /> سجّل الدخول للحفظ
+                <Star className="size-4" /> {t({ ar: "سجّل الدخول للحفظ", en: "Sign in to save" })}
               </Link>
             )}
           </div>

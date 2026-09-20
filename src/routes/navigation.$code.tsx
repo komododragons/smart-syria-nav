@@ -785,7 +785,7 @@ function NavigationWorkspace() {
             {/* Entrances */}
             {(target?.entrances.length ?? 0) > 0 && (
               <section className="space-y-2">
-                <p className="text-xs font-semibold text-muted-foreground">المدخل</p>
+                <p className="text-xs font-semibold text-muted-foreground">{t({ ar: "المدخل", en: "Entrance" })}</p>
                 <button
                   type="button"
                   onClick={() => setEntranceId(null)}
@@ -793,7 +793,7 @@ function NavigationWorkspace() {
                     entranceId ? "border-border text-muted-foreground" : "border-primary bg-primary/10"
                   }`}
                 >
-                  اختيار تلقائي حسب الغرض ونمط التنقل
+                  {t({ ar: "اختيار تلقائي حسب الغرض ونمط التنقل", en: "Auto-select by purpose and travel mode" })}
                 </button>
                 {(target?.entrances ?? []).map((entrance) => (
                   <button
@@ -807,8 +807,10 @@ function NavigationWorkspace() {
                   >
                     <span className="font-medium">{entrance.display_name}</span>{" "}
                     <span className="text-muted-foreground">
-                      — {ENTRANCE_KIND_LABELS[entrance.access_type]?.ar ?? entrance.access_type}
-                      {entrance.temporarily_closed ? " (مغلق مؤقتاً)" : ""}
+                      — {ENTRANCE_KIND_LABELS[entrance.access_type]?.[lang] ?? entrance.access_type}
+                      {entrance.temporarily_closed
+                        ? t({ ar: " (مغلق مؤقتاً)", en: " (temporarily closed)" })
+                        : ""}
                     </span>
                   </button>
                 ))}
@@ -818,7 +820,7 @@ function NavigationWorkspace() {
             {/* Route options */}
             {routes.length > 0 && (
               <section className="space-y-2">
-                <p className="text-xs font-semibold text-muted-foreground">خيارات المسار</p>
+                <p className="text-xs font-semibold text-muted-foreground">{t({ ar: "خيارات المسار", en: "Route options" })}</p>
                 {routes.map((route, index) => (
                   <button
                     key={index}
@@ -828,23 +830,35 @@ function NavigationWorkspace() {
                       selectedRoute === index ? "border-primary bg-primary/10" : "border-border"
                     }`}
                   >
-                    <span>{index === 0 ? "المسار الأساسي" : `بديل ${index}`}</span>
+                    <span>
+                      {index === 0
+                        ? t({ ar: "المسار الأساسي", en: "Main route" })
+                        : t({ ar: `بديل ${index}`, en: `Alternative ${index}` })}
+                    </span>
                     <span className="font-mono">
-                      {formatDistance(route.distance_m)} · {formatDuration(route.duration_s)}
+                      {formatDistance(route.distance_m, lang)} · {formatDuration(route.duration_s, lang)}
                     </span>
                   </button>
                 ))}
                 <p className="text-[11px] text-muted-foreground">
-                  المصدر: {activeRoute?.provider_attribution} — التقديرات إرشادية وليست مضمونة.
+                  {t({ ar: "المصدر:", en: "Source:" })} {activeRoute?.provider_attribution} —{" "}
+                  {t({
+                    ar: "التقديرات إرشادية وليست مضمونة.",
+                    en: "Estimates are indicative, not guaranteed.",
+                  })}
                 </p>
               </section>
             )}
 
             {routeMutation.isPending && (
-              <p className="text-xs text-muted-foreground">جارٍ تحضير المسار…</p>
+              <p className="text-xs text-muted-foreground">
+                {t({ ar: "جارٍ تحضير المسار…", en: "Preparing your route…" })}
+              </p>
             )}
             {!origin && !routeMutation.isPending && (
-              <p className="text-xs text-muted-foreground">اختر نقطة انطلاق لعرض المسار.</p>
+              <p className="text-xs text-muted-foreground">
+                {t({ ar: "اختر نقطة انطلاق لعرض المسار.", en: "Pick a starting point to see the route." })}
+              </p>
             )}
 
             {/* Actions */}
