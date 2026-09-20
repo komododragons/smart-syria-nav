@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
 
+import { useI18n } from "@/lib/i18n";
+
 export type Snippet = { id: string; label: string; code: string };
 
 /** Copyable tabbed code block with arbitrary language/platform tabs. */
 export function SnippetTabs({ snippets }: { snippets: Snippet[] }) {
+  const { t } = useI18n();
   const [active, setActive] = useState(snippets[0]?.id ?? "");
   const [copied, setCopied] = useState(false);
   const current = snippets.find((s) => s.id === active) ?? snippets[0];

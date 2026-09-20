@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
 
+import { useI18n } from "@/lib/i18n";
+
 export type CodeSamples = {
   curl: string;
   javascript: string;
@@ -15,6 +17,7 @@ const LANGS: { id: keyof CodeSamples; label: string }[] = [
 
 /** Copyable, language-tabbed code block used across the developer portal. */
 export function CodeTabs({ samples }: { samples: CodeSamples }) {
+  const { t } = useI18n();
   const [lang, setLang] = useState<keyof CodeSamples>("curl");
   const [copied, setCopied] = useState(false);
 
