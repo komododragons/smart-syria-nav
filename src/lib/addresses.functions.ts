@@ -849,6 +849,10 @@ export const resolveTemporaryToken = createServerFn({ method: "POST" })
     };
   });
 
+/**
+ * Community correction. Stores the original value alongside the suggestion so
+ * moderators can compare; it never overwrites live data.
+ */
 export const reportCorrection = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
@@ -859,16 +863,81 @@ export const reportCorrection = createServerFn({ method: "POST" })
         details: z.string().max(600).optional(),
         node_id: z.string().uuid().nullable().optional(),
         access_point_id: z.string().uuid().nullable().optional(),
+        business_id: z.string().uuid().nullable().optional(),
+        target_field: z
+          .enum([
+            "node_coordinates",
+            "business_name",
+            "business_status",
+            "business_category",
+            "place_category",
+            "entrance",
+            "access",
+            "other",
+          ])
+          .optional(),
+        suggested_value: z.string().max(300).optional(),
       })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("correction_reports").insert({
+    const supa = context.supabase;
+
+    // Snapshot the current value so the review shows original vs suggested.
+    let original: string | null = null;
+    const field = data.target_field ?? "other";
+    if (data.node_id && (field === "node_coordinates" || field === "place_category")) {
+      const { data: node } = await supa
+        .from("location_nodes")
+        .select("latitude, longitude, place_category")
+        .eq("id", data.node_id)
+        .maybeSingle();
+      if (node) {
+        original =
+          field === "node_coordinates"
+            ? node.latitude != null && node.longitude != null
+              ? `${node.latitude}, ${node.longitude}`
+              : null
+            : node.place_category;
+      }
+    } else if (data.business_id) {
+      const { data: biz } = await supa
+        .from("businesses")
+        .select("name_ar, category, is_published")
+        .eq("id", data.business_id)
+        .maybeSingle();
+      if (biz) {
+        original =
+          field === "business_name"
+            ? biz.name_ar
+            : field === "business_category"
+              ? biz.category
+              : field === "business_status"
+                ? biz.is_published
+                  ? "مفتوح ومنشور"
+                  : "غير منشور"
+                : null;
+      }
+    } else if (data.access_point_id && (field === "entrance" || field === "access")) {
+      const { data: ap } = await supa
+        .from("access_points")
+        .select("display_name, instructions_ar")
+        .eq("id", data.access_point_id)
+        .maybeSingle();
+      if (ap) original = [ap.display_name, ap.instructions_ar].filter(Boolean).join(" — ");
+    }
+
+    const { error } = await supa.from("correction_reports").insert({
       smart_code: data.smart_code ?? null,
       issue_type: data.issue_type,
       details: data.details ?? null,
       node_id: data.node_id ?? null,
       access_point_id: data.access_point_id ?? null,
+      business_id: data.business_id ?? null,
+      target_field: field,
+      suggested_value: data.suggested_value?.trim() || null,
+      original_value: original,
+      status: "pending",
       reporter_id: context.userId,
     });
     if (error) throw new Error(error.message);
