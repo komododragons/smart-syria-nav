@@ -58,6 +58,37 @@ function SearchPage() {
             placeholder="مثال: صيدلية، المزة، مستودع، SY-DAM"
             className="w-full rounded-lg border border-border bg-background py-3 pe-4 ps-9 text-sm focus:border-primary focus:outline-none"
           />
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            <Link
+              to="/places"
+              className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 text-[11px] font-bold text-primary"
+            >
+              دليل الأماكن العامة
+            </Link>
+            <button
+              type="button"
+              onClick={() => setCategory(undefined)}
+              className={`rounded-full border px-3 py-1.5 text-[11px] font-bold ${
+                category ? "border-border bg-background text-muted-foreground" : "border-primary bg-primary text-primary-foreground"
+              }`}
+            >
+              كل التصنيفات
+            </button>
+            {PLACE_CATEGORIES.map((c) => (
+              <button
+                key={c.value}
+                type="button"
+                onClick={() => setCategory(category === c.value ? undefined : c.value)}
+                className={`rounded-full border px-3 py-1.5 text-[11px] font-bold ${
+                  category === c.value
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-background text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {c.emoji} {c.ar}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
