@@ -299,6 +299,26 @@ async function createAddress(body: unknown, admin: Admin, auth: AuthOk) {
     return fail("out_of_bounds", 422, "Coordinates must fall inside Syria.");
   }
 
+  // Sandbox: `test` keys get the full validated response without touching data.
+  if (auth.environment === "test") {
+    const sample = `SY-${d.governorate_code.toUpperCase()}-TEST`;
+    return json(
+      {
+        mode: "test",
+        code: sample,
+        status: "simulated",
+        verification_level: "unverified",
+        message: "Sandbox mode: payload validated, nothing was persisted.",
+        links: {
+          self: `https://syriasan.com/api/public/v1/addresses/${sample}`,
+          address_page: `https://syriasan.com/a/${sample}`,
+          qr: `https://syriasan.com/api/public/v1/qr/${sample}`,
+        },
+      },
+      201,
+    );
+  }
+
   const { data: node, error: nodeErr } = await admin
     .from("location_nodes")
     .insert({
