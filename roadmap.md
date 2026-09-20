@@ -20,5 +20,7 @@
 ## Phase 4 — delivery view — DONE (/d/:CODE mobile-first courier view)
 - [ ] Mobile-first courier-only view per code
 
-## Phase 5 — temporary sharing (open)
-- [ ] Field-level share toggles + expiry presets on temporary links
+## Phase 5 — temporary sharing — DONE
+- [x] Field-level share toggles (location/building/entrance/floor/unit/instructions/parking/phone/name)
+- [x] Expiry presets 1h / 24h / 7d + custom hours, one-time use, optional label
+- [x] Active links list with copy + revoke; /t/TOKEN redacts to the shared fields only, noindex

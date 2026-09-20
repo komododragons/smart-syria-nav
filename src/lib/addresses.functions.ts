@@ -458,6 +458,21 @@ export const updateMyAddress = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
+export const SHARE_FIELDS = [
+  "location",
+  "building",
+  "entrance",
+  "floor",
+  "unit",
+  "instructions",
+  "parking",
+  "phone",
+  "name",
+] as const;
+export type ShareField = (typeof SHARE_FIELDS)[number];
+
+const shareFieldSchema = z.enum(SHARE_FIELDS);
+
 export const createTemporaryAddress = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
@@ -465,8 +480,12 @@ export const createTemporaryAddress = createServerFn({ method: "POST" })
       .object({
         smart_address_id: z.string().uuid(),
         purpose: purposeSchema.default("parcel_delivery"),
-        hours: z.number().int().min(1).max(720).default(24),
+        hours: z.number().int().min(1).max(8760).default(24),
         one_use: z.boolean().default(false),
+        label: z.string().max(80).optional(),
+        shared_fields: z.array(shareFieldSchema).min(1).max(9).optional(),
+        contact_phone: z.string().max(32).optional(),
+        contact_name: z.string().max(80).optional(),
       })
       .parse(input),
   )
@@ -474,6 +493,7 @@ export const createTemporaryAddress = createServerFn({ method: "POST" })
     const alphabet = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
     const token = `SY-TMP-${Array.from({ length: 5 }, () => alphabet[Math.floor(Math.random() * alphabet.length)]).join("")}`;
     const expires = new Date(Date.now() + data.hours * 3600_000).toISOString();
+    const fields = data.shared_fields ?? ["location", "building", "entrance", "instructions"];
 
     const { data: row, error } = await context.supabase
       .from("temporary_addresses")
@@ -484,8 +504,12 @@ export const createTemporaryAddress = createServerFn({ method: "POST" })
         expires_at: expires,
         max_uses: data.one_use ? 1 : null,
         created_by: context.userId,
+        label: data.label?.trim() || null,
+        shared_fields: fields,
+        contact_phone: fields.includes("phone") ? data.contact_phone?.trim() || null : null,
+        contact_name: fields.includes("name") ? data.contact_name?.trim() || null : null,
       })
-      .select("token, expires_at, purpose, max_uses")
+      .select("token, expires_at, purpose, max_uses, shared_fields")
       .single();
     if (error) throw new Error(error.message);
 
@@ -494,10 +518,50 @@ export const createTemporaryAddress = createServerFn({ method: "POST" })
       action: "temporary_address_created",
       resource_type: "temporary_address",
       resource_id: token,
-      metadata: { purpose: data.purpose, hours: data.hours },
+      metadata: { purpose: data.purpose, hours: data.hours, shared_fields: fields },
     });
 
     return row;
+  });
+
+export const listTemporaryLinks = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ smart_address_id: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: rows, error } = await context.supabase
+      .from("temporary_addresses")
+      .select(
+        "id, token, purpose, expires_at, max_uses, use_count, revoked, label, shared_fields, created_at",
+      )
+      .eq("smart_address_id", data.smart_address_id)
+      .eq("created_by", context.userId)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
+
+export const revokeTemporaryLink = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("temporary_addresses")
+      .update({ revoked: true })
+      .eq("id", data.id)
+      .eq("created_by", context.userId);
+    if (error) throw new Error(error.message);
+
+    await context.supabase.from("audit_logs").insert({
+      actor_id: context.userId,
+      action: "temporary_address_revoked",
+      resource_type: "temporary_address",
+      resource_id: data.id,
+      metadata: {},
+    });
+    return { ok: true as const };
   });
 
 export const resolveTemporaryToken = createServerFn({ method: "POST" })
@@ -510,7 +574,9 @@ export const resolveTemporaryToken = createServerFn({ method: "POST" })
 
     const { data: temp } = await supabaseAdmin
       .from("temporary_addresses")
-      .select("id, purpose, expires_at, max_uses, use_count, revoked, smart_address_id")
+      .select(
+        "id, purpose, expires_at, max_uses, use_count, revoked, smart_address_id, shared_fields, contact_phone, contact_name, label",
+      )
       .eq("token", token)
       .maybeSingle();
 
@@ -519,6 +585,8 @@ export const resolveTemporaryToken = createServerFn({ method: "POST" })
     if (new Date(temp.expires_at).getTime() < Date.now()) return { status: "expired" as const };
     if (temp.max_uses != null && temp.use_count >= temp.max_uses) return { status: "expired" as const };
 
+    const shared = new Set<string>(temp.shared_fields ?? []);
+
     const { data: smart } = await supabaseAdmin
       .from("smart_addresses")
       .select("code, node_id, default_access_point_id")
@@ -526,14 +594,28 @@ export const resolveTemporaryToken = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!smart) return { status: "not_found" as const };
 
-    // Purpose-limited disclosure: destination hierarchy only, no account data.
-    const chain: { node_type: string; label: string }[] = [];
+    // Purpose-limited disclosure: only the fields the owner explicitly shared.
+    const rawChain: {
+      node_type: string;
+      display_name: string;
+      unit_label: string | null;
+      floor_label: string | null;
+    }[] = [];
     let currentId: string | null = smart.node_id;
-    let site: { display_name: string; latitude: number | null; longitude: number | null; neighborhood: string | null; city: string | null } | null = null;
+    let site: {
+      display_name: string;
+      latitude: number | null;
+      longitude: number | null;
+      neighborhood: string | null;
+      city: string | null;
+      parking_info: string | null;
+    } | null = null;
     for (let i = 0; i < 8 && currentId; i += 1) {
       const nodeResult = await supabaseAdmin
         .from("location_nodes")
-        .select("id, parent_id, node_type, display_name, unit_label, floor_label, latitude, longitude, neighborhood, city")
+        .select(
+          "id, parent_id, node_type, display_name, unit_label, floor_label, latitude, longitude, neighborhood, city, parking_info",
+        )
         .eq("id", currentId)
         .maybeSingle();
       const node = nodeResult.data as {
@@ -547,11 +629,14 @@ export const resolveTemporaryToken = createServerFn({ method: "POST" })
         longitude: number | null;
         neighborhood: string | null;
         city: string | null;
+        parking_info: string | null;
       } | null;
       if (!node) break;
-      chain.unshift({
+      rawChain.unshift({
         node_type: node.node_type,
-        label: node.unit_label ?? node.floor_label ?? node.display_name,
+        display_name: node.display_name,
+        unit_label: node.unit_label,
+        floor_label: node.floor_label,
       });
       site = {
         display_name: node.display_name,
@@ -559,9 +644,23 @@ export const resolveTemporaryToken = createServerFn({ method: "POST" })
         longitude: node.longitude,
         neighborhood: node.neighborhood,
         city: node.city,
+        parking_info: node.parking_info,
       };
       currentId = node.parent_id;
     }
+
+    const chain = rawChain
+      .filter((n) => {
+        if (n.node_type === "unit") return shared.has("unit");
+        if (n.node_type === "floor") return shared.has("floor");
+        if (n.node_type === "building") return shared.has("building");
+        if (n.node_type === "entrance") return shared.has("entrance");
+        return true;
+      })
+      .map((n) => ({
+        node_type: n.node_type,
+        label: n.unit_label ?? n.floor_label ?? n.display_name,
+      }));
 
     let accessPoint: {
       display_name: string;
@@ -570,15 +669,29 @@ export const resolveTemporaryToken = createServerFn({ method: "POST" })
       instructions_ar: string | null;
       opens_at: string | null;
       closes_at: string | null;
+      parking_info: string | null;
     } | null = null;
-    if (smart.default_access_point_id) {
+    if (smart.default_access_point_id && shared.has("entrance")) {
       const { data: ap } = await supabaseAdmin
         .from("access_points")
-        .select("display_name, latitude, longitude, instructions_ar, opens_at, closes_at")
+        .select(
+          "display_name, latitude, longitude, instructions_ar, opens_at, closes_at, parking_info",
+        )
         .eq("id", smart.default_access_point_id)
         .maybeSingle();
       accessPoint = ap ?? null;
     }
+    if (accessPoint && !shared.has("instructions")) accessPoint.instructions_ar = null;
+    if (accessPoint && !shared.has("parking")) accessPoint.parking_info = null;
+    if (accessPoint && !shared.has("location")) {
+      accessPoint.latitude = null;
+      accessPoint.longitude = null;
+    }
+
+    if (site && !shared.has("location")) {
+      site = { ...site, latitude: null, longitude: null };
+    }
+    if (site && !shared.has("parking")) site = { ...site, parking_info: null };
 
     await supabaseAdmin
       .from("temporary_addresses")
@@ -590,9 +703,13 @@ export const resolveTemporaryToken = createServerFn({ method: "POST" })
       token,
       purpose: temp.purpose,
       expires_at: temp.expires_at,
+      label: temp.label,
+      shared_fields: temp.shared_fields ?? [],
       site,
       chain,
       access_point: accessPoint,
+      contact_phone: shared.has("phone") ? temp.contact_phone : null,
+      contact_name: shared.has("name") ? temp.contact_name : null,
     };
   });
 

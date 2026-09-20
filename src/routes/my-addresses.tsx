@@ -10,10 +10,35 @@ import { DirectionsButton } from "@/components/DirectionsButton";
 import { CadastralMap } from "@/components/CadastralMap";
 import { QrCard } from "@/components/QrCard";
 import { supabase } from "@/integrations/supabase/client";
-import { createTemporaryAddress, listMyAddresses, updateMyAddress } from "@/lib/addresses.functions";
+import {
+  createTemporaryAddress,
+  listMyAddresses,
+  listTemporaryLinks,
+  revokeTemporaryLink,
+  updateMyAddress,
+  type ShareField,
+} from "@/lib/addresses.functions";
 import { CLAIM_STATUS_LABELS, myClaims, withdrawClaim } from "@/lib/claims.functions";
 import { listFavorites, toggleFavorite } from "@/lib/network.functions";
 import { NODE_TYPE_LABELS, PURPOSE_LABELS, QUICK_PURPOSES, VERIFICATION_LEVELS } from "@/lib/smart-address";
+
+const SHARE_FIELD_LABELS: { value: ShareField; ar: string }[] = [
+  { value: "location", ar: "الموقع" },
+  { value: "building", ar: "المبنى" },
+  { value: "entrance", ar: "المدخل" },
+  { value: "floor", ar: "الطابق" },
+  { value: "unit", ar: "الشقة" },
+  { value: "instructions", ar: "تعليمات الوصول" },
+  { value: "parking", ar: "المواقف" },
+  { value: "phone", ar: "الهاتف" },
+  { value: "name", ar: "الاسم" },
+];
+
+const EXPIRY_PRESETS = [
+  { hours: 1, ar: "ساعة" },
+  { hours: 24, ar: "٢٤ ساعة" },
+  { hours: 168, ar: "٧ أيام" },
+];
 
 export const Route = createFileRoute("/my-addresses")({
   head: () => ({
@@ -43,6 +68,18 @@ function MyAddressesPage() {
   const [purpose, setPurpose] = useState<string>("parcel_delivery");
   const [hours, setHours] = useState(24);
   const [oneUse, setOneUse] = useState(true);
+  const [customExpiry, setCustomExpiry] = useState(false);
+  const [fields, setFields] = useState<ShareField[]>([
+    "location",
+    "building",
+    "entrance",
+    "floor",
+    "unit",
+    "instructions",
+  ]);
+  const [contactPhone, setContactPhone] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [linkLabel, setLinkLabel] = useState("");
   const [issued, setIssued] = useState<{ token: string; expires_at: string } | null>(null);
   const updateFn = useServerFn(updateMyAddress);
   const [editFor, setEditFor] = useState<string | null>(null);
@@ -85,14 +122,27 @@ function MyAddressesPage() {
     enabled: authed === true,
   });
 
+  const linksQueryClient = useQueryClient();
   const mutation = useMutation({
     mutationFn: (smartAddressId: string) =>
-      tempFn({ data: { smart_address_id: smartAddressId, purpose, hours, one_use: oneUse } }),
-    onSuccess: (row) => {
+      tempFn({
+        data: {
+          smart_address_id: smartAddressId,
+          purpose,
+          hours,
+          one_use: oneUse,
+          shared_fields: fields,
+          label: linkLabel.trim() || undefined,
+          contact_phone: contactPhone.trim() || undefined,
+          contact_name: contactName.trim() || undefined,
+        },
+      }),
+    onSuccess: async (row) => {
       setIssued({ token: row.token, expires_at: row.expires_at });
-      toast.success("تم إنشاء عنوان مؤقت");
+      toast.success("تم إنشاء رابط مؤقت");
+      await linksQueryClient.invalidateQueries({ queryKey: ["temp-links"] });
     },
-    onError: () => toast.error("تعذر إنشاء العنوان المؤقت"),
+    onError: () => toast.error("تعذر إنشاء الرابط المؤقت"),
   });
 
   const editMutation = useMutation({
@@ -598,19 +648,84 @@ function MyAddressesPage() {
                       </button>
                     ))}
                   </div>
-                  <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-                    {[6, 24, 72].map((value) => (
+
+                  <p className="mt-4 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                    ما الذي يراه المستلم؟
+                  </p>
+                  <div className="mt-2 grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+                    {SHARE_FIELD_LABELS.map((f) => {
+                      const on = fields.includes(f.value);
+                      return (
+                        <button
+                          key={f.value}
+                          type="button"
+                          onClick={() =>
+                            setFields((prev) =>
+                              prev.includes(f.value)
+                                ? prev.filter((v) => v !== f.value)
+                                : [...prev, f.value],
+                            )
+                          }
+                          className={`flex items-center justify-between rounded-lg border px-2.5 py-2 text-xs ${
+                            on
+                              ? "border-primary/50 bg-primary/10 font-bold text-primary"
+                              : "border-border text-muted-foreground"
+                          }`}
+                        >
+                          <span>{f.ar}</span>
+                          <span>{on ? "✓" : "✕"}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {fields.includes("phone") ? (
+                    <input
+                      value={contactPhone}
+                      onChange={(e) => setContactPhone(e.target.value)}
+                      placeholder="رقم الهاتف الذي سيظهر للمستلم"
+                      dir="ltr"
+                      className="mt-2 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                    />
+                  ) : null}
+                  {fields.includes("name") ? (
+                    <input
+                      value={contactName}
+                      onChange={(e) => setContactName(e.target.value)}
+                      placeholder="الاسم الذي سيظهر للمستلم"
+                      className="mt-2 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                    />
+                  ) : null}
+
+                  <p className="mt-4 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                    مدة الصلاحية
+                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                    {EXPIRY_PRESETS.map((preset) => (
                       <button
-                        key={value}
+                        key={preset.hours}
                         type="button"
-                        onClick={() => setHours(value)}
+                        onClick={() => {
+                          setCustomExpiry(false);
+                          setHours(preset.hours);
+                        }}
                         className={`rounded-lg px-3 py-1.5 ${
-                          hours === value ? "bg-foreground text-background" : "border border-border"
+                          !customExpiry && hours === preset.hours
+                            ? "bg-foreground text-background"
+                            : "border border-border"
                         }`}
                       >
-                        {value} ساعة
+                        {preset.ar}
                       </button>
                     ))}
+                    <button
+                      type="button"
+                      onClick={() => setCustomExpiry(true)}
+                      className={`rounded-lg px-3 py-1.5 ${
+                        customExpiry ? "bg-foreground text-background" : "border border-border"
+                      }`}
+                    >
+                      مدة مخصصة
+                    </button>
                     <label className="flex items-center gap-1.5">
                       <input
                         type="checkbox"
@@ -621,20 +736,44 @@ function MyAddressesPage() {
                       استخدام واحد
                     </label>
                   </div>
+                  {customExpiry ? (
+                    <label className="mt-2 flex items-center gap-2 text-xs">
+                      <input
+                        type="number"
+                        min={1}
+                        max={8760}
+                        value={hours}
+                        onChange={(e) => setHours(Math.max(1, Number(e.target.value) || 1))}
+                        className="w-28 rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                      />
+                      ساعة
+                    </label>
+                  ) : null}
+
+                  <input
+                    value={linkLabel}
+                    onChange={(e) => setLinkLabel(e.target.value)}
+                    placeholder="وسم للرابط (اختياري) — مثلاً: طلب طعام"
+                    className="mt-3 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                  />
+
                   <button
                     type="button"
-                    disabled={mutation.isPending}
+                    disabled={mutation.isPending || fields.length === 0}
                     onClick={() => mutation.mutate(row.id)}
                     className="mt-3 w-full rounded-lg bg-primary py-2.5 text-xs font-bold text-primary-foreground disabled:opacity-60"
                   >
-                    إنشاء رمز مؤقت
+                    إنشاء رابط مؤقت
                   </button>
+                  <p className="mt-2 text-[11px] text-muted-foreground">
+                    الرابط المؤقت لا يجعل عنوانك قابلاً للبحث — يبقى خاصاً وينتهي تلقائياً.
+                  </p>
 
                   {issued ? (
                     <QrCard
                       url={
                         typeof window === "undefined"
-                          ? `https://smartaddress.sy/t/${issued.token}`
+                          ? `https://syriasan.com/t/${issued.token}`
                           : `${window.location.origin}/t/${issued.token}`
                       }
                       code={issued.token}
@@ -643,6 +782,8 @@ function MyAddressesPage() {
                       onClose={() => setIssued(null)}
                     />
                   ) : null}
+
+                  <TemporaryLinksList smartAddressId={row.id} />
                 </div>
               ) : null}
             </section>
@@ -728,5 +869,99 @@ function MyClaimsSection() {
         })}
       </div>
     </section>
+  );
+}
+
+function TemporaryLinksList({ smartAddressId }: { smartAddressId: string }) {
+  const queryClient = useQueryClient();
+  const listFn = useServerFn(listTemporaryLinks);
+  const revokeFn = useServerFn(revokeTemporaryLink);
+
+  const linksQuery = useQuery({
+    queryKey: ["temp-links", smartAddressId],
+    queryFn: () => listFn({ data: { smart_address_id: smartAddressId } }),
+  });
+
+  const links = linksQuery.data ?? [];
+  if (!links.length) return null;
+
+  return (
+    <div className="mt-4 border-t border-border pt-3">
+      <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+        الروابط المؤقتة
+      </p>
+      <div className="mt-2 space-y-2">
+        {links.map((link) => {
+          const expired = new Date(link.expires_at).getTime() < Date.now();
+          const used = link.max_uses != null && link.use_count >= link.max_uses;
+          const dead = link.revoked || expired || used;
+          return (
+            <div
+              key={link.id}
+              className="rounded-lg border border-border bg-surface p-2.5 text-xs"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-mono font-bold" dir="ltr">
+                  {link.token}
+                </span>
+                <span className={dead ? "text-muted-foreground" : "text-allow font-bold"}>
+                  {link.revoked
+                    ? "ملغى"
+                    : expired
+                      ? "منتهٍ"
+                      : used
+                        ? "استُخدم"
+                        : "فعّال"}
+                </span>
+              </div>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                {[
+                  link.label,
+                  PURPOSE_LABELS[link.purpose] ?? link.purpose,
+                  `ينتهي ${new Date(link.expires_at).toLocaleString("ar-SY")}`,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </p>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                يكشف:{" "}
+                {(link.shared_fields ?? [])
+                  .map((f) => SHARE_FIELD_LABELS.find((s) => s.value === f)?.ar ?? f)
+                  .join("، ")}
+              </p>
+              <div className="mt-2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    void navigator.clipboard.writeText(`${window.location.origin}/t/${link.token}`);
+                    toast.success("تم نسخ الرابط");
+                  }}
+                  className="rounded-lg border border-border px-3 py-1.5 font-bold"
+                >
+                  نسخ الرابط
+                </button>
+                {!dead ? (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        await revokeFn({ data: { id: link.id } });
+                        toast.success("تم إلغاء الرابط");
+                        await queryClient.invalidateQueries({ queryKey: ["temp-links"] });
+                      } catch {
+                        toast.error("تعذّر إلغاء الرابط");
+                      }
+                    }}
+                    className="rounded-lg border border-prohibit/40 px-3 py-1.5 font-bold text-prohibit"
+                  >
+                    إلغاء
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }

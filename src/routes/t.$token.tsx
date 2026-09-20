@@ -104,24 +104,46 @@ function TempPage() {
                   {data.access_point.instructions_ar}
                 </p>
               ) : null}
+              {data.access_point?.parking_info ?? data.site?.parking_info ? (
+                <p className="mt-2 rounded-lg border border-border bg-background p-3 text-sm">
+                  المواقف: {data.access_point?.parking_info ?? data.site?.parking_info}
+                </p>
+              ) : null}
+              {data.contact_name || data.contact_phone ? (
+                <div className="mt-3 rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm">
+                  {data.contact_name ? <p className="font-bold">{data.contact_name}</p> : null}
+                  {data.contact_phone ? (
+                    <a
+                      href={`tel:${data.contact_phone}`}
+                      dir="ltr"
+                      className="mt-1 block font-mono font-bold text-primary"
+                    >
+                      {data.contact_phone}
+                    </a>
+                  ) : null}
+                </div>
+              ) : null}
               {data.access_point ? (
                 <p className="mt-2 font-mono text-xs text-primary" dir="ltr">
                   {formatCoords(data.access_point.latitude, data.access_point.longitude)}
                 </p>
               ) : null}
-              <a
-                href={osmDirectionsUrl(
-                  data.access_point?.latitude ?? data.site?.latitude,
-                  data.access_point?.longitude ?? data.site?.longitude,
-                )}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-4 flex items-center justify-center gap-1.5 rounded-xl bg-primary py-3 text-sm font-bold text-primary-foreground"
-              >
-                <Navigation className="size-4" /> الاتجاهات
-              </a>
+              {(data.access_point?.latitude ?? data.site?.latitude) != null ? (
+                <a
+                  href={osmDirectionsUrl(
+                    data.access_point?.latitude ?? data.site?.latitude,
+                    data.access_point?.longitude ?? data.site?.longitude,
+                  )}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-4 flex items-center justify-center gap-1.5 rounded-xl bg-primary py-3 text-sm font-bold text-primary-foreground"
+                >
+                  <Navigation className="size-4" /> الاتجاهات
+                </a>
+              ) : null}
               <p className="mt-3 text-[11px] text-muted-foreground">
-                هذا الرمز يكشف الوجهة والمدخل فقط — بدون اسم صاحب العنوان أو بياناته.
+                هذا الرابط يكشف فقط ما اختار صاحب العنوان مشاركته، وينتهي تلقائياً. العنوان يبقى خاصاً
+                وغير قابل للبحث.
               </p>
             </section>
           </>
