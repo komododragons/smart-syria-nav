@@ -690,6 +690,173 @@ async function revokeOwnKey(body: unknown, admin: Admin, auth: AuthOk) {
   return json({ revoked: true, key_prefix: parsed.data.key_prefix });
 }
 
+// ---------------------------------------------------------------- webhooks
+
+export const WEBHOOK_EVENTS = [
+  "address.created",
+  "address.resolved",
+  "address.navigation_started",
+  "address.delivery_viewed",
+  "address.qr_scanned",
+] as const;
+export type WebhookEvent = (typeof WEBHOOK_EVENTS)[number];
+
+function signPayload(secret: string, body: string, timestamp: string): string {
+  return createHmac("sha256", secret).update(`${timestamp}.${body}`).digest("hex");
+}
+
+/**
+ * Fan out an event to every active subscription that listens for it.
+ * Deliveries are best effort and never block the caller's response.
+ * Only PUBLIC address data may be placed in `payload`.
+ */
+export async function dispatchWebhooks(
+  event: WebhookEvent,
+  payload: Record<string, unknown>,
+): Promise<void> {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: hooks } = await supabaseAdmin
+      .from("api_webhooks")
+      .select("id, url, secret, events, delivery_count, failure_count")
+      .eq("is_active", true)
+      .contains("events", [event]);
+    if (!hooks?.length) return;
+
+    await Promise.all(
+      hooks.map(async (hook) => {
+        const timestamp = String(Math.floor(Date.now() / 1000));
+        const body = JSON.stringify({ event, created_at: new Date().toISOString(), data: payload });
+        let status = 0;
+        try {
+          const res = await fetch(hook.url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Syriasan-Event": event,
+              "X-Syriasan-Timestamp": timestamp,
+              "X-Syriasan-Signature": `sha256=${signPayload(hook.secret, body, timestamp)}`,
+            },
+            body,
+            signal: AbortSignal.timeout(5000),
+          });
+          status = res.status;
+        } catch {
+          status = 0;
+        }
+        const ok = status >= 200 && status < 300;
+        await supabaseAdmin
+          .from("api_webhooks")
+          .update({
+            delivery_count: hook.delivery_count + 1,
+            failure_count: hook.failure_count + (ok ? 0 : 1),
+            last_delivery_at: new Date().toISOString(),
+            last_status: status,
+          })
+          .eq("id", hook.id);
+      }),
+    );
+  } catch {
+    /* webhook delivery must never break the originating request */
+  }
+}
+
+async function createWebhook(body: unknown, admin: Admin, auth: AuthOk) {
+  const parsed = z
+    .object({
+      url: z.string().trim().url().max(500).startsWith("https://"),
+      events: z.array(z.enum(WEBHOOK_EVENTS)).min(1).max(WEBHOOK_EVENTS.length),
+    })
+    .safeParse(body);
+  if (!parsed.success) {
+    return fail("invalid_request", 400, "`url` must be https and `events` must list known events.");
+  }
+
+  const secret = `whsec_${randomBytes(24).toString("base64url")}`;
+  const { data: row, error } = await admin
+    .from("api_webhooks")
+    .insert({
+      client_id: auth.clientId,
+      url: parsed.data.url,
+      secret,
+      events: parsed.data.events,
+      environment: auth.environment,
+    })
+    .select("id, url, events, environment, created_at")
+    .single();
+  if (error) return fail("create_failed", 500, error.message);
+
+  await audit(admin, auth, "webhook_created", "api_webhook", row.id, { url: row.url });
+  // The signing secret is returned once; it is never readable again.
+  return json({ ...row, secret, signature_header: "X-Syriasan-Signature" }, 201);
+}
+
+async function listWebhooks(admin: Admin, auth: AuthOk) {
+  const { data } = await admin
+    .from("api_webhooks")
+    .select(
+      "id, url, events, is_active, environment, delivery_count, failure_count, last_delivery_at, last_status, created_at",
+    )
+    .eq("client_id", auth.clientId)
+    .order("created_at", { ascending: false });
+  return json({ webhooks: data ?? [] });
+}
+
+async function deleteWebhook(body: unknown, admin: Admin, auth: AuthOk) {
+  const parsed = z.object({ id: z.string().uuid() }).safeParse(body);
+  if (!parsed.success) return fail("invalid_request", 400, "`id` is required.");
+  const { data: row } = await admin
+    .from("api_webhooks")
+    .select("id")
+    .eq("id", parsed.data.id)
+    .eq("client_id", auth.clientId)
+    .maybeSingle();
+  if (!row) return fail("not_found", 404, "No webhook with that id on this client.");
+  await admin.from("api_webhooks").delete().eq("id", row.id);
+  await audit(admin, auth, "webhook_deleted", "api_webhook", row.id, {});
+  return json({ deleted: true, id: row.id });
+}
+
+async function testWebhook(body: unknown, admin: Admin, auth: AuthOk) {
+  const parsed = z.object({ id: z.string().uuid() }).safeParse(body);
+  if (!parsed.success) return fail("invalid_request", 400, "`id` is required.");
+  const { data: hook } = await admin
+    .from("api_webhooks")
+    .select("id, url, secret")
+    .eq("id", parsed.data.id)
+    .eq("client_id", auth.clientId)
+    .maybeSingle();
+  if (!hook) return fail("not_found", 404, "No webhook with that id on this client.");
+
+  const timestamp = String(Math.floor(Date.now() / 1000));
+  const payload = JSON.stringify({
+    event: "address.resolved",
+    created_at: new Date().toISOString(),
+    mode: "test",
+    data: { code: "SY-DAM-K7X4", purpose: "parcel_delivery", sample: true },
+  });
+  let status = 0;
+  try {
+    const res = await fetch(hook.url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Syriasan-Event": "address.resolved",
+        "X-Syriasan-Timestamp": timestamp,
+        "X-Syriasan-Signature": `sha256=${signPayload(hook.secret, payload, timestamp)}`,
+      },
+      body: payload,
+      signal: AbortSignal.timeout(5000),
+    });
+    status = res.status;
+  } catch {
+    status = 0;
+  }
+  return json({ delivered: status >= 200 && status < 300, status_code: status });
+}
+
+
+
 // ---------------------------------------------------------------- dispatcher
 
 type Handled = { response: Response; scope: ApiScope | "public"; endpoint: string };
