@@ -36,6 +36,7 @@ export function QrCard({
   initialPlate?: boolean | undefined;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
   const qrId = useId().replace(/:/g, "");
   const [plateMode, setPlateMode] = useState(Boolean(initialPlate));
   const [format, setFormat] = useState<PlateFormat>("a6");
