@@ -49,6 +49,12 @@ export type ResolvedAccessPoint = {
   restrictions: { restriction: string; note_ar: string | null }[];
   purpose_allowed: boolean | null;
   score: number;
+  parking_info: string | null;
+  loading_info: string | null;
+  last_verified_at: string | null;
+  wheelchair_accessible: boolean;
+  vehicle_access: boolean;
+  photo_url: string | null;
 };
 
 export type ResolveResult =
@@ -61,7 +67,7 @@ export type ResolveResult =
       redirected_from?: string | undefined;
       purpose: Purpose;
       label: string | null;
-      site: { id: string; display_name: string; node_type: string; latitude: number | null; longitude: number | null; governorate: string | null; city: string | null; district: string | null; neighborhood: string | null; street: string | null; landmark: string | null; public_notes: string | null };
+      site: { id: string; display_name: string; node_type: string; latitude: number | null; longitude: number | null; governorate: string | null; city: string | null; district: string | null; neighborhood: string | null; street: string | null; landmark: string | null; public_notes: string | null; building_number: string | null; parking_info: string | null; loading_info: string | null; wheelchair_accessible: boolean | null; has_elevator: boolean | null; verification_method: string | null; last_verified_at: string | null };
       chain: { id: string; node_type: string; display_name: string; name_en: string | null; unit_label: string | null; floor_label: string | null; description: string | null }[];
       recommended: ResolvedAccessPoint | null;
       alternatives: ResolvedAccessPoint[];
