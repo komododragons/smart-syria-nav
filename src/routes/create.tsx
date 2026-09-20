@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Check, LocateFixed } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
+import { PLACE_CATEGORIES } from "@/lib/place-categories";
 import { CadastralMap } from "@/components/CadastralMap";
 import { supabase } from "@/integrations/supabase/client";
 import { createSmartAddress, nearbySites } from "@/lib/addresses.functions";
@@ -90,6 +91,7 @@ function CreatePage() {
   const [isPublic, setIsPublic] = useState(false);
   const [businessName, setBusinessName] = useState("");
   const [businessCategory, setBusinessCategory] = useState("");
+  const [businessPlaceCategory, setBusinessPlaceCategory] = useState("");
   const [businessPhone, setBusinessPhone] = useState("");
 
   useEffect(() => {
@@ -159,6 +161,7 @@ function CreatePage() {
               ? {
                   name_ar: businessName,
                   category: businessCategory || undefined,
+                  place_category: businessPlaceCategory || undefined,
                   phone: businessPhone || undefined,
                 }
               : null,
@@ -563,6 +566,18 @@ function CreatePage() {
                   placeholder="التصنيف (صيدلية، مطعم…)"
                   className="rounded-lg border border-border bg-background px-3 py-2.5 text-sm"
                 />
+                <select
+                  value={businessPlaceCategory}
+                  onChange={(event) => setBusinessPlaceCategory(event.target.value)}
+                  className="rounded-lg border border-border bg-background px-3 py-2.5 text-sm"
+                >
+                  <option value="">تصنيف الدليل العام (اختياري)</option>
+                  {PLACE_CATEGORIES.map((c) => (
+                    <option key={c.value} value={c.value}>
+                      {c.emoji} {c.ar}
+                    </option>
+                  ))}
+                </select>
                 <input
                   value={businessPhone}
                   dir="ltr"

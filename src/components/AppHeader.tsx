@@ -9,6 +9,7 @@ import {
   Search,
   ShieldCheck,
   Truck,
+  Landmark,
 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -48,6 +49,13 @@ export function AppHeader() {
             aria-label="البحث"
           >
             <Search className="size-4" />
+          </Link>
+          <Link
+            to="/places"
+            className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
+            aria-label="دليل الأماكن العامة"
+          >
+            <Landmark className="size-4" />
           </Link>
           <Link
             to="/offline"

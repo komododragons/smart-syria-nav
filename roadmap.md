@@ -95,3 +95,9 @@
 - [x] Recently opened addresses cached locally and listed on /offline
 - [x] Downloadable regional address packages per governorate (Damascus, Aleppo, Homs, Latakia, Tartous, …) — public addresses only; architecture leaves room for full map/routing payloads later
 - [x] Offline banner warning that verification and route data may be outdated
+
+## PHASE 16 — PUBLIC PLACE DATABASE — DONE
+- place_category on location_nodes + businesses, validate_place_category() trigger (18 categories, public-only), partial indexes.
+- src/lib/place-categories.ts (taxonomy + RESIDENTIAL_NODE_TYPES), src/lib/places.functions.ts (listPublicPlaces, placeCategoryCounts), /places directory route.
+- searchNetwork accepts category + drops residential node types; /search has category chips; header links /places.
+- Category pickers in create wizard business step and dashboard branch form.

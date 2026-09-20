@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
+import { PLACE_CATEGORIES } from "@/lib/place-categories";
 import { BulkImportTab } from "@/components/BulkImportTab";
 import { CadastralMap } from "@/components/CadastralMap";
 import { QrCard } from "@/components/QrCard";
@@ -296,6 +297,7 @@ type LocationForm = {
   name_ar: string;
   branch_label: string;
   category: string;
+  place_category: string;
   phone: string;
   opening_hours: string;
   governorate_code: string;
@@ -315,6 +317,7 @@ const emptyForm: LocationForm = {
   name_ar: "",
   branch_label: "",
   category: "",
+  place_category: "",
   phone: "",
   opening_hours: "",
   governorate_code: "DAM",
@@ -369,6 +372,7 @@ function LocationsTab({
         name_ar: form.name_ar.trim(),
         branch_label: form.branch_label.trim() || null,
         category: form.category.trim() || null,
+        place_category: form.place_category || null,
         phone: form.phone.trim() || null,
         opening_hours: form.opening_hours.trim() || null,
         governorate,
@@ -461,6 +465,20 @@ function LocationsTab({
             </Field>
             <Field label="الفئة">
               <input className={input} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
+            </Field>
+            <Field label="تصنيف الدليل العام">
+              <select
+                className={input}
+                value={form.place_category}
+                onChange={(e) => setForm({ ...form, place_category: e.target.value })}
+              >
+                <option value="">بدون تصنيف عام</option>
+                {PLACE_CATEGORIES.map((c) => (
+                  <option key={c.value} value={c.value}>
+                    {c.emoji} {c.ar}
+                  </option>
+                ))}
+              </select>
             </Field>
             <Field label="الهاتف">
               <input className={input} dir="ltr" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
@@ -580,6 +598,7 @@ function LocationsTab({
                         name_ar: loc.name_ar,
                         branch_label: loc.branch_label ?? "",
                         category: loc.category ?? "",
+                        place_category: loc.place_category ?? "",
                         phone: loc.phone ?? "",
                         opening_hours: loc.opening_hours ?? "",
                         governorate_code:

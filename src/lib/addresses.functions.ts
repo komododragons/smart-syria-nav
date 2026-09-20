@@ -24,11 +24,12 @@ export const resolveAddress = createServerFn({ method: "POST" })
 
 export const searchNetwork = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
-    z.object({ query: z.string().max(120) }).parse(input),
+    z.object({ query: z.string().max(120), category: z.string().max(40).optional() }).parse(input),
   )
   .handler(async ({ data }) => {
     const { serverPublicClient } = await import("./addresses.server");
     const { normalizeArabic, normalizeCode } = await import("./smart-address");
+    const { RESIDENTIAL_NODE_TYPES } = await import("./place-categories");
     const supa = serverPublicClient();
     const raw = data.query.trim();
     if (raw.length < 2) return { businesses: [], places: [], code: null };
@@ -36,26 +37,32 @@ export const searchNetwork = createServerFn({ method: "POST" })
     const pattern = `%${raw}%`;
     const normalized = normalizeArabic(raw);
 
+    let bizQuery = supa
+      .from("businesses")
+      .select(
+        "id, name_ar, name_en, category, place_category, phone, website, opening_hours, verification_level, node_id, visitor_access_point_id, delivery_access_point_id, smart_addresses(code), location_nodes(display_name, governorate, city, district, neighborhood, unit_label, floor_label)",
+      )
+      .eq("is_published", true)
+      .or(`name_ar.ilike.${pattern},name_en.ilike.${pattern},category.ilike.${pattern}`)
+      .limit(20);
+    if (data.category) bizQuery = bizQuery.eq("place_category", data.category);
+
+    let nodeQuery = supa
+      .from("location_nodes")
+      .select(
+        "id, display_name, name_en, node_type, place_category, governorate, city, district, neighborhood, street, landmark, verification_level, confidence_score, latitude, longitude",
+      )
+      .eq("visibility", "public")
+      .eq("is_active", true)
+      .or(
+        `display_name.ilike.${pattern},name_en.ilike.${pattern},neighborhood.ilike.${pattern},street.ilike.${pattern},landmark.ilike.${pattern}`,
+      )
+      .limit(20);
+    if (data.category) nodeQuery = nodeQuery.eq("place_category", data.category);
+
     const [businessRes, placeRes, aliasRes, codeRes] = await Promise.all([
-      supa
-        .from("businesses")
-        .select(
-          "id, name_ar, name_en, category, phone, website, opening_hours, verification_level, node_id, visitor_access_point_id, delivery_access_point_id, smart_addresses(code), location_nodes(display_name, governorate, city, district, neighborhood, unit_label, floor_label)",
-        )
-        .eq("is_published", true)
-        .or(`name_ar.ilike.${pattern},name_en.ilike.${pattern},category.ilike.${pattern}`)
-        .limit(20),
-      supa
-        .from("location_nodes")
-        .select(
-          "id, display_name, name_en, node_type, governorate, city, district, neighborhood, street, landmark, verification_level, confidence_score, latitude, longitude",
-        )
-        .eq("visibility", "public")
-        .eq("is_active", true)
-        .or(
-          `display_name.ilike.${pattern},name_en.ilike.${pattern},neighborhood.ilike.${pattern},street.ilike.${pattern},landmark.ilike.${pattern}`,
-        )
-        .limit(20),
+      bizQuery,
+      nodeQuery,
       supa.from("location_aliases").select("node_id, alias").ilike("alias", pattern).limit(20),
       supa
         .from("smart_addresses")
@@ -67,11 +74,11 @@ export const searchNetwork = createServerFn({ method: "POST" })
 
     const aliasNodeIds = (aliasRes.data ?? []).map((a) => a.node_id);
     let aliasPlaces: NonNullable<typeof placeRes.data> = [];
-    if (aliasNodeIds.length) {
+    if (aliasNodeIds.length && !data.category) {
       const { data: extra } = await supa
         .from("location_nodes")
         .select(
-          "id, display_name, name_en, node_type, governorate, city, district, neighborhood, street, landmark, verification_level, confidence_score, latitude, longitude",
+          "id, display_name, name_en, node_type, place_category, governorate, city, district, neighborhood, street, landmark, verification_level, confidence_score, latitude, longitude",
         )
         .in("id", aliasNodeIds)
         .eq("visibility", "public")
@@ -80,7 +87,11 @@ export const searchNetwork = createServerFn({ method: "POST" })
     }
 
     const placeMap = new Map<string, (typeof aliasPlaces)[number]>();
-    for (const p of [...(placeRes.data ?? []), ...aliasPlaces]) placeMap.set(p.id, p);
+    for (const p of [...(placeRes.data ?? []), ...aliasPlaces]) {
+      // Second privacy layer: a home never appears in public search, whatever its flags say.
+      if (RESIDENTIAL_NODE_TYPES.includes(p.node_type)) continue;
+      placeMap.set(p.id, p);
+    }
 
     const businesses = (businessRes.data ?? []).sort((a, b) => {
       const exact = (x: typeof a) =>
@@ -185,6 +196,7 @@ const wizardSchema = z.object({
       name_ar: z.string().min(2).max(120),
       name_en: z.string().max(120).optional(),
       category: z.string().max(80).optional(),
+      place_category: z.string().max(40).optional(),
       phone: z.string().max(40).optional(),
       website: z.string().max(160).optional(),
       opening_hours: z.string().max(160).optional(),
@@ -336,6 +348,7 @@ export const createSmartAddress = createServerFn({ method: "POST" })
         name_ar: data.business.name_ar,
         name_en: data.business.name_en ?? null,
         category: data.business.category ?? null,
+        place_category: data.business.place_category ?? null,
         phone: data.business.phone ?? null,
         website: data.business.website ?? null,
         opening_hours: data.business.opening_hours ?? null,

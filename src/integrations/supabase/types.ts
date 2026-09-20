@@ -522,6 +522,7 @@ export type Database = {
           organization_id: string | null
           owner_id: string | null
           phone: string | null
+          place_category: string | null
           smart_address_id: string | null
           updated_at: string
           verification_level: string
@@ -544,6 +545,7 @@ export type Database = {
           organization_id?: string | null
           owner_id?: string | null
           phone?: string | null
+          place_category?: string | null
           smart_address_id?: string | null
           updated_at?: string
           verification_level?: string
@@ -566,6 +568,7 @@ export type Database = {
           organization_id?: string | null
           owner_id?: string | null
           phone?: string | null
+          place_category?: string | null
           smart_address_id?: string | null
           updated_at?: string
           verification_level?: string
@@ -1084,6 +1087,7 @@ export type Database = {
           node_type: string
           parent_id: string | null
           parking_info: string | null
+          place_category: string | null
           private_notes: string | null
           public_notes: string | null
           street: string | null
@@ -1124,6 +1128,7 @@ export type Database = {
           node_type: string
           parent_id?: string | null
           parking_info?: string | null
+          place_category?: string | null
           private_notes?: string | null
           public_notes?: string | null
           street?: string | null
@@ -1164,6 +1169,7 @@ export type Database = {
           node_type?: string
           parent_id?: string | null
           parking_info?: string | null
+          place_category?: string | null
           private_notes?: string | null
           public_notes?: string | null
           street?: string | null

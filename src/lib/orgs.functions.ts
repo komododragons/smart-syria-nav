@@ -182,7 +182,7 @@ export const orgLocations = createServerFn({ method: "POST" })
     let query = context.supabase
       .from("businesses")
       .select(
-        "id, name_ar, name_en, branch_label, category, phone, website, opening_hours, logo_url, verification_level, is_published, is_archived, node_id, smart_address_id, visitor_access_point_id, created_at, smart_addresses(code), location_nodes(id, display_name, governorate, city, district, neighborhood, street, landmark, building_number, latitude, longitude, confidence_score, verification_level, last_verified_at)",
+        "id, name_ar, name_en, branch_label, category, place_category, phone, website, opening_hours, logo_url, verification_level, is_published, is_archived, node_id, smart_address_id, visitor_access_point_id, created_at, smart_addresses(code), location_nodes(id, display_name, governorate, city, district, neighborhood, street, landmark, building_number, latitude, longitude, confidence_score, verification_level, last_verified_at)",
       )
       .eq("organization_id", data.organization_id)
       .order("created_at", { ascending: false })
@@ -208,6 +208,7 @@ const locationSchema = z.object({
   name_en: z.string().max(160).nullable().optional(),
   branch_label: z.string().max(120).nullable().optional(),
   category: z.string().max(80).nullable().optional(),
+  place_category: z.string().max(40).nullable().optional(),
   phone: z.string().max(40).nullable().optional(),
   website: z.string().max(200).nullable().optional(),
   opening_hours: z.string().max(200).nullable().optional(),
@@ -311,6 +312,7 @@ export const createOrgLocation = createServerFn({ method: "POST" })
         name_en: data.name_en ?? null,
         branch_label: data.branch_label ?? null,
         category: data.category ?? null,
+        place_category: data.place_category ?? null,
         phone: data.phone ?? null,
         website: data.website ?? null,
         opening_hours: data.opening_hours ?? null,
@@ -356,6 +358,7 @@ export const updateOrgLocation = createServerFn({ method: "POST" })
         name_en: data.name_en ?? null,
         branch_label: data.branch_label ?? null,
         category: data.category ?? null,
+        place_category: data.place_category ?? null,
         phone: data.phone ?? null,
         website: data.website ?? null,
         opening_hours: data.opening_hours ?? null,
