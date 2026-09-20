@@ -44,11 +44,25 @@ export const logAddressEvent = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const code = data.code.toUpperCase();
     await supabaseAdmin.from("address_events").insert({
-      smart_code: data.code.toUpperCase(),
+      smart_code: code,
       event_type: data.event,
       source: data.source ?? null,
     });
+
+    // Fan the event out to developer webhook subscriptions (public data only).
+    const WEBHOOK_FOR = {
+      resolve: "address.resolved",
+      navigate_start: "address.navigation_started",
+      delivery_view: "address.delivery_viewed",
+      qr_scan: "address.qr_scanned",
+    } as const;
+    const webhookEvent = WEBHOOK_FOR[data.event as keyof typeof WEBHOOK_FOR];
+    if (webhookEvent) {
+      const { dispatchWebhooks } = await import("./api-v1.server");
+      await dispatchWebhooks(webhookEvent, { code, source: data.source ?? null });
+    }
     return { ok: true as const };
   });
 

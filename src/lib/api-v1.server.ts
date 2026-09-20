@@ -383,6 +383,13 @@ async function createAddress(body: unknown, admin: Admin, auth: AuthOk) {
   if (codeErr) return fail("create_failed", 500, codeErr.message);
 
   await audit(admin, auth, "address_created", "smart_address", node.id, { code });
+  await dispatchWebhooks("address.created", {
+    code,
+    governorate: d.governorate,
+    city: d.city ?? null,
+    latitude: d.latitude,
+    longitude: d.longitude,
+  });
 
   return json(
     {
