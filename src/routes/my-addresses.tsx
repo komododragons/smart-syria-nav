@@ -10,10 +10,35 @@ import { DirectionsButton } from "@/components/DirectionsButton";
 import { CadastralMap } from "@/components/CadastralMap";
 import { QrCard } from "@/components/QrCard";
 import { supabase } from "@/integrations/supabase/client";
-import { createTemporaryAddress, listMyAddresses, updateMyAddress } from "@/lib/addresses.functions";
+import {
+  createTemporaryAddress,
+  listMyAddresses,
+  listTemporaryLinks,
+  revokeTemporaryLink,
+  updateMyAddress,
+  type ShareField,
+} from "@/lib/addresses.functions";
 import { CLAIM_STATUS_LABELS, myClaims, withdrawClaim } from "@/lib/claims.functions";
 import { listFavorites, toggleFavorite } from "@/lib/network.functions";
 import { NODE_TYPE_LABELS, PURPOSE_LABELS, QUICK_PURPOSES, VERIFICATION_LEVELS } from "@/lib/smart-address";
+
+const SHARE_FIELD_LABELS: { value: ShareField; ar: string }[] = [
+  { value: "location", ar: "الموقع" },
+  { value: "building", ar: "المبنى" },
+  { value: "entrance", ar: "المدخل" },
+  { value: "floor", ar: "الطابق" },
+  { value: "unit", ar: "الشقة" },
+  { value: "instructions", ar: "تعليمات الوصول" },
+  { value: "parking", ar: "المواقف" },
+  { value: "phone", ar: "الهاتف" },
+  { value: "name", ar: "الاسم" },
+];
+
+const EXPIRY_PRESETS = [
+  { hours: 1, ar: "ساعة" },
+  { hours: 24, ar: "٢٤ ساعة" },
+  { hours: 168, ar: "٧ أيام" },
+];
 
 export const Route = createFileRoute("/my-addresses")({
   head: () => ({
