@@ -393,6 +393,13 @@ export const updateMyAddress = createServerFn({ method: "POST" })
         longitude: z.number().min(-180).max(180).nullable().optional(),
         entrance_name: z.string().max(160).nullable().optional(),
         entrance_instructions: z.string().max(500).nullable().optional(),
+        building_number: z.string().max(40).nullable().optional(),
+        parking_info: z.string().max(300).nullable().optional(),
+        loading_info: z.string().max(300).nullable().optional(),
+        wheelchair_accessible: z.boolean().nullable().optional(),
+        has_elevator: z.boolean().nullable().optional(),
+        entrance_parking_info: z.string().max(300).nullable().optional(),
+        entrance_loading_info: z.string().max(300).nullable().optional(),
       })
       .parse(input),
   )
