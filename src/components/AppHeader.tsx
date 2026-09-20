@@ -40,9 +40,9 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-surface/90 px-4 py-3 backdrop-blur-md">
-      <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
-        <Link to="/" className="flex items-center gap-2">
-          <span className="text-lg font-bold tracking-tight underline decoration-primary decoration-2 underline-offset-4">
+      <div className="mx-auto flex max-w-3xl min-w-0 items-center justify-between gap-3">
+        <Link to="/" className="flex min-w-0 items-center gap-2">
+          <span className="truncate text-base font-bold tracking-tight md:text-lg underline decoration-primary decoration-2 underline-offset-4">
             {t({ ar: "شبكة العنوان الذكي", en: "Smart Address Network" })}
           </span>
         </Link>
@@ -50,35 +50,35 @@ export function AppHeader() {
           <LanguageToggle />
           <Link
             to="/search"
-            className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
+            className="hidden md:grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
             aria-label={t({ ar: "البحث", en: "Search" })}
           >
             <Search className="size-4" />
           </Link>
           <Link
             to="/places"
-            className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
+            className="hidden md:grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
             aria-label={t({ ar: "دليل الأماكن العامة", en: "Public places directory" })}
           >
             <Landmark className="size-4" />
           </Link>
           <Link
             to="/offline"
-            className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
+            className="hidden md:grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
             aria-label={t({ ar: "العمل دون اتصال", en: "Offline mode" })}
           >
             <CloudDownload className="size-4" />
           </Link>
           <Link
             to="/plans"
-            className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
+            className="hidden md:grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
             aria-label={t({ ar: "الخطط", en: "Plans" })}
           >
             <Layers className="size-4" />
           </Link>
           <Link
             to="/create"
-            className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
+            className="hidden md:grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
             aria-label={t({ ar: "إنشاء عنوان ذكي", en: "Create a smart address" })}
           >
             <MapPinPlus className="size-4" />
@@ -87,47 +87,47 @@ export function AppHeader() {
             <>
               <Link
                 to="/privacy"
-                className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
+                className="hidden md:grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
                 aria-label={t({ ar: "مركز الخصوصية", en: "Privacy centre" })}
               >
                 <ShieldCheck className="size-4" />
               </Link>
               <Link
                 to="/verify"
-                className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
+                className="hidden md:grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
                 aria-label={t({ ar: "التوثيق الميداني", en: "Field verification" })}
               >
                 <BadgeCheck className="size-4" />
               </Link>
               <Link
                 to="/courier"
-                className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
+                className="hidden md:grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
                 aria-label={t({ ar: "مسارات التوصيل", en: "Delivery routes" })}
               >
                 <Truck className="size-4" />
               </Link>
               <Link
                 to="/developers"
-                className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
+                className="hidden md:grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
                 aria-label={t({ ar: "واجهة المطورين", en: "Developer tools" })}
               >
                 <Code2 className="size-4" />
               </Link>
               <Link
                 to="/dashboard"
-                className="rounded-lg border border-border px-3 py-2 text-xs font-bold text-foreground"
+                className="hidden md:block rounded-lg border border-border px-3 py-2 text-xs font-bold text-foreground"
               >
                 {t({ ar: "لوحة الأعمال", en: "Business dashboard" })}
               </Link>
               <Link
                 to="/vault"
-                className="rounded-lg border border-border px-3 py-2 text-xs font-bold text-foreground"
+                className="hidden md:block rounded-lg border border-border px-3 py-2 text-xs font-bold text-foreground"
               >
                 {t({ ar: "خزنة العناوين", en: "Address vault" })}
               </Link>
               <Link
                 to="/my-addresses"
-                className="rounded-lg border border-border px-3 py-2 text-xs font-bold text-foreground"
+                className="hidden md:block rounded-lg border border-border px-3 py-2 text-xs font-bold text-foreground"
               >
                 {t({ ar: "عناويني", en: "My addresses" })}
               </Link>

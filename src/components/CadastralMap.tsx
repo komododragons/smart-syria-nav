@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Crosshair, LocateFixed } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n";
+import { useLowData } from "@/lib/low-data";
 
 export type MapPin = {
   id: string;
@@ -98,6 +99,10 @@ export function CadastralMap({
   className,
 }: Props) {
   const { t } = useI18n();
+  const { lowData } = useLowData();
+  // Data-saver: hold back OSM imagery (the heaviest asset) until asked for.
+  const [showImagery, setShowImagery] = useState(false);
+  const imageryOn = !lowData || showImagery;
   const ref = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState<string | null>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -256,7 +261,7 @@ export function CadastralMap({
         className={plateClass}
       >
         <div className="pointer-events-none absolute inset-0 opacity-90">
-          {tiles.map((tile) => (
+          {(imageryOn ? tiles : []).map((tile) => (
             <img
               key={tile.key}
               src={tile.url}
@@ -269,6 +274,19 @@ export function CadastralMap({
           ))}
         </div>
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent" />
+
+        {!imageryOn ? (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowImagery(true);
+            }}
+            className="absolute inset-x-0 top-1/2 mx-auto w-fit -translate-y-1/2 rounded-xl border border-border bg-surface/95 px-4 py-3 text-xs font-bold shadow-plate"
+          >
+            {t({ ar: "وضع توفير البيانات · اعرض صور الخريطة", en: "Data saver on · load map imagery" })}
+          </button>
+        ) : null}
 
         {/* Civic coordinate HUD */}
         <div className="pointer-events-none absolute bottom-3 start-3 flex items-center gap-3 rounded-lg border border-border bg-foreground/85 px-3 py-1.5 font-mono text-[10px] tracking-wider text-background backdrop-blur-md">
