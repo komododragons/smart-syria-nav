@@ -105,6 +105,13 @@ function DeliveryPage() {
   const { code: rawCode } = Route.useParams();
   const ok = result.status === "ok" ? result : null;
 
+  useEffect(() => {
+    if (!ok) return;
+    void logAddressEvent({
+      data: { code: normalizeCode(rawCode), event: "delivery_view", source: "courier" },
+    }).catch(() => undefined);
+  }, [ok, rawCode]);
+
   if (!ok) {
     return (
       <Shell>
