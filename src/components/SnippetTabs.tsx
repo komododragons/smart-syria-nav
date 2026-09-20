@@ -39,7 +39,7 @@ export function SnippetTabs({ snippets }: { snippets: Snippet[] }) {
           className="flex shrink-0 items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-bold text-muted-foreground"
         >
           {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
-          {copied ? "تم النسخ" : "نسخ"}
+          {copied ? t({ ar: "تم النسخ", en: "Copied" }) : t({ ar: "نسخ", en: "Copy" })}
         </button>
       </div>
       <pre
