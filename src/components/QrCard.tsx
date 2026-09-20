@@ -2,15 +2,17 @@ import { Download, LayoutTemplate, Printer, QrCode, Share2, X } from "lucide-rea
 import { QRCodeSVG } from "qrcode.react";
 import { useId, useState } from "react";
 
+import { useI18n } from "@/lib/i18n";
+
 type PlateFormat = "a6" | "a5" | "a4" | "sticker" | "door" | "window";
 
-const PLATE_FORMATS: { value: PlateFormat; label: string; dimensions: string }[] = [
-  { value: "a6", label: "A6", dimensions: "105 × 148 mm" },
-  { value: "a5", label: "A5", dimensions: "148 × 210 mm" },
-  { value: "a4", label: "A4", dimensions: "210 × 297 mm" },
-  { value: "sticker", label: "ملصق", dimensions: "90 × 90 mm" },
-  { value: "door", label: "لوحة باب", dimensions: "200 × 100 mm" },
-  { value: "window", label: "واجهة محل", dimensions: "300 × 200 mm" },
+const PLATE_FORMATS: { value: PlateFormat; label: string; labelEn: string; dimensions: string }[] = [
+  { value: "a6", label: "A6", labelEn: "A6", dimensions: "105 × 148 mm" },
+  { value: "a5", label: "A5", labelEn: "A5", dimensions: "148 × 210 mm" },
+  { value: "a4", label: "A4", labelEn: "A4", dimensions: "210 × 297 mm" },
+  { value: "sticker", label: "ملصق", labelEn: "Sticker", dimensions: "90 × 90 mm" },
+  { value: "door", label: "لوحة باب", labelEn: "Door plate", dimensions: "200 × 100 mm" },
+  { value: "window", label: "واجهة محل", labelEn: "Shop window", dimensions: "300 × 200 mm" },
 ];
 
 /**
@@ -88,9 +90,9 @@ export function QrCard({
     if (navigator.share) {
       try {
         if (file && navigator.canShare?.({ files: [file] })) {
-          await navigator.share({ title: `${code} — ${title}`, text: "امسح للوصول إلى العنوان", url, files: [file] });
+          await navigator.share({ title: `${code} — ${title}`, text: t({ ar: "امسح للوصول إلى العنوان", en: "Scan to reach this address" }), url, files: [file] });
         } else {
-          await navigator.share({ title: `${code} — ${title}`, text: "امسح للوصول إلى العنوان", url });
+          await navigator.share({ title: `${code} — ${title}`, text: t({ ar: "امسح للوصول إلى العنوان", en: "Scan to reach this address" }), url });
         }
         return;
       } catch {
@@ -123,7 +125,7 @@ export function QrCard({
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label={`رمز QR للعنوان ${code}`}
+      aria-label={t({ ar: `رمز QR للعنوان ${code}`, en: `QR code for address ${code}` })}
     >
       <div
         className="flex max-h-[94vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-plate"
@@ -132,9 +134,9 @@ export function QrCard({
         <header className="no-print flex items-center justify-between border-b border-border px-4 py-3">
           <div className="flex items-center gap-2">
             <QrCode className="size-4 text-primary" />
-            <h2 className="text-sm font-bold">نظام QR ولوحة العنوان</h2>
+            <h2 className="text-sm font-bold">{t({ ar: "نظام QR ولوحة العنوان", en: "QR code and address plate" })}</h2>
           </div>
-          <button type="button" onClick={onClose} aria-label="إغلاق" className="grid size-9 place-items-center rounded-lg border border-border">
+          <button type="button" onClick={onClose} aria-label={t({ ar: "إغلاق", en: "Close" })} className="grid size-9 place-items-center rounded-lg border border-border">
             <X className="size-4" />
           </button>
         </header>
@@ -145,14 +147,14 @@ export function QrCard({
             onClick={() => setPlateMode(false)}
             className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold ${!plateMode ? "bg-primary text-primary-foreground" : "border border-border"}`}
           >
-            <QrCode className="size-3.5" /> رمز QR
+            <QrCode className="size-3.5" /> {t({ ar: "رمز QR", en: "QR code" })}
           </button>
           <button
             type="button"
             onClick={() => setPlateMode(true)}
             className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold ${plateMode ? "bg-primary text-primary-foreground" : "border border-border"}`}
           >
-            <LayoutTemplate className="size-3.5" /> إنشاء لوحة عنوان
+            <LayoutTemplate className="size-3.5" /> {t({ ar: "إنشاء لوحة عنوان", en: "Create address plate" })}
           </button>
         </div>
 
@@ -175,7 +177,7 @@ export function QrCard({
         <div className="overflow-auto bg-secondary p-4 sm:p-6">
           <div className={`qr-address-plate mx-auto bg-surface text-center text-foreground ${plateMode ? "is-plate" : "is-qr"}`} data-format={format}>
             <div className="plate-brand-row">
-              {plateMode && logoUrl ? <img src={logoUrl} alt={`شعار ${title}`} className="plate-logo" /> : null}
+              {plateMode && logoUrl ? <img src={logoUrl} alt={t({ ar: `شعار ${title}`, en: `${title} logo` })} className="plate-logo" /> : null}
               <div>
                 <p className="plate-brand">SYRIASAN</p>
                 <p className="plate-brand-ar">شبكة العنوان الذكي السورية</p>
@@ -189,13 +191,13 @@ export function QrCard({
             <p className="plate-code" dir="ltr">{code}</p>
             <p className="plate-scan-ar">امسح للوصول إلى العنوان</p>
             <p className="plate-scan-en" dir="ltr">Scan to Navigate</p>
-            {!plateMode ? <p className="plate-privacy">يفتح صفحة العنوان المصرّح بها دون إضافة بيانات إلى رمز QR نفسه.</p> : null}
+            {!plateMode ? <p className="plate-privacy">{t({ ar: "يفتح صفحة العنوان المصرّح بها دون إضافة بيانات إلى رمز QR نفسه.", en: "Opens the authorised address page; no personal data is stored inside the QR code itself." })}</p> : null}
           </div>
         </div>
 
         <div className="no-print grid grid-cols-2 gap-2 border-t border-border p-3 sm:grid-cols-3">
           <button type="button" onClick={() => void downloadQr()} className="flex items-center justify-center gap-1.5 rounded-lg border border-border px-3 py-2.5 text-xs font-bold">
-            <Download className="size-4" /> تنزيل QR
+            <Download className="size-4" /> {t({ ar: "تنزيل QR", en: "Download QR" })}
           </button>
           <button
             type="button"
@@ -203,10 +205,10 @@ export function QrCard({
             className="flex items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2.5 text-xs font-bold text-primary-foreground"
           >
             <Printer className="size-4" />
-            {plateMode ? "طباعة اللوحة" : "طباعة QR"}
+            {plateMode ? t({ ar: "طباعة اللوحة", en: "Print plate" }) : t({ ar: "طباعة QR", en: "Print QR" })}
           </button>
           <button type="button" onClick={() => void shareQr()} className="col-span-2 flex items-center justify-center gap-1.5 rounded-lg border border-border px-3 py-2.5 text-xs font-bold sm:col-span-1">
-            <Share2 className="size-4" /> مشاركة QR
+            <Share2 className="size-4" /> {t({ ar: "مشاركة QR", en: "Share QR" })}
           </button>
         </div>
       </div>
