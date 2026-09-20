@@ -509,6 +509,13 @@ function ResolverPage() {
                     ) : null}
 
                     <div className="mt-4 flex flex-wrap gap-2">
+                      <Link
+                        to="/a/$code"
+                        params={{ code: ok.code }}
+                        className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 px-3 py-2.5 text-sm font-bold text-primary"
+                      >
+                        بطاقة العنوان الكاملة
+                      </Link>
                       <DirectionsButton
                         code={ok.code}
                         variant="solid"

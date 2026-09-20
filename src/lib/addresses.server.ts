@@ -49,6 +49,12 @@ export type ResolvedAccessPoint = {
   restrictions: { restriction: string; note_ar: string | null }[];
   purpose_allowed: boolean | null;
   score: number;
+  parking_info: string | null;
+  loading_info: string | null;
+  last_verified_at: string | null;
+  wheelchair_accessible: boolean;
+  vehicle_access: boolean;
+  photo_url: string | null;
 };
 
 export type ResolveResult =
@@ -61,7 +67,7 @@ export type ResolveResult =
       redirected_from?: string | undefined;
       purpose: Purpose;
       label: string | null;
-      site: { id: string; display_name: string; node_type: string; latitude: number | null; longitude: number | null; governorate: string | null; city: string | null; district: string | null; neighborhood: string | null; street: string | null; landmark: string | null; public_notes: string | null };
+      site: { id: string; display_name: string; node_type: string; latitude: number | null; longitude: number | null; governorate: string | null; city: string | null; district: string | null; neighborhood: string | null; street: string | null; landmark: string | null; public_notes: string | null; building_number: string | null; parking_info: string | null; loading_info: string | null; wheelchair_accessible: boolean | null; has_elevator: boolean | null; verification_method: string | null; last_verified_at: string | null };
       chain: { id: string; node_type: string; display_name: string; name_en: string | null; unit_label: string | null; floor_label: string | null; description: string | null }[];
       recommended: ResolvedAccessPoint | null;
       alternatives: ResolvedAccessPoint[];
@@ -174,6 +180,12 @@ function shapeAccessPoint(ap: AccessPointRow, score: number, allowed: boolean | 
     restrictions: ap.access_restrictions,
     purpose_allowed: allowed,
     score,
+    parking_info: ap.parking_info,
+    loading_info: ap.loading_info,
+    last_verified_at: ap.last_verified_at,
+    wheelchair_accessible: ap.wheelchair_accessible,
+    vehicle_access: ap.vehicle_access,
+    photo_url: ap.photo_url,
   };
 }
 
@@ -275,6 +287,13 @@ export async function resolvePublicCode(
       street: site.street,
       landmark: site.landmark,
       public_notes: site.public_notes,
+      building_number: site.building_number,
+      parking_info: site.parking_info,
+      loading_info: site.loading_info,
+      wheelchair_accessible: site.wheelchair_accessible,
+      has_elevator: site.has_elevator,
+      verification_method: site.verification_method,
+      last_verified_at: site.last_verified_at,
     },
     chain: chain.map((n) => ({
       id: n.id,
