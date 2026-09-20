@@ -31,6 +31,7 @@ import { QrCard } from "@/components/QrCard";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveAddress } from "@/lib/addresses.functions";
 import { listFavorites, toggleFavorite } from "@/lib/network.functions";
+import { logAddressEvent } from "@/lib/orgs.functions";
 import {
   ACCESSIBILITY_LABELS,
   NODE_TYPE_LABELS,
@@ -132,6 +133,13 @@ function AddressCardPage() {
   const listFavs = useServerFn(listFavorites);
 
   const ok = result.status === "ok" ? result : null;
+
+  useEffect(() => {
+    if (!ok) return;
+    void logAddressEvent({ data: { code: normalizeCode(rawCode), event: "resolve", source: "card" } }).catch(
+      () => undefined,
+    );
+  }, [ok, rawCode]);
 
   useEffect(() => {
     let active = true;

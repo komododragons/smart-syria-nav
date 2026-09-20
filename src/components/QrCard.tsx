@@ -23,6 +23,7 @@ export function QrCard({
   title,
   subtitle,
   logoUrl,
+  initialPlate,
   onClose,
 }: {
   url: string;
@@ -30,10 +31,11 @@ export function QrCard({
   title: string;
   subtitle?: string | undefined;
   logoUrl?: string | null | undefined;
+  initialPlate?: boolean | undefined;
   onClose: () => void;
 }) {
   const qrId = useId().replace(/:/g, "");
-  const [plateMode, setPlateMode] = useState(false);
+  const [plateMode, setPlateMode] = useState(Boolean(initialPlate));
   const [format, setFormat] = useState<PlateFormat>("a6");
 
   const qrSvg = () => document.getElementById(qrId)?.querySelector("svg");

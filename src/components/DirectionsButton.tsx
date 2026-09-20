@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Navigation2 } from "lucide-react";
 
+import { logAddressEvent } from "@/lib/orgs.functions";
 import type { TravelMode } from "@/lib/navigation/types";
 
 type Props = {
@@ -34,7 +35,12 @@ export function DirectionsButton({
       to="/navigation/$code"
       params={{ code }}
       search={{ mode: mode ?? undefined, token: token ?? undefined }}
-      onClick={(event) => event.stopPropagation()}
+      onClick={(event) => {
+        event.stopPropagation();
+        void logAddressEvent({
+          data: { code, event: "navigate_start", source: mode ?? "default" },
+        }).catch(() => undefined);
+      }}
       className={className ?? VARIANTS[variant]}
     >
       <Navigation2 className="size-3.5" />

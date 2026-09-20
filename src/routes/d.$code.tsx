@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 import {
   Accessibility,
   ArrowUpFromLine,
@@ -17,6 +18,7 @@ import {
 import { CadastralMap, type MapPin as Pin } from "@/components/CadastralMap";
 import { DirectionsButton } from "@/components/DirectionsButton";
 import { resolveAddress } from "@/lib/addresses.functions";
+import { logAddressEvent } from "@/lib/orgs.functions";
 import { normalizeCode, VERIFICATION_LEVELS } from "@/lib/smart-address";
 
 export const Route = createFileRoute("/d/$code")({
@@ -102,6 +104,13 @@ function DeliveryPage() {
   const result = Route.useLoaderData();
   const { code: rawCode } = Route.useParams();
   const ok = result.status === "ok" ? result : null;
+
+  useEffect(() => {
+    if (!ok) return;
+    void logAddressEvent({
+      data: { code: normalizeCode(rawCode), event: "delivery_view", source: "courier" },
+    }).catch(() => undefined);
+  }, [ok, rawCode]);
 
   if (!ok) {
     return (
