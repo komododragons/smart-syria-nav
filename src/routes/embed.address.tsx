@@ -81,11 +81,12 @@ function EmbedAddressPage() {
   return (
     <div ref={boxRef} className="bg-transparent p-2">
       <SyriasanAddressField
+        key={injected?.nonce ?? 0}
         compact={search.compact !== "0"}
         lang={search.lang ?? "ar"}
         title={search.title}
-        initialCode={search.code ?? ""}
-        autoResolve={search.auto === "1"}
+        initialCode={injected?.code ?? search.code ?? ""}
+        autoResolve={injected ? injected.resolve : search.auto === "1"}
         onResolve={(address: CheckoutAddressPayload) => post("syriasan:resolved", address)}
         onConfirm={(address: CheckoutAddressPayload) => post("syriasan:address", address)}
         onClear={() => post("syriasan:address-cleared", null)}
