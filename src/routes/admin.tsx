@@ -251,9 +251,14 @@ function AdminPage() {
             </section>
 
             <section className="rounded-2xl border border-border bg-surface p-4">
-              <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                تقارير تصحيح معلّقة
-              </h2>
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                  تقارير تصحيح معلّقة
+                </h2>
+                <Link to="/admin/corrections" className="text-xs font-bold text-primary underline">
+                  لوحة مراجعة التصحيحات
+                </Link>
+              </div>
               {query.data.pending.length === 0 ? (
                 <p className="mt-3 text-sm text-muted-foreground">لا تقارير معلّقة.</p>
               ) : (
