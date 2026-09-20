@@ -5,12 +5,12 @@ import { z } from "zod";
 import { SyriasanAddressField, type CheckoutAddressPayload } from "@/components/SyriasanAddressField";
 
 const searchSchema = z.object({
-  lang: z.enum(["ar", "en"]).optional(),
-  compact: z.union([z.literal("1"), z.literal("0")]).optional(),
-  code: z.string().max(40).optional(),
-  auto: z.union([z.literal("1"), z.literal("0")]).optional(),
-  title: z.string().max(80).optional(),
-  origin: z.string().max(200).optional(),
+  lang: z.enum(["ar", "en"]).catch("ar").optional(),
+  compact: z.coerce.string().catch("1").optional(),
+  code: z.coerce.string().max(40).catch("").optional(),
+  auto: z.coerce.string().catch("0").optional(),
+  title: z.coerce.string().max(80).catch("").optional(),
+  origin: z.coerce.string().max(200).catch("").optional(),
 });
 
 /**
