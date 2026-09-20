@@ -74,11 +74,11 @@ export const searchNetwork = createServerFn({ method: "POST" })
 
     const aliasNodeIds = (aliasRes.data ?? []).map((a) => a.node_id);
     let aliasPlaces: NonNullable<typeof placeRes.data> = [];
-    if (aliasNodeIds.length) {
+    if (aliasNodeIds.length && !data.category) {
       const { data: extra } = await supa
         .from("location_nodes")
         .select(
-          "id, display_name, name_en, node_type, governorate, city, district, neighborhood, street, landmark, verification_level, confidence_score, latitude, longitude",
+          "id, display_name, name_en, node_type, place_category, governorate, city, district, neighborhood, street, landmark, verification_level, confidence_score, latitude, longitude",
         )
         .in("id", aliasNodeIds)
         .eq("visibility", "public")
@@ -87,7 +87,11 @@ export const searchNetwork = createServerFn({ method: "POST" })
     }
 
     const placeMap = new Map<string, (typeof aliasPlaces)[number]>();
-    for (const p of [...(placeRes.data ?? []), ...aliasPlaces]) placeMap.set(p.id, p);
+    for (const p of [...(placeRes.data ?? []), ...aliasPlaces]) {
+      // Second privacy layer: a home never appears in public search, whatever its flags say.
+      if (RESIDENTIAL_NODE_TYPES.includes(p.node_type)) continue;
+      placeMap.set(p.id, p);
+    }
 
     const businesses = (businessRes.data ?? []).sort((a, b) => {
       const exact = (x: typeof a) =>
