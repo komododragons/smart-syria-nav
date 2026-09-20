@@ -20,6 +20,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DevelopersRouteImport } from './routes/developers'
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as MyAddressesRouteImport } from './routes/my-addresses'
+import { Route as MyCorrectionsRouteImport } from './routes/my-corrections'
 import { Route as OfflineRouteImport } from './routes/offline'
 import { Route as PlacesRouteImport } from './routes/places'
 import { Route as SearchRouteImport } from './routes/search'
@@ -97,6 +98,11 @@ const DocsRoute = DocsRouteImport.update({
 const MyAddressesRoute = MyAddressesRouteImport.update({
   id: '/my-addresses',
   path: '/my-addresses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MyCorrectionsRoute = MyCorrectionsRouteImport.update({
+  id: '/my-corrections',
+  path: '/my-corrections',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OfflineRoute = OfflineRouteImport.update({
@@ -227,6 +233,7 @@ export interface FileRoutesByFullPath {
   '/developers': typeof DevelopersRoute
   '/docs': typeof DocsRoute
   '/my-addresses': typeof MyAddressesRoute
+  '/my-corrections': typeof MyCorrectionsRoute
   '/offline': typeof OfflineRoute
   '/places': typeof PlacesRoute
   '/search': typeof SearchRoute
@@ -263,6 +270,7 @@ export interface FileRoutesByTo {
   '/developers': typeof DevelopersRoute
   '/docs': typeof DocsRoute
   '/my-addresses': typeof MyAddressesRoute
+  '/my-corrections': typeof MyCorrectionsRoute
   '/offline': typeof OfflineRoute
   '/places': typeof PlacesRoute
   '/search': typeof SearchRoute
@@ -300,6 +308,7 @@ export interface FileRoutesById {
   '/developers': typeof DevelopersRoute
   '/docs': typeof DocsRoute
   '/my-addresses': typeof MyAddressesRoute
+  '/my-corrections': typeof MyCorrectionsRoute
   '/offline': typeof OfflineRoute
   '/places': typeof PlacesRoute
   '/search': typeof SearchRoute
@@ -338,6 +347,7 @@ export interface FileRouteTypes {
     | '/developers'
     | '/docs'
     | '/my-addresses'
+    | '/my-corrections'
     | '/offline'
     | '/places'
     | '/search'
@@ -374,6 +384,7 @@ export interface FileRouteTypes {
     | '/developers'
     | '/docs'
     | '/my-addresses'
+    | '/my-corrections'
     | '/offline'
     | '/places'
     | '/search'
@@ -410,6 +421,7 @@ export interface FileRouteTypes {
     | '/developers'
     | '/docs'
     | '/my-addresses'
+    | '/my-corrections'
     | '/offline'
     | '/places'
     | '/search'
@@ -447,6 +459,7 @@ export interface RootRouteChildren {
   DevelopersRoute: typeof DevelopersRoute
   DocsRoute: typeof DocsRoute
   MyAddressesRoute: typeof MyAddressesRoute
+  MyCorrectionsRoute: typeof MyCorrectionsRoute
   OfflineRoute: typeof OfflineRoute
   PlacesRoute: typeof PlacesRoute
   SearchRoute: typeof SearchRoute
@@ -544,6 +557,13 @@ declare module '@tanstack/react-router' {
       path: '/my-addresses'
       fullPath: '/my-addresses'
       preLoaderRoute: typeof MyAddressesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/my-corrections': {
+      id: '/my-corrections'
+      path: '/my-corrections'
+      fullPath: '/my-corrections'
+      preLoaderRoute: typeof MyCorrectionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/offline': {
@@ -740,6 +760,7 @@ const rootRouteChildren: RootRouteChildren = {
   DevelopersRoute: DevelopersRoute,
   DocsRoute: DocsRoute,
   MyAddressesRoute: MyAddressesRoute,
+  MyCorrectionsRoute: MyCorrectionsRoute,
   OfflineRoute: OfflineRoute,
   PlacesRoute: PlacesRoute,
   SearchRoute: SearchRoute,
