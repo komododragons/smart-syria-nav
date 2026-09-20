@@ -182,7 +182,7 @@ export const orgLocations = createServerFn({ method: "POST" })
     let query = context.supabase
       .from("businesses")
       .select(
-        "id, name_ar, name_en, branch_label, category, phone, website, opening_hours, logo_url, verification_level, is_published, is_archived, node_id, smart_address_id, visitor_access_point_id, created_at, smart_addresses(code), location_nodes(id, display_name, governorate, city, district, neighborhood, street, landmark, building_number, latitude, longitude, confidence_score, verification_level, last_verified_at)",
+        "id, name_ar, name_en, branch_label, category, place_category, phone, website, opening_hours, logo_url, verification_level, is_published, is_archived, node_id, smart_address_id, visitor_access_point_id, created_at, smart_addresses(code), location_nodes(id, display_name, governorate, city, district, neighborhood, street, landmark, building_number, latitude, longitude, confidence_score, verification_level, last_verified_at)",
       )
       .eq("organization_id", data.organization_id)
       .order("created_at", { ascending: false })
