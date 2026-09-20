@@ -249,6 +249,55 @@ function AddressCardPage() {
           </div>
 
           <div className="space-y-3 p-4">
+            {ok.business ? (
+              <div className="rounded-lg border border-border bg-surface p-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold">{ok.business.name_ar}</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {[ok.business.category, ok.business.name_en].filter(Boolean).join(" · ")}
+                    </p>
+                  </div>
+                  <span className="shrink-0 rounded-md bg-background px-2 py-1 text-[10px] font-bold">
+                    {VERIFICATION_LEVELS[ok.business.verification_level]?.ar ?? "غير موثق"}
+                  </span>
+                </div>
+                {ok.business.opening_hours ? (
+                  <p className="mt-2 flex items-center gap-1.5 text-[12px]">
+                    <Clock className="size-3.5 text-muted-foreground" /> {ok.business.opening_hours}
+                  </p>
+                ) : null}
+                <div className="mt-2 flex flex-wrap gap-2 text-[11px] font-bold">
+                  {ok.business.phone ? (
+                    <a
+                      href={`tel:${ok.business.phone}`}
+                      dir="ltr"
+                      className="rounded-lg border border-border px-3 py-1.5"
+                    >
+                      {ok.business.phone}
+                    </a>
+                  ) : null}
+                  {ok.business.website ? (
+                    <a
+                      href={ok.business.website}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-lg border border-border px-3 py-1.5"
+                    >
+                      الموقع الإلكتروني
+                    </a>
+                  ) : null}
+                  <Link
+                    to="/business/$id"
+                    params={{ id: ok.business.id }}
+                    className="rounded-lg border border-border px-3 py-1.5"
+                  >
+                    صفحة النشاط
+                  </Link>
+                </div>
+              </div>
+            ) : null}
+
             <div className="grid gap-2 sm:grid-cols-2">
               <Row icon={MapPin} label="الإحداثيات" value={formatCoords(lat, lng)} mono />
               <Row
