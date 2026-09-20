@@ -37,3 +37,11 @@
 - [x] Create / edit / archive-restore branches, attach existing owned businesses
 - [x] QR download + address plate print per branch
 - [x] address_events logging (resolve, navigate_start, delivery_view) feeding analytics
+
+## Phase 8 — Bulk address import [DONE]
+- [x] CSV / XLSX upload (Arabic + English headers), ready-made template
+- [x] Validation (required fields, governorate, Syria coordinate bounds, phone format)
+- [x] Duplicate detection: same name+branch, within 40 m of an existing branch, and inside the same file
+- [x] Preview table with per-row status + downloadable error report
+- [x] Confirmation step creates nodes, entrances and Syriasan codes in batches of 100
+- [x] Export of codes, QR URLs, delivery URLs and full address info as CSV
