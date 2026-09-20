@@ -81,3 +81,9 @@
 - [x] Add by smart code with nickname + private note; edit category, copy code, remove
 - [x] Secure sharing from the vault: field-level toggles, purpose, 1h/24h/7d/custom expiry, one-time use, active links with revoke
 - [x] Owner-only sharing check; vault is noindex and readable only by its owner (RLS)
+
+## Phase 14 — Emergency mode [DONE]
+- [x] /e/CODE emergency view: code, coordinates (tap to copy), building, entrances, floor, best vehicle access, emergency entrance, elevator, wheelchair access, access notes
+- [x] Copy Emergency Address (dispatch-friendly plain text), Share Emergency Location, Navigate
+- [x] Linked from the destination card; noindex; no private residential data
+- [x] Explicit notice: no official ambulance / civil-defense integration exists yet
