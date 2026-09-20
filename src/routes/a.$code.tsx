@@ -30,6 +30,7 @@ import { DirectionsButton } from "@/components/DirectionsButton";
 import { QrCard } from "@/components/QrCard";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveAddress } from "@/lib/addresses.functions";
+import { ROUTING_CONTEXTS, type RoutingContext } from "@/lib/routing-contexts";
 import { listFavorites, toggleFavorite } from "@/lib/network.functions";
 import { logAddressEvent } from "@/lib/orgs.functions";
 import { rememberAddress } from "@/lib/offline/store";
@@ -44,7 +45,8 @@ import {
 import type { TravelMode } from "@/lib/navigation/types";
 
 export const Route = createFileRoute("/a/$code")({
-  loader: ({ params }) => resolveAddress({ data: { code: params.code, purpose: "visitor" } }),
+  loader: ({ params }) =>
+    resolveAddress({ data: { code: params.code, purpose: "visitor", context: "standard" } }),
   head: ({ params }) => ({
     meta: [
       { title: `${normalizeCode(params.code)} — بطاقة العنوان الذكي | سيرياسان` },
@@ -124,14 +126,51 @@ function Row({
   );
 }
 
+const CONTEXT_KEY = "ssan.routing.context";
+
 function AddressCardPage() {
-  const result = Route.useLoaderData();
+  const loaded = Route.useLoaderData();
   const { code: rawCode } = Route.useParams();
   const [showQr, setShowQr] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const [saved, setSaved] = useState(false);
   const toggleFav = useServerFn(toggleFavorite);
   const listFavs = useServerFn(listFavorites);
+  const resolveFn = useServerFn(resolveAddress);
+
+  // Phase 18 — the same address answers differently per routing context.
+  const [context, setContext] = useState<RoutingContext>("standard");
+  const [result, setResult] = useState(loaded);
+  const [switching, setSwitching] = useState(false);
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem(CONTEXT_KEY);
+    if (stored && ROUTING_CONTEXTS.some((c) => c.value === stored)) {
+      setContext(stored as RoutingContext);
+    }
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    if (context === "standard") {
+      setResult(loaded);
+      return () => {
+        active = false;
+      };
+    }
+    setSwitching(true);
+    void resolveFn({ data: { code: rawCode, context } })
+      .then((next) => {
+        if (active) setResult(next);
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (active) setSwitching(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [context, loaded, rawCode, resolveFn]);
 
   const ok = result.status === "ok" ? result : null;
 
@@ -370,6 +409,54 @@ function AddressCardPage() {
                 }
               />
             </div>
+
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                سياق الوصول
+              </span>
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {ROUTING_CONTEXTS.map((c) => (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => {
+                      setContext(c.value);
+                      window.localStorage.setItem(CONTEXT_KEY, c.value);
+                    }}
+                    className={`rounded-full border px-3 py-1.5 text-[11px] font-bold transition ${
+                      context === c.value
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border bg-surface hover:border-primary/50"
+                    }`}
+                  >
+                    {c.ar}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-1.5 text-[11px] text-muted-foreground">
+                {switching
+                  ? "جارٍ تحديث المدخل الموصى به…"
+                  : (ROUTING_CONTEXTS.find((c) => c.value === context)?.hintAr ?? "")}
+              </p>
+            </div>
+
+            {ap?.context_approach ? (
+              <div className="rounded-lg border border-primary/40 bg-primary/10 p-3">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-primary">
+                  تعليمات {ROUTING_CONTEXTS.find((c) => c.value === context)?.ar}
+                </span>
+                <p className="mt-1 text-sm font-bold">{ap.context_approach}</p>
+                {ap.context_preferred_road ? (
+                  <p className="mt-1 text-[12px]">الطريق المفضل: {ap.context_preferred_road}</p>
+                ) : null}
+                {ap.context_vehicle_note ? (
+                  <p className="mt-0.5 text-[12px]">المركبة: {ap.context_vehicle_note}</p>
+                ) : null}
+                {ap.context_note ? (
+                  <p className="mt-0.5 text-[12px] text-muted-foreground">{ap.context_note}</p>
+                ) : null}
+              </div>
+            ) : null}
 
             {ap?.instructions ? (
               <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
