@@ -37,7 +37,14 @@ export const logAddressEvent = createServerFn({ method: "POST" })
     z
       .object({
         code: z.string().min(4).max(32),
-        event: z.enum(["resolve", "navigate_start", "delivery_view", "qr_scan", "plate_print"]),
+        event: z.enum([
+          "resolve",
+          "navigate_start",
+          "delivery_view",
+          "qr_scan",
+          "plate_print",
+          "search_appearance",
+        ]),
         source: z.string().max(40).optional(),
       })
       .parse(input),
