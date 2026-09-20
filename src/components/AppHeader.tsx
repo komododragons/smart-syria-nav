@@ -71,6 +71,12 @@ export function AppHeader() {
                 <Code2 className="size-4" />
               </Link>
               <Link
+                to="/dashboard"
+                className="rounded-lg border border-border px-3 py-2 text-xs font-bold text-foreground"
+              >
+                لوحة الأعمال
+              </Link>
+              <Link
                 to="/my-addresses"
                 className="rounded-lg border border-border px-3 py-2 text-xs font-bold text-foreground"
               >
