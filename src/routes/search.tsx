@@ -122,6 +122,45 @@ function SearchPage() {
               </button>
             ))}
           </div>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            <button
+              type="button"
+              onClick={useMyLocation}
+              className={`flex items-center gap-1 rounded-full border px-3 py-1.5 text-[11px] font-bold ${
+                origin
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border bg-background text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Navigation className="size-3" />
+              {geoBusy ? "جارٍ تحديد موقعك…" : origin ? "الأقرب إليّ (مفعّل)" : "الأقرب إليّ"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setGovernorate(undefined)}
+              className={`rounded-full border px-3 py-1.5 text-[11px] font-bold ${
+                governorate
+                  ? "border-border bg-background text-muted-foreground"
+                  : "border-primary/50 bg-primary/10 text-primary"
+              }`}
+            >
+              كل المحافظات
+            </button>
+            {GOVERNORATES.map((g) => (
+              <button
+                key={g.code}
+                type="button"
+                onClick={() => setGovernorate(governorate === g.ar ? undefined : g.ar)}
+                className={`rounded-full border px-3 py-1.5 text-[11px] font-bold ${
+                  governorate === g.ar
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-background text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {g.ar}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
