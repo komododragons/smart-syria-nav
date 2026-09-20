@@ -123,6 +123,7 @@ function NavigationWorkspace() {
   const { code } = Route.useParams();
   const navigate = useNavigate();
   const search = Route.useSearch();
+  const { t, lang } = useI18n();
 
   const [signedIn, setSignedIn] = useState(false);
   useEffect(() => {
@@ -158,10 +159,10 @@ function NavigationWorkspace() {
   const myAddressesFn = useServerFn(listMyAddresses);
 
   const targetQuery = useQuery({
-    queryKey: ["nav-target", code, mode, entranceId, wheelchair, context, signedIn, search.token ?? null],
+    queryKey: ["nav-target", code, mode, entranceId, wheelchair, context, signedIn, search.token ?? null, lang],
     queryFn: async () =>
       signedIn
-        ? await authedTarget({ data: { code, mode, entranceId, wheelchair, context, lang: "ar" } })
+        ? await authedTarget({ data: { code, mode, entranceId, wheelchair, context, lang } })
         : await publicTarget({
             data: {
               code,
@@ -169,7 +170,7 @@ function NavigationWorkspace() {
               entranceId,
               wheelchair,
               context,
-              lang: "ar",
+              lang,
               shareToken: search.token ?? null,
             },
           }),
@@ -226,7 +227,7 @@ function NavigationWorkspace() {
 
   const useCurrentLocation = useCallback(() => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
-      toast.error("المتصفح لا يدعم تحديد الموقع");
+      t ? toast.error(t({ ar: "المتصفح لا يدعم تحديد الموقع", en: "This browser does not support location detection." })) : null;
       return;
     }
     navigator.geolocation.getCurrentPosition(

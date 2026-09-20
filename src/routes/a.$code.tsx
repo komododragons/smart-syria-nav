@@ -142,6 +142,7 @@ function Row({
 const CONTEXT_KEY = "ssan.routing.context";
 
 function AddressCardPage() {
+  const { t, lang } = useI18n();
   const loaded = Route.useLoaderData();
   const { code: rawCode } = Route.useParams();
   const [showQr, setShowQr] = useState(false);
@@ -241,19 +242,22 @@ function AddressCardPage() {
       <Shell>
         <p className="text-center font-bold">
           {result.status === "not_found"
-            ? "لا يوجد عنوان ذكي عام بهذا الرمز"
+            ? t({ ar: "لا يوجد عنوان ذكي عام بهذا الرمز", en: "No public smart address exists with this code" })
             : result.status === "retired"
-              ? "هذا الرمز مُتقاعد"
-              : "هذا العنوان خاص ولا يمكن عرضه علناً"}
+              ? t({ ar: "هذا الرمز مُتقاعد", en: "This code has been retired" })
+              : t({ ar: "هذا العنوان خاص ولا يمكن عرضه علناً", en: "This address is private and can't be shown publicly" })}
         </p>
         <p className="mt-2 text-center text-sm text-muted-foreground">
-          العناوين السكنية خاصة افتراضياً — يحتاج المُرسل رابطاً مؤقتاً من صاحب العنوان.
+          {t({
+            ar: "العناوين السكنية خاصة افتراضياً — يحتاج المُرسل رابطاً مؤقتاً من صاحب العنوان.",
+            en: "Residential addresses are private by default — senders need a temporary link from the address owner.",
+          })}
         </p>
         <p className="mt-4 text-center font-mono text-xs text-muted-foreground" dir="ltr">
           {normalizeCode(rawCode)}
         </p>
         <Link to="/" className="mt-5 block text-center text-sm font-bold text-primary">
-          العودة إلى البحث
+          {t({ ar: "العودة إلى البحث", en: "Back to search" })}
         </Link>
       </Shell>
     );
