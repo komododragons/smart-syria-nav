@@ -271,6 +271,62 @@ export type Database = {
           },
         ]
       }
+      account_plans: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          notes: string | null
+          organization_id: string | null
+          plan: string
+          source: string
+          started_at: string
+          status: string
+          subject_type: string
+          updated_at: string
+          updated_by: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string | null
+          plan?: string
+          source?: string
+          started_at?: string
+          status?: string
+          subject_type: string
+          updated_at?: string
+          updated_by?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string | null
+          plan?: string
+          source?: string
+          started_at?: string
+          status?: string
+          subject_type?: string
+          updated_at?: string
+          updated_by?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_plans_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       address_events: {
         Row: {
           created_at: string
@@ -1432,6 +1488,27 @@ export type Database = {
           owner_id?: string
           updated_at?: string
           website?: string | null
+        }
+        Relationships: []
+      }
+      platform_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
         }
         Relationships: []
       }
