@@ -68,6 +68,18 @@ function MyAddressesPage() {
   const [purpose, setPurpose] = useState<string>("parcel_delivery");
   const [hours, setHours] = useState(24);
   const [oneUse, setOneUse] = useState(true);
+  const [customExpiry, setCustomExpiry] = useState(false);
+  const [fields, setFields] = useState<ShareField[]>([
+    "location",
+    "building",
+    "entrance",
+    "floor",
+    "unit",
+    "instructions",
+  ]);
+  const [contactPhone, setContactPhone] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [linkLabel, setLinkLabel] = useState("");
   const [issued, setIssued] = useState<{ token: string; expires_at: string } | null>(null);
   const updateFn = useServerFn(updateMyAddress);
   const [editFor, setEditFor] = useState<string | null>(null);
