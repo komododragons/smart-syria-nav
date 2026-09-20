@@ -41,8 +41,16 @@ export const listPublicPlaces = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const { serverPublicClient } = await import("./addresses.server");
+    const { tolerantPatterns } = await import("./smart-address");
     const supa = serverPublicClient();
-    const pattern = data.query && data.query.trim().length >= 2 ? `%${data.query.trim()}%` : null;
+    // Tolerates Arabic spelling variations (أ/ا, ي/ى, ه/ة) in directory search.
+    const patterns =
+      data.query && data.query.trim().length >= 2
+        ? tolerantPatterns(data.query).map((v) => `%${v}%`)
+        : [];
+    const orFor = (fields: string[]) =>
+      fields.flatMap((f) => patterns.map((p) => `${f}.ilike.${p}`)).join(",");
+    const pattern = patterns.length ? patterns[0] : null;
 
     let bizQuery = supa
       .from("businesses")
@@ -54,7 +62,7 @@ export const listPublicPlaces = createServerFn({ method: "POST" })
       .not("place_category", "is", null)
       .limit(data.limit);
     if (data.category) bizQuery = bizQuery.eq("place_category", data.category);
-    if (pattern) bizQuery = bizQuery.or(`name_ar.ilike.${pattern},name_en.ilike.${pattern}`);
+    if (pattern) bizQuery = bizQuery.or(orFor(["name_ar", "name_en"]));
 
     let siteQuery = supa
       .from("location_nodes")
@@ -68,7 +76,7 @@ export const listPublicPlaces = createServerFn({ method: "POST" })
     if (data.category) siteQuery = siteQuery.eq("place_category", data.category);
     if (pattern)
       siteQuery = siteQuery.or(
-        `display_name.ilike.${pattern},name_en.ilike.${pattern},neighborhood.ilike.${pattern},landmark.ilike.${pattern}`,
+        orFor(["display_name", "name_en", "neighborhood", "district", "street", "landmark"]),
       );
 
     const [bizRes, siteRes] = await Promise.all([bizQuery, siteQuery]);
