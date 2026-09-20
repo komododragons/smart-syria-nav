@@ -65,17 +65,29 @@ export const Route = createFileRoute("/a/$code")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  errorComponent: () => (
-    <Shell>
-      <p className="text-center font-bold">تعذر تحميل بطاقة العنوان</p>
-      <p className="mt-2 text-center text-sm text-muted-foreground">أعد المحاولة بعد قليل.</p>
-    </Shell>
-  ),
-  notFoundComponent: () => (
-    <Shell>
-      <p className="text-center font-bold">لا يوجد عنوان بهذا الرمز</p>
-    </Shell>
-  ),
+  errorComponent: () => {
+    const { t } = useI18n();
+    return (
+      <Shell>
+        <p className="text-center font-bold">
+          {t({ ar: "تعذر تحميل بطاقة العنوان", en: "We couldn't load this address card" })}
+        </p>
+        <p className="mt-2 text-center text-sm text-muted-foreground">
+          {t({ ar: "أعد المحاولة بعد قليل.", en: "Please try again in a moment." })}
+        </p>
+      </Shell>
+    );
+  },
+  notFoundComponent: () => {
+    const { t } = useI18n();
+    return (
+      <Shell>
+        <p className="text-center font-bold">
+          {t({ ar: "لا يوجد عنوان بهذا الرمز", en: "No address exists with this code" })}
+        </p>
+      </Shell>
+    );
+  },
   component: AddressCardPage,
 });
 
@@ -90,11 +102,11 @@ function Shell({ children }: { children: React.ReactNode }) {
   );
 }
 
-const TRAVEL_OPTIONS: { mode: TravelMode; ar: string; icon: typeof Car }[] = [
-  { mode: "driving", ar: "سيارة", icon: Car },
-  { mode: "walking", ar: "مشياً", icon: Footprints },
-  { mode: "delivery", ar: "توصيل", icon: Package },
-  { mode: "heavy", ar: "شاحنة", icon: Truck },
+const TRAVEL_OPTIONS: { mode: TravelMode; ar: string; en: string; icon: typeof Car }[] = [
+  { mode: "driving", ar: "سيارة", en: "Driving", icon: Car },
+  { mode: "walking", ar: "مشياً", en: "Walking", icon: Footprints },
+  { mode: "delivery", ar: "توصيل", en: "Delivery", icon: Package },
+  { mode: "heavy", ar: "شاحنة", en: "Truck", icon: Truck },
 ];
 
 function Row({

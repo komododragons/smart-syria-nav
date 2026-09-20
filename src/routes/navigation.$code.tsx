@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
+import { useI18n } from "@/lib/i18n";
 import { NavigationLegend, NavigationMap, type NavMarker } from "@/components/NavigationMap";
 import { supabase } from "@/integrations/supabase/client";
 import { listMyAddresses, searchNetwork } from "@/lib/addresses.functions";
@@ -53,7 +54,13 @@ import {
   type RouteBundle,
   type TravelMode,
 } from "@/lib/navigation/types";
-import { ROUTING_CONTEXTS, routingContext, type RoutingContext } from "@/lib/routing-contexts";
+import {
+  ROUTING_CONTEXTS,
+  routingContext,
+  routingContextLabel,
+  routingContextHint,
+  type RoutingContext,
+} from "@/lib/routing-contexts";
 
 export const Route = createFileRoute("/navigation/$code")({
   validateSearch: (search: Record<string, unknown>) => ({

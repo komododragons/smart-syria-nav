@@ -3,6 +3,7 @@ import { Navigation2 } from "lucide-react";
 
 import { logAddressEvent } from "@/lib/orgs.functions";
 import type { TravelMode } from "@/lib/navigation/types";
+import { useI18n } from "@/lib/i18n";
 
 type Props = {
   code: string;
@@ -11,7 +12,7 @@ type Props = {
   context?: string | undefined;
   variant?: "solid" | "outline" | "chip";
   className?: string | undefined;
-  label?: string;
+  label?: string | undefined;
 };
 
 const VARIANTS = {
@@ -30,8 +31,10 @@ export function DirectionsButton({
   context,
   variant = "outline",
   className,
-  label = "الحصول على الاتجاهات",
+  label,
 }: Props) {
+  const { t } = useI18n();
+  const text = label ?? t({ ar: "الحصول على الاتجاهات", en: "Get directions" });
   return (
     <Link
       to="/navigation/$code"
@@ -50,7 +53,7 @@ export function DirectionsButton({
       className={className ?? VARIANTS[variant]}
     >
       <Navigation2 className="size-3.5" />
-      {label}
+      {text}
     </Link>
   );
 }
