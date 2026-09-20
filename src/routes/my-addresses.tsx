@@ -686,7 +686,7 @@ function MyAddressesPage() {
                             : "border border-border text-muted-foreground"
                         }`}
                       >
-                        {PURPOSE_LABELS[value]}
+                        {purposeLabel(value, lang)}
                       </button>
                     ))}
                   </div>
@@ -820,7 +820,7 @@ function MyAddressesPage() {
                       }
                       code={issued.token}
                       title={row.label ?? node?.display_name ?? "عنوان مؤقت"}
-                      subtitle={`${PURPOSE_LABELS[purpose] ?? purpose} · ينتهي ${new Date(issued.expires_at).toLocaleString("ar-SY")}`}
+                      subtitle={`${purposeLabel(purpose, lang)} · ${t({ ar: "ينتهي", en: "expires" })} ${date(issued.expires_at)}`}
                       onClose={() => setIssued(null)}
                     />
                   ) : null}
@@ -882,7 +882,7 @@ function MyClaimsSection() {
               </div>
               {claim.granted_level ? (
                 <p className="mt-1 text-xs text-muted-foreground">
-                  المستوى الممنوح: {VERIFICATION_LEVELS[claim.granted_level]?.ar ?? claim.granted_level}
+                  المستوى الممنوح: {verificationLabel(claim.granted_level, lang)}
                 </p>
               ) : null}
               {claim.review_notes ? (
@@ -959,7 +959,7 @@ function TemporaryLinksList({ smartAddressId }: { smartAddressId: string }) {
               <p className="mt-1 text-[11px] text-muted-foreground">
                 {[
                   link.label,
-                  PURPOSE_LABELS[link.purpose] ?? link.purpose,
+                  purposeLabel(link.purpose, lang),
                   `ينتهي ${new Date(link.expires_at).toLocaleString("ar-SY")}`,
                 ]
                   .filter(Boolean)

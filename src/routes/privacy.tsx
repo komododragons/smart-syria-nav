@@ -31,7 +31,7 @@ const TOGGLES: (keyof PrivacyPreferences)[] = [
   "allow_share_parking",
 ];
 
-const PRIVACY_LABELS: Record<keyof PrivacyPreferences, { ar: string; en: string }> = {
+const PRIVACY_LABELS: Partial<Record<keyof PrivacyPreferences, { ar: string; en: string }>> = {
   allow_share_phone: { ar: "مشاركة الهاتف", en: "Share phone number" },
   allow_share_unit: { ar: "مشاركة رقم الشقة", en: "Share unit number" },
   allow_share_floor: { ar: "مشاركة الطابق", en: "Share floor" },
