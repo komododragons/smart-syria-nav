@@ -10,6 +10,7 @@ import {
   BarChart3,
   Building2,
   Code2,
+  FileSpreadsheet,
   KeyRound,
   LayoutTemplate,
   MapPinned,
