@@ -88,7 +88,7 @@ function SearchPage() {
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="مثال: صيدلية، المزة، مستودع، SY-DAM"
+            placeholder="رمز ذكي، اسم نشاط، حي، منطقة، معلم… (عربي أو English)"
             className="w-full rounded-lg border border-border bg-background py-3 pe-4 ps-9 text-sm focus:border-primary focus:outline-none"
           />
           <div className="mt-3 flex flex-wrap gap-1.5">
