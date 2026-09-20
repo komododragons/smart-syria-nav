@@ -275,3 +275,38 @@
   .qr-address-plate .plate-subtitle,
   .qr-address-plate .plate-scan-en { color: #334e68 !important; }
 }
+
+
+/* Phase 25 — mobile-first: no decorative motion, comfortable touch targets. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+@media (max-width: 767px) {
+  button,
+  [role="button"],
+  a[class*="rounded"],
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
+  }
+  /* Prevent iOS auto-zoom on focus: inputs stay at 16px on phones. */
+  input,
+  select,
+  textarea {
+    font-size: max(1rem, 0.95em);
+  }
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior-y: none;
+}
