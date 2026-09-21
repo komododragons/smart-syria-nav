@@ -254,7 +254,34 @@ function shapeAccessPoint(
   };
 }
 
+/**
+ * Public code resolution with a short per-isolate cache.
+ *
+ * Only PUBLIC results are cached: `private` answers and errors are recomputed
+ * every time, so no residential data is ever held in the cache.
+ */
 export async function resolvePublicCode(
+  rawCode: string,
+  purpose: Purpose,
+  options: { requireWheelchair?: boolean; context?: RoutingContext } = {},
+): Promise<ResolveResult> {
+  const key = [
+    "resolve",
+    normalizeCode(rawCode),
+    purpose,
+    routingContext(options.context).value,
+    options.requireWheelchair ? "wc" : "-",
+  ].join(":");
+  const hit = cacheGet<ResolveResult>(key);
+  if (hit) return hit;
+  const result = await resolvePublicCodeUncached(rawCode, purpose, options);
+  if (result.status === "ok" || result.status === "not_found") {
+    cacheSet(key, result, 60_000);
+  }
+  return result;
+}
+
+async function resolvePublicCodeUncached(
   rawCode: string,
   purpose: Purpose,
   options: { requireWheelchair?: boolean; context?: RoutingContext } = {},
