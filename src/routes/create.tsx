@@ -304,7 +304,13 @@ function CreatePage() {
               </button>
               <button
                 type="button"
-                onClick={() => navigate({ to: "/navigation/$code", params: { code: createdCode } })}
+                onClick={() =>
+                  navigate({
+                    to: "/navigation/$code",
+                    params: { code: createdCode },
+                    search: { ctx: undefined, token: undefined, mode: undefined },
+                  })
+                }
                 className="flex items-center justify-center gap-1.5 rounded-xl border border-border px-4 py-3 text-sm font-bold"
               >
                 <Navigation2 className="size-4" /> {t({ ar: "جرّب التوجيه", en: "Test navigation" })}
