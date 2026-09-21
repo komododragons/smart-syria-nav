@@ -267,6 +267,7 @@ export function CadastralMap({
               src={tile.url}
               alt=""
               loading="lazy"
+              decoding="async"
               draggable={false}
               className="absolute select-none"
               style={{ left: tile.left, top: tile.top, width: tile.size, height: tile.size }}
