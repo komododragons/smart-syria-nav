@@ -242,7 +242,8 @@ function CreatePage() {
       toast.success(
         t({ ar: `تم إنشاء العنوان الذكي ${result.code}`, en: `Smart address ${result.code} created` }),
       );
-      navigate({ to: "/my-addresses" });
+      setCreatedCode(result.code);
+      if (typeof window !== "undefined") window.scrollTo({ top: 0 });
     },
     onError: (error) =>
       toast.error(
