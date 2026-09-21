@@ -64,6 +64,18 @@ import {
   type RoutingContext,
 } from "@/lib/routing-contexts";
 
+/** Visit purpose recorded with arrival feedback, derived from the routing context. */
+const CONTEXT_PURPOSE: Record<string, string> = {
+  standard: "visitor",
+  visitor: "visitor",
+  parcel: "parcel_delivery",
+  commercial_delivery: "food_delivery",
+  heavy_freight: "freight",
+  emergency: "emergency",
+  accessible: "wheelchair_access",
+};
+
+
 export const Route = createFileRoute("/navigation/$code")({
   validateSearch: (search: Record<string, unknown>) => ({
     ctx: ROUTING_CONTEXTS.some((c) => c.value === search["ctx"])
