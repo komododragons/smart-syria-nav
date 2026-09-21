@@ -3,9 +3,20 @@ import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowRight, Check, LocateFixed } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Copy,
+  LocateFixed,
+  Navigation2,
+  QrCode,
+  Share2,
+} from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
+import { LoopStepper } from "@/components/LoopStepper";
+import { QrCard } from "@/components/QrCard";
 import { PLACE_CATEGORIES, placeCategoryLabel } from "@/lib/place-categories";
 import { CadastralMap } from "@/components/CadastralMap";
 import { supabase } from "@/integrations/supabase/client";
@@ -116,6 +127,8 @@ function CreatePage() {
   const nearby = useServerFn(nearbySites);
 
   const [authed, setAuthed] = useState<boolean | null>(null);
+  const [createdCode, setCreatedCode] = useState<string | null>(null);
+  const [qrOpen, setQrOpen] = useState(false);
   const [step, setStep] = useState(0);
   const [intent, setIntent] = useState<Intent>("home");
   const [coords, setCoords] = useState({ latitude: 33.5138, longitude: 36.2765 });
