@@ -1095,6 +1095,126 @@ export type Database = {
           },
         ]
       }
+      import_rows: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          import_id: string
+          node_id: string | null
+          raw: Json
+          row_number: number
+          smart_address_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          import_id: string
+          node_id?: string | null
+          raw?: Json
+          row_number: number
+          smart_address_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          import_id?: string
+          node_id?: string | null
+          raw?: Json
+          row_number?: number
+          smart_address_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_rows_import_id_fkey"
+            columns: ["import_id"]
+            isOneToOne: false
+            referencedRelation: "imports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_rows_node_id_fkey"
+            columns: ["node_id"]
+            isOneToOne: false
+            referencedRelation: "location_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_rows_smart_address_id_fkey"
+            columns: ["smart_address_id"]
+            isOneToOne: false
+            referencedRelation: "smart_addresses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      imports: {
+        Row: {
+          created_at: string
+          error_rows: number
+          filename: string
+          finished_at: string | null
+          id: string
+          notes: string | null
+          organization_id: string | null
+          owner_id: string
+          source: string
+          started_at: string | null
+          status: string
+          success_rows: number
+          total_rows: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          error_rows?: number
+          filename: string
+          finished_at?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string | null
+          owner_id: string
+          source?: string
+          started_at?: string | null
+          status?: string
+          success_rows?: number
+          total_rows?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          error_rows?: number
+          filename?: string
+          finished_at?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string | null
+          owner_id?: string
+          source?: string
+          started_at?: string | null
+          status?: string
+          success_rows?: number
+          total_rows?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "imports_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       last_metre_instructions: {
         Row: {
           access_point_id: string | null
@@ -1584,6 +1704,86 @@ export type Database = {
         }
         Relationships: []
       }
+      qr_codes: {
+        Row: {
+          access_point_id: string | null
+          business_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          label: string | null
+          last_scanned_at: string | null
+          node_id: string | null
+          plate_format: string
+          scan_count: number
+          smart_address_id: string
+          target_url: string
+          updated_at: string
+        }
+        Insert: {
+          access_point_id?: string | null
+          business_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          last_scanned_at?: string | null
+          node_id?: string | null
+          plate_format?: string
+          scan_count?: number
+          smart_address_id: string
+          target_url: string
+          updated_at?: string
+        }
+        Update: {
+          access_point_id?: string | null
+          business_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          last_scanned_at?: string | null
+          node_id?: string | null
+          plate_format?: string
+          scan_count?: number
+          smart_address_id?: string
+          target_url?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qr_codes_access_point_id_fkey"
+            columns: ["access_point_id"]
+            isOneToOne: false
+            referencedRelation: "access_points"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qr_codes_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qr_codes_node_id_fkey"
+            columns: ["node_id"]
+            isOneToOne: false
+            referencedRelation: "location_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qr_codes_smart_address_id_fkey"
+            columns: ["smart_address_id"]
+            isOneToOne: false
+            referencedRelation: "smart_addresses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       road_access_points: {
         Row: {
           access_point_id: string | null
@@ -1846,6 +2046,57 @@ export type Database = {
           },
         ]
       }
+      routing_profiles: {
+        Row: {
+          avoid_features: string[]
+          created_at: string
+          default_context: string | null
+          id: string
+          is_active: boolean
+          key: string
+          max_height_m: number | null
+          max_weight_kg: number | null
+          name_ar: string
+          name_en: string
+          ors_profile: string
+          sort_order: number
+          updated_at: string
+          vehicle_type: string
+        }
+        Insert: {
+          avoid_features?: string[]
+          created_at?: string
+          default_context?: string | null
+          id?: string
+          is_active?: boolean
+          key: string
+          max_height_m?: number | null
+          max_weight_kg?: number | null
+          name_ar: string
+          name_en: string
+          ors_profile: string
+          sort_order?: number
+          updated_at?: string
+          vehicle_type: string
+        }
+        Update: {
+          avoid_features?: string[]
+          created_at?: string
+          default_context?: string | null
+          id?: string
+          is_active?: boolean
+          key?: string
+          max_height_m?: number | null
+          max_weight_kg?: number | null
+          name_ar?: string
+          name_en?: string
+          ors_profile?: string
+          sort_order?: number
+          updated_at?: string
+          vehicle_type?: string
+        }
+        Relationships: []
+      }
       smart_address_redirects: {
         Row: {
           created_at: string
@@ -2030,6 +2281,85 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      verification_documents: {
+        Row: {
+          business_id: string | null
+          claim_id: string | null
+          created_at: string
+          document_type: string
+          id: string
+          mime_type: string | null
+          node_id: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          size_bytes: number | null
+          status: string
+          storage_path: string
+          subject_type: string
+          updated_at: string
+          uploaded_by: string
+        }
+        Insert: {
+          business_id?: string | null
+          claim_id?: string | null
+          created_at?: string
+          document_type?: string
+          id?: string
+          mime_type?: string | null
+          node_id?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          size_bytes?: number | null
+          status?: string
+          storage_path: string
+          subject_type: string
+          updated_at?: string
+          uploaded_by: string
+        }
+        Update: {
+          business_id?: string | null
+          claim_id?: string | null
+          created_at?: string
+          document_type?: string
+          id?: string
+          mime_type?: string | null
+          node_id?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          size_bytes?: number | null
+          status?: string
+          storage_path?: string
+          subject_type?: string
+          updated_at?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verification_documents_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "verification_documents_claim_id_fkey"
+            columns: ["claim_id"]
+            isOneToOne: false
+            referencedRelation: "business_claims"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "verification_documents_node_id_fkey"
+            columns: ["node_id"]
+            isOneToOne: false
+            referencedRelation: "location_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       verifications: {
         Row: {
