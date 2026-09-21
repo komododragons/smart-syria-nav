@@ -29,7 +29,7 @@ import { myEntitlements } from "@/lib/plans.functions";
 import { LIMIT_LABELS_AR, PLANS, formatLimit, type LimitKey } from "@/lib/plans";
 import { BulkImportTab } from "@/components/BulkImportTab";
 import { CadastralMap } from "@/components/CadastralMap";
-import { QrCard } from "@/components/QrCard";
+import { QrCardLazy as QrCard } from "@/components/QrCardLazy";
 import { supabase } from "@/integrations/supabase/client";
 import {
   addOrgMember,

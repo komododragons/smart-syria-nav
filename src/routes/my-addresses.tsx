@@ -14,7 +14,7 @@ import { Copy, EyeOff, Globe, Pencil, QrCode, ShieldCheck, Star, Timer, Trash2 }
 import { AppHeader } from "@/components/AppHeader";
 import { DirectionsButton } from "@/components/DirectionsButton";
 import { CadastralMap } from "@/components/CadastralMap";
-import { QrCard } from "@/components/QrCard";
+import { QrCardLazy as QrCard } from "@/components/QrCardLazy";
 import { supabase } from "@/integrations/supabase/client";
 import {
   createTemporaryAddress,

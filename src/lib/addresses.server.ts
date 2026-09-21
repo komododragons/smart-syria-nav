@@ -7,13 +7,17 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { normalizeCode, type Purpose } from "./smart-address";
 import { routingContext, type RoutingContext } from "./routing-contexts";
+import { cacheGet, cacheSet } from "./server-cache.server";
 
 export type PublicClient = SupabaseClient<Database>;
 
-/** Publishable-key client for public reads (RLS applies as anon). */
+let publicClient: PublicClient | null = null;
+
+/** Publishable-key client for public reads (RLS applies as anon). Reused per isolate. */
 export function serverPublicClient(): PublicClient {
+  if (publicClient) return publicClient;
   const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
-  return createClient<Database>(process.env["SUPABASE_URL"]!, key, {
+  publicClient = createClient<Database>(process.env["SUPABASE_URL"]!, key, {
     auth: { persistSession: false, autoRefreshToken: false },
     global: {
       fetch: (input, init) => {
@@ -26,7 +30,9 @@ export function serverPublicClient(): PublicClient {
       },
     },
   });
+  return publicClient;
 }
+
 
 export type NodeRow = Database["public"]["Tables"]["location_nodes"]["Row"];
 export type AccessPointRow = Database["public"]["Tables"]["access_points"]["Row"] & {
@@ -249,7 +255,34 @@ function shapeAccessPoint(
   };
 }
 
+/**
+ * Public code resolution with a short per-isolate cache.
+ *
+ * Only PUBLIC results are cached: `private` answers and errors are recomputed
+ * every time, so no residential data is ever held in the cache.
+ */
 export async function resolvePublicCode(
+  rawCode: string,
+  purpose: Purpose,
+  options: { requireWheelchair?: boolean; context?: RoutingContext } = {},
+): Promise<ResolveResult> {
+  const key = [
+    "resolve",
+    normalizeCode(rawCode),
+    purpose,
+    routingContext(options.context).value,
+    options.requireWheelchair ? "wc" : "-",
+  ].join(":");
+  const hit = cacheGet<ResolveResult>(key);
+  if (hit) return hit;
+  const result = await resolvePublicCodeUncached(rawCode, purpose, options);
+  if (result.status === "ok" || result.status === "not_found") {
+    cacheSet(key, result, 60_000);
+  }
+  return result;
+}
+
+async function resolvePublicCodeUncached(
   rawCode: string,
   purpose: Purpose,
   options: { requireWheelchair?: boolean; context?: RoutingContext } = {},

@@ -16,7 +16,7 @@ import {
 
 import { AppHeader } from "@/components/AppHeader";
 import { LoopStepper } from "@/components/LoopStepper";
-import { QrCard } from "@/components/QrCard";
+import { QrCardLazy as QrCard } from "@/components/QrCardLazy";
 import { PLACE_CATEGORIES, placeCategoryLabel } from "@/lib/place-categories";
 import { CadastralMap } from "@/components/CadastralMap";
 import { supabase } from "@/integrations/supabase/client";

@@ -12,7 +12,15 @@ const CORS = {
   "Access-Control-Allow-Methods": "GET, OPTIONS",
   "Access-Control-Allow-Headers": "content-type, x-api-key",
   "Content-Type": "application/json",
-  "Cache-Control": "public, max-age=60",
+  // Default: never cache. Only successful PUBLIC resolutions opt into caching.
+  "Cache-Control": "no-store",
+};
+
+/** Public, non-personal payload — safe for shared caches. */
+const PUBLIC_CACHE = {
+  ...CORS,
+  "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=600",
+  Vary: "x-api-key",
 };
 
 /**
@@ -116,7 +124,7 @@ export const Route = createFileRoute("/api/public/resolve")({
             prohibited: result.prohibited,
             notes: result.notes,
           }),
-          { status: 200, headers: CORS },
+          { status: 200, headers: PUBLIC_CACHE },
         );
       },
     },

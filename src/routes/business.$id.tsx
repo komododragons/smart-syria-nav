@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
-import { QrCard } from "@/components/QrCard";
+import { QrCardLazy as QrCard } from "@/components/QrCardLazy";
 import { DirectionsButton } from "@/components/DirectionsButton";
 import { CadastralMap, type MapPin as CadMapPin } from "@/components/CadastralMap";
 import { supabase } from "@/integrations/supabase/client";
