@@ -28,7 +28,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { LoopStepper } from "@/components/LoopStepper";
 import { CadastralMap, type MapPin as Pin } from "@/components/CadastralMap";
 import { DirectionsButton } from "@/components/DirectionsButton";
-import { QrCard } from "@/components/QrCard";
+import { QrCardLazy as QrCard } from "@/components/QrCardLazy";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveAddress } from "@/lib/addresses.functions";
 import { ROUTING_CONTEXTS, routingContextHint, routingContextLabel, type RoutingContext } from "@/lib/routing-contexts";

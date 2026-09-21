@@ -19,7 +19,7 @@ import {
 import { AppHeader } from "@/components/AppHeader";
 import { DirectionsButton } from "@/components/DirectionsButton";
 import { AddressFeedback } from "@/components/AddressFeedback";
-import { QrCard } from "@/components/QrCard";
+import { QrCardLazy as QrCard } from "@/components/QrCardLazy";
 import { CadastralMap, type MapPin } from "@/components/CadastralMap";
 import { HierarchySpine, type SpineLevel } from "@/components/HierarchySpine";
 import { supabase } from "@/integrations/supabase/client";
