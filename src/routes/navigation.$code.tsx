@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
+import { AddressFeedback } from "@/components/AddressFeedback";
+import { LoopStepper } from "@/components/LoopStepper";
 import { useI18n } from "@/lib/i18n";
 import { NavigationLegend, NavigationMap, type NavMarker } from "@/components/NavigationMap";
 import { supabase } from "@/integrations/supabase/client";
@@ -147,6 +149,7 @@ function NavigationWorkspace() {
   const [navigating, setNavigating] = useState(false);
   const [livePoint, setLivePoint] = useState<Coordinates | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
+  const [arrivalOpen, setArrivalOpen] = useState(false);
   const [recents, setRecents] = useState<RecentOrigin[]>([]);
   useEffect(() => setRecents(readRecents()), []);
 
@@ -1061,7 +1064,7 @@ function NavigationWorkspace() {
                   type="button"
                   onClick={() => {
                     setNavigating(false);
-                    toast.success(t({ ar: "تم تأكيد الوصول", en: "Arrival confirmed" }));
+                    setArrivalOpen(true);
                   }}
                   className="mt-2 w-full rounded-md bg-primary px-3 py-1.5 text-xs text-primary-foreground"
                 >
