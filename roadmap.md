@@ -152,3 +152,5 @@ PHASE 26 — HOMEPAGE POSITIONING — DONE (hero proposition "عنوان واح�
 
 - PHASE 27 — CORE PRODUCT LOOP — DONE (LoopStepper component; create success screen with code/QR/share/navigate; arrival confirm+correct panel in navigation; loop shown on /a/$code)
 - PHASE 28 — DATABASE ARCHITECTURE — DONE (reviewed existing schema; added only missing entities: qr_codes, verification_documents, imports, import_rows, routing_profiles + seeds. Existing tables cover addresses/units/entrances/access profiles/claims/verifications/corrections/businesses/shares/api keys/api usage/org members/address events/saved addresses.)
+
+PHASE 29 — PERFORMANCE — DONE (geospatial GiST + FK/lookup indexes; 60s public-only resolve cache; public cache headers on /api/public/resolve, no-store otherwise; reused server Supabase client; query staleTime + intent route preloading; lazy QrCard chunk; tile preconnect + async decoding)
