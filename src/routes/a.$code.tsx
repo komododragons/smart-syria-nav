@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
+import { LoopStepper } from "@/components/LoopStepper";
 import { CadastralMap, type MapPin as Pin } from "@/components/CadastralMap";
 import { DirectionsButton } from "@/components/DirectionsButton";
 import { QrCard } from "@/components/QrCard";
