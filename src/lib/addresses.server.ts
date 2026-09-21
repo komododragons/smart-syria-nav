@@ -7,6 +7,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { normalizeCode, type Purpose } from "./smart-address";
 import { routingContext, type RoutingContext } from "./routing-contexts";
+import { cacheGet, cacheSet } from "./server-cache.server";
 
 export type PublicClient = SupabaseClient<Database>;
 
