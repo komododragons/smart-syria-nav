@@ -10,10 +10,13 @@ import { routingContext, type RoutingContext } from "./routing-contexts";
 
 export type PublicClient = SupabaseClient<Database>;
 
-/** Publishable-key client for public reads (RLS applies as anon). */
+let publicClient: PublicClient | null = null;
+
+/** Publishable-key client for public reads (RLS applies as anon). Reused per isolate. */
 export function serverPublicClient(): PublicClient {
+  if (publicClient) return publicClient;
   const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
-  return createClient<Database>(process.env["SUPABASE_URL"]!, key, {
+  publicClient = createClient<Database>(process.env["SUPABASE_URL"]!, key, {
     auth: { persistSession: false, autoRefreshToken: false },
     global: {
       fetch: (input, init) => {
