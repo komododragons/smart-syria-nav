@@ -29,7 +29,9 @@ export function serverPublicClient(): PublicClient {
       },
     },
   });
+  return publicClient;
 }
+
 
 export type NodeRow = Database["public"]["Tables"]["location_nodes"]["Row"];
 export type AccessPointRow = Database["public"]["Tables"]["access_points"]["Row"] & {
