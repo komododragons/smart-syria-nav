@@ -124,7 +124,7 @@ export const Route = createFileRoute("/api/public/resolve")({
             prohibited: result.prohibited,
             notes: result.notes,
           }),
-          { status: 200, headers: CORS },
+          { status: 200, headers: PUBLIC_CACHE },
         );
       },
     },
