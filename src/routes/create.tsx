@@ -3,9 +3,20 @@ import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowRight, Check, LocateFixed } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Copy,
+  LocateFixed,
+  Navigation2,
+  QrCode,
+  Share2,
+} from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
+import { LoopStepper } from "@/components/LoopStepper";
+import { QrCard } from "@/components/QrCard";
 import { PLACE_CATEGORIES, placeCategoryLabel } from "@/lib/place-categories";
 import { CadastralMap } from "@/components/CadastralMap";
 import { supabase } from "@/integrations/supabase/client";
@@ -116,6 +127,8 @@ function CreatePage() {
   const nearby = useServerFn(nearbySites);
 
   const [authed, setAuthed] = useState<boolean | null>(null);
+  const [createdCode, setCreatedCode] = useState<string | null>(null);
+  const [qrOpen, setQrOpen] = useState(false);
   const [step, setStep] = useState(0);
   const [intent, setIntent] = useState<Intent>("home");
   const [coords, setCoords] = useState({ latitude: 33.5138, longitude: 36.2765 });
@@ -229,13 +242,107 @@ function CreatePage() {
       toast.success(
         t({ ar: `تم إنشاء العنوان الذكي ${result.code}`, en: `Smart address ${result.code} created` }),
       );
-      navigate({ to: "/my-addresses" });
+      setCreatedCode(result.code);
+      if (typeof window !== "undefined") window.scrollTo({ top: 0 });
     },
     onError: (error) =>
       toast.error(
         error instanceof Error ? error.message : t({ ar: "تعذر الإنشاء", en: "Couldn't create the address" }),
       ),
   });
+
+  if (createdCode) {
+    const shareUrl =
+      typeof window === "undefined" ? `/a/${createdCode}` : `${window.location.origin}/a/${createdCode}`;
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        <AppHeader />
+        <main className="mx-auto max-w-xl space-y-4 px-4 py-8">
+          <LoopStepper current="code" />
+          <section className="rounded-2xl border border-border bg-surface p-6 text-center">
+            <p className="text-sm text-muted-foreground">
+              {t({ ar: "عنوانك الذكي جاهز", en: "Your smart address is ready" })}
+            </p>
+            <p className="mt-2 font-mono text-3xl font-bold tracking-widest">{createdCode}</p>
+            <p className="mt-3 text-sm text-muted-foreground">
+              {t({
+                ar: "الخطوة التالية: شارك الرمز أو رمز QR. من يستلمه يحلّه ويصل إلى المدخل الصحيح مباشرة.",
+                en: "Next step: share the code or its QR. Whoever receives it resolves it and arrives at the right entrance.",
+              })}
+            </p>
+            <div className="mt-5 grid gap-2 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard?.writeText(createdCode);
+                  toast.success(t({ ar: "نُسخ الرمز", en: "Code copied" }));
+                }}
+                className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground"
+              >
+                <Copy className="size-4" /> {t({ ar: "نسخ الرمز", en: "Copy code" })}
+              </button>
+              <button
+                type="button"
+                onClick={() => setQrOpen(true)}
+                className="flex items-center justify-center gap-1.5 rounded-xl border border-border px-4 py-3 text-sm font-bold"
+              >
+                <QrCode className="size-4" /> {t({ ar: "رمز QR ولوحة", en: "QR & plate" })}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (navigator.share) {
+                    void navigator.share({ title: createdCode, url: shareUrl });
+                  } else {
+                    navigator.clipboard?.writeText(shareUrl);
+                    toast.success(t({ ar: "نُسخ الرابط", en: "Link copied" }));
+                  }
+                }}
+                className="flex items-center justify-center gap-1.5 rounded-xl border border-border px-4 py-3 text-sm font-bold"
+              >
+                <Share2 className="size-4" /> {t({ ar: "مشاركة الرابط", en: "Share link" })}
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  navigate({
+                    to: "/navigation/$code",
+                    params: { code: createdCode },
+                    search: { ctx: undefined, token: undefined, mode: undefined },
+                  })
+                }
+                className="flex items-center justify-center gap-1.5 rounded-xl border border-border px-4 py-3 text-sm font-bold"
+              >
+                <Navigation2 className="size-4" /> {t({ ar: "جرّب التوجيه", en: "Test navigation" })}
+              </button>
+            </div>
+            <div className="mt-4 flex flex-wrap justify-center gap-4 text-xs font-bold text-muted-foreground">
+              <button type="button" onClick={() => navigate({ to: "/my-addresses" })}>
+                {t({ ar: "عناويني", en: "My addresses" })}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setCreatedCode(null);
+                  setStep(0);
+                }}
+              >
+                {t({ ar: "إنشاء عنوان آخر", en: "Create another address" })}
+              </button>
+            </div>
+          </section>
+        </main>
+        {qrOpen ? (
+          <QrCard
+            url={shareUrl}
+            code={createdCode}
+            title={siteName || createdCode}
+            onClose={() => setQrOpen(false)}
+          />
+        ) : null}
+      </div>
+    );
+  }
 
   if (authed === false) {
     return (

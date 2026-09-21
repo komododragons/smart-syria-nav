@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
+import { AddressFeedback } from "@/components/AddressFeedback";
+import { LoopStepper } from "@/components/LoopStepper";
 import { useI18n } from "@/lib/i18n";
 import { NavigationLegend, NavigationMap, type NavMarker } from "@/components/NavigationMap";
 import { supabase } from "@/integrations/supabase/client";
@@ -61,6 +63,18 @@ import {
   routingContextHint,
   type RoutingContext,
 } from "@/lib/routing-contexts";
+
+/** Visit purpose recorded with arrival feedback, derived from the routing context. */
+const CONTEXT_PURPOSE: Record<string, string> = {
+  standard: "visitor",
+  visitor: "visitor",
+  parcel: "parcel_delivery",
+  commercial_delivery: "food_delivery",
+  heavy_freight: "freight",
+  emergency: "emergency",
+  accessible: "wheelchair_access",
+};
+
 
 export const Route = createFileRoute("/navigation/$code")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -147,6 +161,7 @@ function NavigationWorkspace() {
   const [navigating, setNavigating] = useState(false);
   const [livePoint, setLivePoint] = useState<Coordinates | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
+  const [arrivalOpen, setArrivalOpen] = useState(false);
   const [recents, setRecents] = useState<RecentOrigin[]>([]);
   useEffect(() => setRecents(readRecents()), []);
 
@@ -930,6 +945,28 @@ function NavigationWorkspace() {
               </section>
             )}
 
+            {/* Core loop: confirm or correct on arrival */}
+            {arrivalOpen && destination && (
+              <section className="space-y-3 rounded-lg border border-primary/40 bg-primary/5 p-3">
+                <LoopStepper current="confirm" />
+                <p className="text-sm font-semibold">
+                  {t({ ar: "هل وصلت إلى المدخل الصحيح؟", en: "Did you reach the right entrance?" })}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {t({
+                    ar: "تأكيدك أو تصحيحك يرفع جودة هذا العنوان لكل من يأتي بعدك.",
+                    en: "Your confirmation or correction improves this address for everyone who comes next.",
+                  })}
+                </p>
+                <AddressFeedback
+                  smartCode={destination.smart_code}
+                  purpose={CONTEXT_PURPOSE[context] ?? "visitor"}
+                  nodeId={destination.node_id ?? null}
+                  accessPointId={destination.entrance_id ?? null}
+                />
+              </section>
+            )}
+
             {/* Turn-by-turn */}
             {activeRoute && activeRoute.steps.length > 0 && (
               <section className="space-y-1">
@@ -1061,7 +1098,7 @@ function NavigationWorkspace() {
                   type="button"
                   onClick={() => {
                     setNavigating(false);
-                    toast.success(t({ ar: "تم تأكيد الوصول", en: "Arrival confirmed" }));
+                    setArrivalOpen(true);
                   }}
                   className="mt-2 w-full rounded-md bg-primary px-3 py-1.5 text-xs text-primary-foreground"
                 >

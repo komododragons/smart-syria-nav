@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
+import { LoopStepper } from "@/components/LoopStepper";
 import { CadastralMap, type MapPin as Pin } from "@/components/CadastralMap";
 import { DirectionsButton } from "@/components/DirectionsButton";
 import { QrCard } from "@/components/QrCard";
@@ -283,6 +284,7 @@ function AddressCardPage() {
     <div className="min-h-screen bg-secondary">
       <AppHeader />
       <div className="mx-auto max-w-3xl space-y-4 p-4">
+        <LoopStepper current="resolve" />
         <section className="overflow-hidden rounded-xl border border-border bg-background shadow-plate">
           <div className="bg-primary/5 p-4">
             <div className="flex items-start justify-between gap-3">
