@@ -933,6 +933,28 @@ function NavigationWorkspace() {
               </section>
             )}
 
+            {/* Core loop: confirm or correct on arrival */}
+            {arrivalOpen && destination && (
+              <section className="space-y-3 rounded-lg border border-primary/40 bg-primary/5 p-3">
+                <LoopStepper current="confirm" />
+                <p className="text-sm font-semibold">
+                  {t({ ar: "هل وصلت إلى المدخل الصحيح؟", en: "Did you reach the right entrance?" })}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {t({
+                    ar: "تأكيدك أو تصحيحك يرفع جودة هذا العنوان لكل من يأتي بعدك.",
+                    en: "Your confirmation or correction improves this address for everyone who comes next.",
+                  })}
+                </p>
+                <AddressFeedback
+                  smartCode={destination.smart_code}
+                  purpose={CONTEXT_PURPOSE[context] ?? "visitor"}
+                  nodeId={destination.node_id ?? null}
+                  accessPointId={destination.entrance_id ?? null}
+                />
+              </section>
+            )}
+
             {/* Turn-by-turn */}
             {activeRoute && activeRoute.steps.length > 0 && (
               <section className="space-y-1">
