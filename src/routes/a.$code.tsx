@@ -283,6 +283,7 @@ function AddressCardPage() {
     <div className="min-h-screen bg-secondary">
       <AppHeader />
       <div className="mx-auto max-w-3xl space-y-4 p-4">
+        <LoopStepper current="resolve" />
         <section className="overflow-hidden rounded-xl border border-border bg-background shadow-plate">
           <div className="bg-primary/5 p-4">
             <div className="flex items-start justify-between gap-3">
