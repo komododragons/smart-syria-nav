@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import {
   ArrowLeftRight,
   Ban,
-  CircleCheck,
   Clock,
   Copy,
   Navigation,
@@ -45,16 +44,16 @@ export const Route = createFileRoute("/")({
     typeof search["code"] === "string" ? { code: search["code"] } : {},
   head: () => ({
     meta: [
-      { title: "محلّل العنوان الذكي | شبكة العنوان الذكي السورية" },
+      { title: "شبكة العنوان الذكي السورية — عنوان واحد. وصول أسهل." },
       {
         name: "description",
         content:
-          "حلّل أي عنوان ذكي سوري حسب الغرض: مدخل التوصيل، مدخل الزوار، بوابة الشاحنات أو مدخل الطوارئ — مع الإحداثيات والقيود وساعات العمل.",
+          "أنشئ رمزاً موحداً من Syriasan لمنزلك أو عملك أو وجهتك، واستخدمه للتنقل والتوصيل والمشاركة.",
       },
-      { property: "og:title", content: "محلّل العنوان الذكي — شبكة العنوان الذكي السورية" },
+      { property: "og:title", content: "شبكة العنوان الذكي السورية — عنوان واحد. وصول أسهل." },
       {
         property: "og:description",
-        content: "عنوان ذكي دقيق لكل مكان: المبنى، المدخل، الطابق والوحدة — وليس مجرد نقطة على الخريطة.",
+        content: "عنوان واحد. وصول أسهل. رمز Syriasan موحد لكل مكان في سوريا — للتنقل والتوصيل والمشاركة.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -325,11 +324,46 @@ function ResolverPage() {
       <div className="flex min-h-0 flex-1 flex-col-reverse md:flex-row">
         {/* Resolver panel (slim, side) */}
         <aside className="flex w-full flex-1 flex-col overflow-y-auto border-t border-border bg-surface pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0 md:flex-none md:border-t-0 md:border-s md:w-[420px]">
-          <div className="sticky top-0 z-10 border-b border-border bg-surface/95 px-5 py-4 backdrop-blur-md">
-            <h1 className="text-base font-bold leading-tight text-foreground">{t({ ar: "محلّل العنوان الذكي", en: "Smart Address Resolver" })}</h1>
-            <p className="mt-0.5 text-[11px] font-medium uppercase tracking-widest text-muted-foreground" dir="ltr">
-              Smart Address Resolver
+          <div className="px-5 pt-6 pb-1">
+            <h1 className="text-2xl font-bold leading-[1.15] tracking-tight text-foreground">
+              {t({ ar: "عنوان واحد. وصول أسهل.", en: "One Address. Easier Arrival." })}
+            </h1>
+            <p className="mt-2.5 text-sm leading-relaxed text-muted-foreground">
+              {t({
+                ar: "أنشئ رمزاً موحداً من Syriasan لمنزلك أو عملك أو وجهتك، واستخدمه للتنقل والتوصيل والمشاركة.",
+                en: "Create a standardized Syriasan code for your home, business or destination and use it for navigation, deliveries and sharing.",
+              })}
             </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Link
+                to="/search"
+                className="flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 px-4 py-2.5 text-sm font-bold text-primary"
+              >
+                <Search className="size-4" />
+                {t({ ar: "ابحث عن عنوان", en: "Find Address" })}
+              </Link>
+              <Link
+                to="/create"
+                className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground"
+              >
+                <Timer className="size-4" />
+                {t({ ar: "أنشئ عنواناً", en: "Create Address" })}
+              </Link>
+            </div>
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-bold text-muted-foreground">
+              <Link to="/dashboard" className="transition-colors hover:text-foreground">
+                {t({ ar: "للأعمال", en: "For Businesses" })}
+              </Link>
+              <span aria-hidden className="text-muted-foreground/40">·</span>
+              <Link to="/developers" className="transition-colors hover:text-foreground">
+                {t({ ar: "للمطورين", en: "For Developers" })}
+              </Link>
+            </div>
+          </div>
+          <div className="sticky top-0 z-10 border-b border-border bg-surface/95 px-5 py-4 backdrop-blur-md">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              {t({ ar: "حلّل رمزاً ذكياً", en: "Resolve a code" })}
+            </span>
 
             <form
               onSubmit={(event) => {
@@ -403,30 +437,6 @@ function ResolverPage() {
           </div>
 
           <div className="flex flex-col gap-4 p-5">
-            <section className="animate-entrance rounded-xl bg-foreground p-4 text-background">
-              <h2 className="text-[10px] font-bold uppercase tracking-widest text-primary">{t({ ar: "إجراءات", en: "Actions" })}</h2>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Link
-                  to="/search"
-                  className="flex items-center gap-1.5 rounded-lg border border-background/20 bg-background/5 px-3 py-2 text-sm font-bold"
-                >
-                  <Search className="size-4" /> {t({ ar: "بحث عن أعمال ومواقع", en: "Search businesses & places" })}
-                </Link>
-                <Link
-                  to="/create"
-                  className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-bold text-primary-foreground"
-                >
-                  <Timer className="size-4" /> {t({ ar: "إنشاء عنوان ذكي", en: "Create a smart address" })}
-                </Link>
-              </div>
-              <p className="mt-3 flex items-start gap-2 text-[11px] opacity-70">
-                <CircleCheck className="mt-0.5 size-3.5 shrink-0" />
-                {t({
-                  ar: "التصحيحات تمر بمراجعة ولا تستبدل المعلومات الموثقة تلقائياً.",
-                  en: "Corrections go through review and never overwrite verified information automatically.",
-                })}
-              </p>
-            </section>
             {mutation.isPending ? (
               <p className="py-12 text-center text-sm text-muted-foreground">{t({ ar: "جارٍ التحليل…", en: "Resolving…" })}</p>
             ) : null}

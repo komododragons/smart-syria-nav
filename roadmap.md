@@ -147,3 +147,5 @@ PHASE 23 — PRIVACY AND SECURITY — DONE
 PHASE 24 — INTERNATIONALIZATION — DONE (ar RTL / en LTR across all pages, i18n layer in src/lib/i18n.tsx)
 
 PHASE 25 — MOBILE-FIRST DESIGN — DONE (bottom tab bar, /scan QR camera + manual fallback, install prompt, data-saver map tiles, reduced-motion + touch-target CSS)
+
+PHASE 26 — HOMEPAGE POSITIONING — DONE (hero proposition "عنوان واحد. وصول أسهل." / "One Address. Easier Arrival." atop the resolver side panel; explanation line; primary CTAs Find Address → /search, Create Address → /create; secondary links For Businesses → /dashboard, For Developers → /developers; removed redundant "Actions" card + resolver title demoted to "Resolve a code"; head meta updated; map-dominant split-screen identity preserved)
