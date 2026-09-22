@@ -42,11 +42,11 @@ export function AppHeader() {
   }, []);
 
   const publicLinks = [
-    { to: "/search", icon: Search, label: { ar: "البحث", en: "Search" } },
-    { to: "/places", icon: Landmark, label: { ar: "الأماكن العامة", en: "Public places" } },
+    { to: "/search", icon: Search, label: { ar: "البحث", en: "Search" }, primary: false },
+    { to: "/places", icon: Landmark, label: { ar: "الأماكن العامة", en: "Public places" }, primary: false },
     { to: "/create", icon: MapPinPlus, label: { ar: "عنوان جديد", en: "New address" }, primary: true },
-    { to: "/offline", icon: CloudDownload, label: { ar: "دون اتصال", en: "Offline" } },
-    { to: "/plans", icon: Layers, label: { ar: "الخطط", en: "Plans" } },
+    { to: "/offline", icon: CloudDownload, label: { ar: "دون اتصال", en: "Offline" }, primary: false },
+    { to: "/plans", icon: Layers, label: { ar: "الخطط", en: "Plans" }, primary: false },
   ] as const;
 
   const accountLinks = signedIn
