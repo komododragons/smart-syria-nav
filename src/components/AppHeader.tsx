@@ -11,11 +11,14 @@ import {
   Truck,
   Landmark,
   Layers,
+  Menu,
 } from "lucide-react";
 
+import { Button, buttonVariants } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { cn } from "@/lib/utils";
 
 export function AppHeader() {
   const router = useRouter();
@@ -38,122 +41,106 @@ export function AppHeader() {
     };
   }, []);
 
+  const publicLinks = [
+    { to: "/search", icon: Search, label: { ar: "البحث", en: "Search" } },
+    { to: "/places", icon: Landmark, label: { ar: "الأماكن العامة", en: "Public places" } },
+    { to: "/create", icon: MapPinPlus, label: { ar: "عنوان جديد", en: "New address" }, primary: true },
+    { to: "/offline", icon: CloudDownload, label: { ar: "دون اتصال", en: "Offline" } },
+    { to: "/plans", icon: Layers, label: { ar: "الخطط", en: "Plans" } },
+  ] as const;
+
+  const accountLinks = signedIn
+    ? ([
+        { to: "/my-addresses", icon: MapPinPlus, label: { ar: "عناويني", en: "My addresses" } },
+        { to: "/dashboard", icon: Landmark, label: { ar: "الأعمال", en: "Business" } },
+        { to: "/vault", icon: ShieldCheck, label: { ar: "الخزنة", en: "Vault" } },
+        { to: "/privacy", icon: ShieldCheck, label: { ar: "الخصوصية", en: "Privacy" } },
+        { to: "/verify", icon: BadgeCheck, label: { ar: "التوثيق", en: "Verify" } },
+        { to: "/courier", icon: Truck, label: { ar: "التوصيل", en: "Delivery" } },
+        { to: "/developers", icon: Code2, label: { ar: "المطورون", en: "Developers" } },
+      ] as const)
+    : ([{ to: "/docs", icon: Code2, label: { ar: "المطورون", en: "Developers" } }] as const);
+
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-surface/90 px-4 py-3 backdrop-blur-md">
-      <div className="mx-auto flex max-w-3xl min-w-0 items-center justify-between gap-3">
-        <Link to="/" className="flex min-w-0 items-center gap-2">
-          <span className="truncate text-base font-bold tracking-tight md:text-lg underline decoration-primary decoration-2 underline-offset-4">
-            {t({ ar: "شبكة العنوان الذكي", en: "Smart Address Network" })}
+    <header className="sticky top-0 z-50 border-b border-header-foreground/10 bg-header text-header-foreground shadow-sm">
+      <div className="mx-auto grid min-h-14 max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5">
+        <Link to="/" className="flex min-w-0 flex-col leading-none">
+          <span className="truncate text-lg font-bold">{t({ ar: "سرياسان", en: "Syriasan" })}</span>
+          <span className="mt-1 truncate text-[10px] font-medium text-header-muted">
+            {t({ ar: "شبكة العنوان الذكي السورية", en: "Syrian Smart Address Network" })}
           </span>
         </Link>
-        <nav className="flex items-center gap-1">
-          <LanguageToggle />
-          <Link
-            to="/search"
-            className="hidden md:grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
-            aria-label={t({ ar: "البحث", en: "Search" })}
-          >
-            <Search className="size-4" />
-          </Link>
-          <Link
-            to="/places"
-            className="hidden md:grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
-            aria-label={t({ ar: "دليل الأماكن العامة", en: "Public places directory" })}
-          >
-            <Landmark className="size-4" />
-          </Link>
-          <Link
-            to="/offline"
-            className="hidden md:grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
-            aria-label={t({ ar: "العمل دون اتصال", en: "Offline mode" })}
-          >
-            <CloudDownload className="size-4" />
-          </Link>
-          <Link
-            to="/plans"
-            className="hidden md:grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
-            aria-label={t({ ar: "الخطط", en: "Plans" })}
-          >
-            <Layers className="size-4" />
-          </Link>
-          <Link
-            to="/create"
-            className="hidden md:grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
-            aria-label={t({ ar: "إنشاء عنوان ذكي", en: "Create a smart address" })}
-          >
-            <MapPinPlus className="size-4" />
-          </Link>
+
+        <div className="flex shrink-0 items-center gap-2">
+          <LanguageToggle inverse />
           {signedIn ? (
-            <>
-              <Link
-                to="/privacy"
-                className="hidden md:grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
-                aria-label={t({ ar: "مركز الخصوصية", en: "Privacy centre" })}
-              >
-                <ShieldCheck className="size-4" />
-              </Link>
-              <Link
-                to="/verify"
-                className="hidden md:grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
-                aria-label={t({ ar: "التوثيق الميداني", en: "Field verification" })}
-              >
-                <BadgeCheck className="size-4" />
-              </Link>
-              <Link
-                to="/courier"
-                className="hidden md:grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
-                aria-label={t({ ar: "مسارات التوصيل", en: "Delivery routes" })}
-              >
-                <Truck className="size-4" />
-              </Link>
-              <Link
-                to="/developers"
-                className="hidden md:grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
-                aria-label={t({ ar: "واجهة المطورين", en: "Developer tools" })}
-              >
-                <Code2 className="size-4" />
-              </Link>
-              <Link
-                to="/dashboard"
-                className="hidden md:block rounded-lg border border-border px-3 py-2 text-xs font-bold text-foreground"
-              >
-                {t({ ar: "لوحة الأعمال", en: "Business dashboard" })}
-              </Link>
-              <Link
-                to="/vault"
-                className="hidden md:block rounded-lg border border-border px-3 py-2 text-xs font-bold text-foreground"
-              >
-                {t({ ar: "خزنة العناوين", en: "Address vault" })}
-              </Link>
-              <Link
-                to="/my-addresses"
-                className="hidden md:block rounded-lg border border-border px-3 py-2 text-xs font-bold text-foreground"
-              >
-                {t({ ar: "عناويني", en: "My addresses" })}
-              </Link>
-              <button
-                type="button"
-                aria-label={t({ ar: "تسجيل الخروج", en: "Sign out" })}
-                onClick={async () => {
-                  await supabase.auth.signOut();
-                  router.navigate({ to: "/" });
-                }}
-                className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground"
-              >
-                <LogOut className="size-4" />
-              </button>
-            </>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label={t({ ar: "تسجيل الخروج", en: "Sign out" })}
+              title={t({ ar: "تسجيل الخروج", en: "Sign out" })}
+              onClick={async () => {
+                await supabase.auth.signOut();
+                router.navigate({ to: "/" });
+              }}
+              className="border border-header-foreground/15 bg-header-foreground/5 text-header-muted shadow-none hover:bg-header-foreground/10 hover:text-header-foreground"
+            >
+              <LogOut />
+            </Button>
           ) : (
             <Link
               to="/auth"
-              className="flex items-center gap-1.5 rounded-lg bg-foreground px-3 py-2 text-xs font-bold text-background"
+              className={cn(
+                buttonVariants({ size: "sm" }),
+                "border border-header-foreground/15 bg-header-foreground/10 text-header-foreground shadow-none hover:bg-header-foreground/15",
+              )}
             >
-              <ShieldCheck className="size-3.5" />
-              {t({ ar: "الدخول", en: "Sign in" })}
+              <ShieldCheck />
+              {t({ ar: "دخول", en: "Sign in" })}
             </Link>
           )}
-        </nav>
+        </div>
       </div>
+
+      <nav
+        aria-label={t({ ar: "التنقل الرئيسي", en: "Primary navigation" })}
+        className="border-t border-header-foreground/10 bg-header-subtle"
+      >
+        <div className="no-scrollbar mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-3 py-1.5">
+          {publicLinks.map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              className={cn(
+                "flex h-10 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-[11px] font-bold text-header-muted transition-colors hover:bg-header-foreground/10 hover:text-header-foreground md:px-3 md:text-xs",
+                item.primary && "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground",
+              )}
+            >
+              <item.icon className="size-4 shrink-0" />
+              <span>{t(item.label)}</span>
+            </Link>
+          ))}
+
+          <span className="mx-1 h-5 w-px shrink-0 bg-header-foreground/10" aria-hidden />
+
+          {accountLinks.map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              className="hidden h-10 shrink-0 items-center gap-1.5 rounded-md px-3 text-xs font-bold text-header-muted transition-colors hover:bg-header-foreground/10 hover:text-header-foreground md:flex"
+            >
+              <item.icon className="size-4 shrink-0" />
+              <span>{t(item.label)}</span>
+            </Link>
+          ))}
+
+          <span className="ms-auto hidden items-center gap-1.5 px-2 text-[10px] font-medium text-header-muted xl:flex">
+            <Menu className="size-3.5" />
+            {t({ ar: "خدمات العنوان", en: "Address services" })}
+          </span>
+        </div>
+      </nav>
     </header>
   );
 }
