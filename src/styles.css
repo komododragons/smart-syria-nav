@@ -61,6 +61,10 @@
   --color-chart-3: var(--allow);
   --color-chart-4: var(--muted-foreground);
   --color-chart-5: var(--prohibit);
+  --color-header: var(--header);
+  --color-header-subtle: var(--header-subtle);
+  --color-header-foreground: var(--header-foreground);
+  --color-header-muted: var(--header-muted);
 }
 
 :root {
@@ -94,6 +98,10 @@
   --shadow-plate: 0 1px 2px hsl(222 60% 15% / 0.05), 0 10px 28px -14px hsl(222 60% 15% / 0.18);
   --grid-line: hsl(222 60% 15% / 0.06);
   --grid-line-strong: hsl(222 60% 15% / 0.10);
+  --header: hsl(216 65% 11%);
+  --header-subtle: hsl(213 67% 18%);
+  --header-foreground: hsl(210 30% 97%);
+  --header-muted: hsl(211 35% 77%);
 }
 
 .dark {
@@ -123,6 +131,10 @@
   --ring: hsl(210 52% 60%);
   --grid-line: hsl(0 0% 100% / 0.06);
   --grid-line-strong: hsl(0 0% 100% / 0.1);
+  --header: hsl(216 65% 9%);
+  --header-subtle: hsl(213 60% 15%);
+  --header-foreground: hsl(210 30% 97%);
+  --header-muted: hsl(211 30% 72%);
 }
 
 @layer base {
