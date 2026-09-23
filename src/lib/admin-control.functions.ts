@@ -20,7 +20,7 @@ const filterSchema = z.object({
   to: z.string().max(10).default(""),
 });
 
-async function isAdmin(supa: any, userId: string) {
+export async function callerIsAdministrator(supa: { rpc: (name: string, args: Record<string, string>) => Promise<{ data: unknown }> }, userId: string) {
   const { data } = await supa.rpc("has_role", { _user_id: userId, _role: "admin" });
   return Boolean(data);
 }
@@ -36,7 +36,7 @@ export const adminControlCenter = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => filterSchema.parse(input ?? {}))
   .handler(async ({ data, context }) => {
-    if (!(await isAdmin(context.supabase, context.userId))) return { authorized: false as const };
+    if (!(await callerIsAdministrator(context.supabase, context.userId))) return { authorized: false as const };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as any;
     const count = async (table: string, apply: (q: any) => any = (q) => q) => {

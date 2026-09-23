@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import {
   Activity, AlertTriangle, BarChart3, BriefcaseBusiness, Building2, CheckCircle2, ClipboardCheck,
-  Database, FileClock, FileWarning, Gauge, Import, KeyRound, Landmark, MapPinned, Search, ShieldCheck,
+  Database, FileClock, FileWarning, Gauge, Import, MapPinned, Search, ShieldCheck,
   Users, type LucideIcon,
 } from "lucide-react";
 
@@ -59,6 +59,8 @@ export function AdminControlCenter() {
   const data = query.data?.authorized ? query.data : null;
   const selected = sections.find((item) => item.id === section) ?? sections[0]!;
   const update = (key: keyof Filters, value: string) => setFilters((current) => ({ ...current, [key]: value }));
+  const supportsPlace = section === "addresses" || section === "businesses" || section === "verification";
+  const supportsCategory = section === "addresses" || section === "businesses";
 
   if (query.data && !query.data.authorized) {
     return <div className="border border-destructive/40 bg-prohibit-surface p-6 text-sm font-bold text-prohibit">{t({ ar: "مركز التحكم متاح للمشرفين فقط.", en: "The control center is available to administrators only." })}</div>;
@@ -92,10 +94,10 @@ export function AdminControlCenter() {
         {section !== "overview" && section !== "health" ? (
           <section aria-label={t({ ar: "الفلاتر", en: "Filters" })} className="border border-border bg-surface p-3">
             <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-7">
-              <select aria-label={t({ ar: "المحافظة", en: "Governorate" })} value={filters.governorate} onChange={(e) => update("governorate", e.target.value)} className="h-10 border border-input bg-background px-2 text-xs"><option value="">{t({ ar: "كل المحافظات", en: "All governorates" })}</option>{GOVERNORATES.map((g) => <option key={g.code} value={g.ar}>{g.ar}</option>)}</select>
-              <input aria-label={t({ ar: "المدينة", en: "City" })} value={filters.city} onChange={(e) => update("city", e.target.value)} placeholder={t({ ar: "المدينة", en: "City" })} className="h-10 border border-input bg-background px-2 text-xs" />
-              <select aria-label={t({ ar: "التوثيق", en: "Verification" })} value={filters.verification} onChange={(e) => update("verification", e.target.value)} className="h-10 border border-input bg-background px-2 text-xs"><option value="">{t({ ar: "كل مستويات التوثيق", en: "All verification" })}</option><option value="unverified">{t({ ar: "غير موثق", en: "Unverified" })}</option><option value="user_confirmed">{t({ ar: "مؤكد من المستخدم", en: "User confirmed" })}</option><option value="officially_verified">{t({ ar: "موثق رسمياً", en: "Officially verified" })}</option></select>
-              <select aria-label={t({ ar: "التصنيف", en: "Category" })} value={filters.category} onChange={(e) => update("category", e.target.value)} className="h-10 border border-input bg-background px-2 text-xs"><option value="">{t({ ar: "كل التصنيفات", en: "All categories" })}</option>{PLACE_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{t({ ar: c.ar, en: c.en })}</option>)}</select>
+              {supportsPlace ? <select aria-label={t({ ar: "المحافظة", en: "Governorate" })} value={filters.governorate} onChange={(e) => update("governorate", e.target.value)} className="h-10 border border-input bg-background px-2 text-xs"><option value="">{t({ ar: "كل المحافظات", en: "All governorates" })}</option>{GOVERNORATES.map((g) => <option key={g.code} value={g.ar}>{g.ar}</option>)}</select> : null}
+              {supportsPlace ? <input aria-label={t({ ar: "المدينة", en: "City" })} value={filters.city} onChange={(e) => update("city", e.target.value)} placeholder={t({ ar: "المدينة", en: "City" })} className="h-10 border border-input bg-background px-2 text-xs" /> : null}
+              {supportsPlace ? <select aria-label={t({ ar: "التوثيق", en: "Verification" })} value={filters.verification} onChange={(e) => update("verification", e.target.value)} className="h-10 border border-input bg-background px-2 text-xs"><option value="">{t({ ar: "كل مستويات التوثيق", en: "All verification" })}</option><option value="unverified">{t({ ar: "غير موثق", en: "Unverified" })}</option><option value="user_confirmed">{t({ ar: "مؤكد من المستخدم", en: "User confirmed" })}</option><option value="officially_verified">{t({ ar: "موثق رسمياً", en: "Officially verified" })}</option></select> : null}
+              {supportsCategory ? <select aria-label={t({ ar: "التصنيف", en: "Category" })} value={filters.category} onChange={(e) => update("category", e.target.value)} className="h-10 border border-input bg-background px-2 text-xs"><option value="">{t({ ar: "كل التصنيفات", en: "All categories" })}</option>{PLACE_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{t({ ar: c.ar, en: c.en })}</option>)}</select> : null}
               <input aria-label={t({ ar: "الحالة", en: "Status" })} value={filters.status} onChange={(e) => update("status", e.target.value)} placeholder={t({ ar: "الحالة", en: "Status" })} className="h-10 border border-input bg-background px-2 text-xs" />
               <input aria-label={t({ ar: "من تاريخ", en: "From date" })} type="date" value={filters.from} onChange={(e) => update("from", e.target.value)} className="h-10 border border-input bg-background px-2 text-xs" />
               <input aria-label={t({ ar: "إلى تاريخ", en: "To date" })} type="date" value={filters.to} onChange={(e) => update("to", e.target.value)} className="h-10 border border-input bg-background px-2 text-xs" />

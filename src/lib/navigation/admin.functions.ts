@@ -53,6 +53,14 @@ export const reviewRouteReport = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertStaff(context);
     const resolved = data.status === "resolved" || data.status === "rejected";
+    const { error: auditError } = await context.supabase.from("audit_logs").insert({
+      actor_id: context.userId,
+      action: "route_report_reviewed",
+      resource_type: "route_report",
+      resource_id: data.id,
+      metadata: { status: data.status, has_notes: Boolean(data.notes) },
+    });
+    if (auditError) throw new Error(auditError.message);
     const { error } = await context.supabase
       .from("route_reports")
       .update({
@@ -63,14 +71,6 @@ export const reviewRouteReport = createServerFn({ method: "POST" })
       })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
-    const { error: auditError } = await context.supabase.from("audit_logs").insert({
-      actor_id: context.userId,
-      action: "route_report_reviewed",
-      resource_type: "route_report",
-      resource_id: data.id,
-      metadata: { status: data.status, has_notes: Boolean(data.notes) },
-    });
-    if (auditError) throw new Error(auditError.message);
     return { ok: true as const };
   });
 
