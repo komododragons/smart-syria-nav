@@ -55,7 +55,7 @@ export const listPublicPlaces = createServerFn({ method: "POST" })
     let bizQuery = supa
       .from("businesses")
       .select(
-        "id, name_ar, name_en, place_category, phone, opening_hours, verification_level, smart_addresses(code), location_nodes(node_type, governorate, city, neighborhood, street, landmark, latitude, longitude, visibility)",
+        "id, name_ar, name_en, place_category, phone, opening_hours, verification_level, smart_addresses(code, is_public, address_classification), location_nodes(node_type, governorate, city, neighborhood, street, landmark, latitude, longitude, visibility)",
       )
       .eq("is_published", true)
       .eq("is_archived", false)
@@ -67,7 +67,7 @@ export const listPublicPlaces = createServerFn({ method: "POST" })
     let siteQuery = supa
       .from("location_nodes")
       .select(
-        "id, display_name, node_type, place_category, governorate, city, neighborhood, street, landmark, latitude, longitude, verification_level, smart_addresses(code, is_public)",
+        "id, display_name, node_type, place_category, governorate, city, neighborhood, street, landmark, latitude, longitude, verification_level, smart_addresses(code, is_public, address_classification)",
       )
       .eq("visibility", "public")
       .eq("is_active", true)
@@ -87,9 +87,11 @@ export const listPublicPlaces = createServerFn({ method: "POST" })
     const places: PublicPlace[] = [];
 
     for (const biz of bizRes.data ?? []) {
+      const address = first(biz.smart_addresses as never) as { code: string; is_public: boolean; address_classification: string } | null;
       const node = first(biz.location_nodes as never) as
         | { node_type: string; governorate: string | null; city: string | null; neighborhood: string | null; street: string | null; landmark: string | null; latitude: number | null; longitude: number | null; visibility: string }
         | null;
+      if (!address?.is_public || address.address_classification === "private_residence") continue;
       if (node && (node.visibility !== "public" || RESIDENTIAL_NODE_TYPES.includes(node.node_type))) continue;
       if (data.governorate && node?.governorate !== data.governorate) continue;
       places.push({
@@ -97,7 +99,7 @@ export const listPublicPlaces = createServerFn({ method: "POST" })
         kind: "business",
         name: biz.name_ar,
         category: biz.place_category as string,
-        code: (first(biz.smart_addresses as never) as { code: string } | null)?.code ?? null,
+        code: address.code,
         governorate: node?.governorate ?? null,
         city: node?.city ?? null,
         neighborhood: node?.neighborhood ?? null,
@@ -114,13 +116,13 @@ export const listPublicPlaces = createServerFn({ method: "POST" })
     for (const site of siteRes.data ?? []) {
       if (RESIDENTIAL_NODE_TYPES.includes(site.node_type)) continue;
       if (data.governorate && site.governorate !== data.governorate) continue;
-      const codes = (site.smart_addresses ?? []) as { code: string; is_public: boolean }[];
+      const codes = (site.smart_addresses ?? []) as { code: string; is_public: boolean; address_classification: string }[];
       places.push({
         id: site.id,
         kind: "site",
         name: site.display_name,
         category: site.place_category as string,
-        code: codes.find((c) => c.is_public)?.code ?? null,
+        code: codes.find((c) => c.is_public && c.address_classification !== "private_residence")?.code ?? null,
         governorate: site.governorate,
         city: site.city,
         neighborhood: site.neighborhood,

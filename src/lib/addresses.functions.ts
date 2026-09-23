@@ -2,8 +2,16 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import {
+  ADDRESS_CLASSIFICATIONS,
+  COMMERCIAL_CLASSIFICATIONS,
+  commercialContentSignals,
+  isCommercialClassification,
+  isPublicClassification,
+} from "./address-classification";
 
 const purposeSchema = z.string().min(2).max(40);
+const addressClassificationSchema = z.enum(ADDRESS_CLASSIFICATIONS);
 
 export const resolveAddress = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
@@ -344,7 +352,7 @@ const wizardSchema = z.object({
     .nullable()
     .default(null),
   label: z.string().max(80).optional(),
-  is_public: z.boolean().default(false),
+  address_classification: addressClassificationSchema,
   business: z
     .object({
       name_ar: z.string().min(2).max(120),
@@ -366,6 +374,10 @@ export const createSmartAddress = createServerFn({ method: "POST" })
     const { generateSmartCode } = await import("./addresses.server");
     const supa = context.supabase;
     const userId = context.userId;
+    const isPublic = isPublicClassification(data.address_classification);
+    const isCommercial = isCommercialClassification(data.address_classification);
+    if (data.business && !isCommercial) throw new Error("business_data_requires_commercial_classification");
+    if (isCommercial && !data.business) throw new Error("commercial_classification_requires_business_name");
 
     // 1. Site / building node — reuse when the user picked an existing one.
     let siteId = data.site.existing_node_id;
@@ -385,7 +397,7 @@ export const createSmartAddress = createServerFn({ method: "POST" })
           neighborhood: data.site.neighborhood ?? null,
           street: data.site.street ?? null,
           landmark: data.site.landmark ?? null,
-          visibility: "public",
+          visibility: isPublic ? "public" : "private",
           verification_level: "user_confirmed",
           confidence_score: 60,
           created_by: userId,
@@ -450,7 +462,7 @@ export const createSmartAddress = createServerFn({ method: "POST" })
           longitude: data.site.longitude,
           governorate: data.site.governorate,
           city: data.site.city ?? null,
-          visibility: data.is_public ? "public" : "private",
+          visibility: isPublic ? "public" : "private",
           created_by: userId,
         })
         .select("id")
@@ -472,7 +484,7 @@ export const createSmartAddress = createServerFn({ method: "POST" })
           longitude: data.site.longitude,
           governorate: data.site.governorate,
           city: data.site.city ?? null,
-          visibility: data.is_public ? "public" : "private",
+          visibility: isPublic ? "public" : "private",
           created_by: userId,
         })
         .select("id")
@@ -490,7 +502,9 @@ export const createSmartAddress = createServerFn({ method: "POST" })
         node_id: targetNodeId,
         default_access_point_id: accessPointId,
         label: data.label ?? data.site.display_name,
-        is_public: data.is_public,
+        is_public: isPublic,
+        address_classification: data.address_classification,
+        classification_status: "confirmed",
         created_by: userId,
       })
       .select("id, code")
@@ -498,7 +512,7 @@ export const createSmartAddress = createServerFn({ method: "POST" })
     if (codeError) throw new Error(codeError.message);
 
     if (data.business) {
-      await supa.from("businesses").insert({
+      const { error: businessError } = await supa.from("businesses").insert({
         name_ar: data.business.name_ar,
         name_en: data.business.name_en ?? null,
         category: data.business.category ?? null,
@@ -513,6 +527,22 @@ export const createSmartAddress = createServerFn({ method: "POST" })
         owner_id: userId,
         is_published: true,
       });
+      if (businessError) throw new Error(businessError.message);
+    }
+
+    if (data.address_classification === "private_residence") {
+      const reasons = commercialContentSignals({ name: data.site.display_name });
+      if (reasons.length) {
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        await supabaseAdmin.from("commercial_address_reviews").upsert({
+          smart_address_id: smart.id,
+          owner_id: userId,
+          reasons,
+          score: Math.min(100, reasons.length * 25),
+          evidence: { source: "address_creation", signal_count: reasons.length },
+          status: "open",
+        }, { onConflict: "smart_address_id", ignoreDuplicates: true });
+      }
     }
 
     await supa.from("audit_logs").insert({
@@ -520,7 +550,7 @@ export const createSmartAddress = createServerFn({ method: "POST" })
       action: "address_created",
       resource_type: "smart_address",
       resource_id: smart.id,
-      metadata: { code: smart.code, intent: data.intent, is_public: data.is_public },
+      metadata: { code: smart.code, intent: data.intent, address_classification: data.address_classification, is_public: isPublic },
     });
 
     return { code: smart.code, smart_address_id: smart.id, node_id: targetNodeId };
@@ -532,7 +562,7 @@ export const listMyAddresses = createServerFn({ method: "POST" })
     const { data, error } = await context.supabase
       .from("smart_addresses")
       .select(
-        "id, code, label, is_public, status, created_at, location_nodes(id, display_name, node_type, unit_label, floor_label, neighborhood, city, governorate, street, landmark, public_notes, visibility, latitude, longitude, confidence_score, verification_level, building_number, parking_info, loading_info, wheelchair_accessible, has_elevator), access_points(id, display_name, instructions_ar, access_type, latitude, longitude, parking_info, loading_info)",
+        "id, code, label, is_public, status, address_classification, classification_status, created_at, location_nodes(id, display_name, node_type, unit_label, floor_label, neighborhood, city, governorate, street, landmark, public_notes, visibility, latitude, longitude, confidence_score, verification_level, building_number, parking_info, loading_info, wheelchair_accessible, has_elevator), access_points(id, display_name, instructions_ar, access_type, latitude, longitude, parking_info, loading_info), commercial_address_reviews(id, reasons, score, status, owner_response, created_at)",
       )
       .order("created_at", { ascending: false })
       .limit(100);
@@ -550,7 +580,7 @@ export const updateMyAddress = createServerFn({ method: "POST" })
         node_id: z.string().uuid(),
         access_point_id: z.string().uuid().nullable().optional(),
         label: z.string().max(120).nullable().optional(),
-        is_public: z.boolean(),
+        address_classification: addressClassificationSchema,
         display_name: z.string().min(2).max(160),
         neighborhood: z.string().max(120).nullable().optional(),
         street: z.string().max(160).nullable().optional(),
@@ -571,10 +601,21 @@ export const updateMyAddress = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
+    const isPublic = isPublicClassification(data.address_classification);
+    const commercialClassification = isCommercialClassification(data.address_classification);
+    if (commercialClassification) {
+      const { data: business } = await context.supabase.from("businesses").select("id").eq("smart_address_id", data.smart_address_id).maybeSingle();
+      if (!business) throw new Error("convert_to_business_required");
+    }
     // Ownership enforced by RLS: updates only land when created_by = auth.uid().
     const { data: addr, error: addrErr } = await context.supabase
       .from("smart_addresses")
-      .update({ label: data.label ?? null, is_public: data.is_public })
+      .update({
+        label: data.label ?? null,
+        is_public: isPublic,
+        address_classification: data.address_classification,
+        classification_status: "confirmed",
+      })
       .eq("id", data.smart_address_id)
       .select("id")
       .maybeSingle();
@@ -596,6 +637,7 @@ export const updateMyAddress = createServerFn({ method: "POST" })
         loading_info: data.loading_info ?? null,
         wheelchair_accessible: data.wheelchair_accessible ?? null,
         has_elevator: data.has_elevator ?? null,
+        visibility: isPublic ? "public" : "private",
       })
       .eq("id", data.node_id);
     if (nodeErr) throw new Error(nodeErr.message);
@@ -614,14 +656,97 @@ export const updateMyAddress = createServerFn({ method: "POST" })
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (data.address_classification === "private_residence") {
+      const reasons = commercialContentSignals({ name: data.display_name });
+      if (reasons.length) {
+        await supabaseAdmin.from("commercial_address_reviews").upsert({
+          smart_address_id: data.smart_address_id,
+          owner_id: context.userId,
+          reasons,
+          score: Math.min(100, reasons.length * 25),
+          evidence: { source: "owner_edit", signal_count: reasons.length },
+          status: "open",
+        }, { onConflict: "smart_address_id", ignoreDuplicates: true });
+      }
+    }
     await supabaseAdmin.from("audit_logs").insert({
       actor_id: context.userId,
       action: "address_updated",
       resource_type: "smart_address",
       resource_id: data.smart_address_id,
-      metadata: { node_id: data.node_id },
+       metadata: { node_id: data.node_id, address_classification: data.address_classification, is_public: isPublic },
     });
 
+    return { ok: true as const };
+  });
+
+export const convertMyAddressToBusiness = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({
+      smart_address_id: z.string().uuid(),
+      classification: addressClassificationSchema.refine(isCommercialClassification),
+      name_ar: z.string().min(2).max(120),
+      category: z.string().max(80).optional(),
+      phone: z.string().max(40).optional(),
+      website: z.string().url().max(160).optional(),
+      opening_hours: z.string().max(160).optional(),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: address, error } = await context.supabase
+      .from("smart_addresses")
+      .select("id, node_id, default_access_point_id")
+      .eq("id", data.smart_address_id)
+      .eq("created_by", context.userId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!address) throw new Error("not_found_or_forbidden");
+
+    const { data: existing } = await context.supabase
+      .from("businesses")
+      .select("id")
+      .eq("smart_address_id", address.id)
+      .maybeSingle();
+    if (!existing) {
+      const { error: businessError } = await context.supabase.from("businesses").insert({
+        name_ar: data.name_ar,
+        category: data.category ?? null,
+        phone: data.phone ?? null,
+        website: data.website ?? null,
+        opening_hours: data.opening_hours ?? null,
+        node_id: address.node_id,
+        smart_address_id: address.id,
+        visitor_access_point_id: address.default_access_point_id,
+        delivery_access_point_id: address.default_access_point_id,
+        owner_id: context.userId,
+        is_published: true,
+      });
+      if (businessError) throw new Error(businessError.message);
+    }
+
+    const { error: updateError } = await context.supabase.from("smart_addresses").update({
+      address_classification: data.classification,
+      classification_status: "confirmed",
+      is_public: true,
+    }).eq("id", address.id);
+    if (updateError) throw new Error(updateError.message);
+    await context.supabase.from("location_nodes").update({ visibility: "public" }).eq("id", address.node_id);
+    await context.supabase.from("commercial_address_reviews").update({ status: "converted", owner_response: "converted_to_business" }).eq("smart_address_id", address.id).in("status", ["open", "owner_confirmed_private", "conversion_requested"]);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("audit_logs").insert({ actor_id: context.userId, action: "address_converted_to_business", resource_type: "smart_address", resource_id: address.id, metadata: { classification: data.classification } });
+    return { ok: true as const };
+  });
+
+export const respondToCommercialReview = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ review_id: z.string().uuid(), response: z.enum(["owner_confirmed_private", "conversion_requested"]), note: z.string().max(1000).optional() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: row, error } = await context.supabase.from("commercial_address_reviews").update({ status: data.response, owner_response: data.note ?? data.response }).eq("id", data.review_id).eq("owner_id", context.userId).select("smart_address_id").maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!row) throw new Error("not_found_or_forbidden");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("audit_logs").insert({ actor_id: context.userId, action: "commercial_review_owner_response", resource_type: "smart_address", resource_id: row.smart_address_id, metadata: { response: data.response } });
     return { ok: true as const };
   });
 

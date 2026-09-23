@@ -189,7 +189,7 @@ export const orgLocations = createServerFn({ method: "POST" })
     let query = context.supabase
       .from("businesses")
       .select(
-        "id, name_ar, name_en, branch_label, category, place_category, phone, website, opening_hours, logo_url, verification_level, is_published, is_archived, node_id, smart_address_id, visitor_access_point_id, created_at, smart_addresses(code), location_nodes(id, display_name, governorate, city, district, neighborhood, street, landmark, building_number, latitude, longitude, confidence_score, verification_level, last_verified_at)",
+        "id, name_ar, name_en, branch_label, category, place_category, phone, website, opening_hours, logo_url, verification_level, is_published, is_archived, node_id, smart_address_id, visitor_access_point_id, created_at, smart_addresses(code, address_classification), location_nodes(id, display_name, governorate, city, district, neighborhood, street, landmark, building_number, latitude, longitude, confidence_score, verification_level, last_verified_at)",
       )
       .eq("organization_id", data.organization_id)
       .order("created_at", { ascending: false })
@@ -204,6 +204,7 @@ export const orgLocations = createServerFn({ method: "POST" })
         ...row,
         smart_code:
           (Array.isArray(row.smart_addresses) ? row.smart_addresses[0] : row.smart_addresses)?.code ?? null,
+        smart_address: Array.isArray(row.smart_addresses) ? row.smart_addresses[0] : row.smart_addresses,
         node: Array.isArray(row.location_nodes) ? row.location_nodes[0] : row.location_nodes,
       })),
     };
@@ -235,6 +236,7 @@ const locationSchema = z.object({
   entrance_name: z.string().max(160).nullable().optional(),
   entrance_instructions: z.string().max(500).nullable().optional(),
   is_published: z.boolean().default(true),
+  address_classification: z.enum(["business_shop", "office", "government_institution", "healthcare_facility", "hotel_accommodation", "warehouse_industrial"]).default("business_shop"),
 });
 
 export const createOrgLocation = createServerFn({ method: "POST" })
@@ -305,6 +307,8 @@ export const createOrgLocation = createServerFn({ method: "POST" })
         default_access_point_id: accessPointId,
         label: data.branch_label ?? data.name_ar,
         is_public: true,
+        address_classification: data.address_classification,
+        classification_status: "confirmed",
         created_by: context.userId,
       })
       .select("id, code")
@@ -397,12 +401,26 @@ export const updateOrgLocation = createServerFn({ method: "POST" })
       .eq("id", data.node_id);
     if (nodeErr) throw new Error(nodeErr.message);
 
+    const { data: businessAddress, error: businessAddressErr } = await supa
+      .from("businesses")
+      .select("smart_address_id")
+      .eq("id", data.business_id)
+      .eq("organization_id", data.organization_id)
+      .maybeSingle();
+    if (businessAddressErr) throw new Error(businessAddressErr.message);
+    if (!businessAddress?.smart_address_id) throw new Error("business_address_not_found");
+    const { error: smartErr } = await supa
+      .from("smart_addresses")
+      .update({ address_classification: data.address_classification, classification_status: "confirmed", is_public: true })
+      .eq("id", businessAddress.smart_address_id);
+    if (smartErr) throw new Error(smartErr.message);
+
     await supa.from("audit_logs").insert({
       actor_id: context.userId,
       action: "org_location_updated",
       resource_type: "business",
       resource_id: data.business_id,
-      metadata: { organization_id: data.organization_id },
+      metadata: { organization_id: data.organization_id, address_classification: data.address_classification },
     });
     return { ok: true as const };
   });

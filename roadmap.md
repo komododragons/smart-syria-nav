@@ -162,3 +162,8 @@ PHASE 31 — TESTING — IN PROGRESS (24 unit/security/API checks and 6 mobile/d
 PHASE 32 — ADMIN CONTROL CENTER — DONE (unified admin-only control center with 14 sections; shared governorate/city/verification/category/date/status filters; operational metrics, queues, API usage, organizations/users, privacy-safe analytics, security audit activity, and system-health signals; existing specialized workspaces linked; route-report moderation now audit-logged.)
 
 PHASE 33 — FUTURE-READY INTEGRATION LAYER — DONE (additive integration sector + event schema; provider-neutral adapter/capability registry for 13 sectors; backwards-compatible v1 capabilities and idempotent lifecycle event endpoints; correlation IDs; public-address-only enforcement; signed destination/correction webhook event types; external-app, repeat-use, API-resolution, successful-correction and north-star arrival analytics; developer sector selection and bilingual API documentation; no fake connectors, credentials or production data.)
+- [x] Add canonical address classifications and commercial review schema
+- [x] Enforce classification and privacy in create/edit flows
+- [x] Add owner conversion and admin review workflows
+- [x] Align free business foundation and paid professional features
+- [x] Add tests and verify critical journeys

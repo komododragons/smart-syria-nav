@@ -23,6 +23,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { createSmartAddress, nearbySites } from "@/lib/addresses.functions";
 import { useI18n } from "@/lib/i18n";
 import {
+  ADDRESS_CLASSIFICATION_LABELS,
+  isCommercialClassification,
+  isPublicClassification,
+  type AddressClassification,
+} from "@/lib/address-classification";
+import {
   ACCESSIBILITY_LABELS,
   ACCESS_TYPES,
   GOVERNORATES,
@@ -52,15 +58,15 @@ export const Route = createFileRoute("/create")({
 
 type Intent = "home" | "business" | "office" | "shop" | "building" | "warehouse" | "farm" | "other";
 
-const INTENTS: { value: Intent; ar: string; en: string; node_type: string; is_public: boolean }[] = [
-  { value: "home", ar: "منزلي / شقتي", en: "Home / apartment", node_type: "building", is_public: false },
-  { value: "shop", ar: "متجر أو صيدلية", en: "Shop or pharmacy", node_type: "building", is_public: true },
-  { value: "business", ar: "منشأة أو عيادة", en: "Business or clinic", node_type: "building", is_public: true },
-  { value: "office", ar: "مكتب في مبنى", en: "Office in a building", node_type: "building", is_public: true },
-  { value: "building", ar: "مبنى كامل", en: "Entire building", node_type: "building", is_public: true },
-  { value: "warehouse", ar: "مستودع أو مصنع", en: "Warehouse or factory", node_type: "warehouse", is_public: true },
-  { value: "farm", ar: "مزرعة أو أرض", en: "Farm or land", node_type: "farm", is_public: true },
-  { value: "other", ar: "غير ذلك", en: "Something else", node_type: "property", is_public: false },
+const INTENTS: { value: AddressClassification; intent: Intent; node_type: string }[] = [
+  { value: "private_residence", intent: "home", node_type: "building" },
+  { value: "business_shop", intent: "shop", node_type: "building" },
+  { value: "office", intent: "office", node_type: "building" },
+  { value: "government_institution", intent: "business", node_type: "building" },
+  { value: "healthcare_facility", intent: "business", node_type: "clinic" },
+  { value: "hotel_accommodation", intent: "business", node_type: "building" },
+  { value: "building_residential_complex", intent: "building", node_type: "building" },
+  { value: "warehouse_industrial", intent: "warehouse", node_type: "warehouse" },
 ];
 
 const STEPS: { ar: string; en: string }[] = [
@@ -130,7 +136,7 @@ function CreatePage() {
   const [createdCode, setCreatedCode] = useState<string | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
   const [step, setStep] = useState(0);
-  const [intent, setIntent] = useState<Intent>("home");
+  const [classification, setClassification] = useState<AddressClassification>("private_residence");
   const [coords, setCoords] = useState({ latitude: 33.5138, longitude: 36.2765 });
   const [governorateCode, setGovernorateCode] = useState("DAM");
   const [siteName, setSiteName] = useState("");
@@ -158,20 +164,16 @@ function CreatePage() {
   const [unitLabel, setUnitLabel] = useState("");
   const [unitNote, setUnitNote] = useState("");
 
-  const [isPublic, setIsPublic] = useState(false);
   const [businessName, setBusinessName] = useState("");
   const [businessCategory, setBusinessCategory] = useState("");
   const [businessPlaceCategory, setBusinessPlaceCategory] = useState("");
   const [businessPhone, setBusinessPhone] = useState("");
+  const [businessWebsite, setBusinessWebsite] = useState("");
+  const [businessHours, setBusinessHours] = useState("");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setAuthed(Boolean(data.session)));
   }, []);
-
-  useEffect(() => {
-    const preset = INTENTS.find((i) => i.value === intent);
-    if (preset) setIsPublic(preset.is_public);
-  }, [intent]);
 
   useEffect(() => {
     nearby({ data: { latitude: coords.latitude, longitude: coords.longitude, radius: 200 } })
@@ -183,10 +185,13 @@ function CreatePage() {
   const mutation = useMutation({
     mutationFn: () => {
       const gov = GOVERNORATES.find((g) => g.code === governorateCode)!;
-      const preset = INTENTS.find((i) => i.value === intent)!;
+      const preset = INTENTS.find((i) => i.value === classification) ?? INTENTS[0];
+      if (!preset) throw new Error("classification_required");
+      const commercial = isCommercialClassification(classification);
       return create({
         data: {
-          intent,
+          intent: preset.intent,
+          address_classification: classification,
           site: {
             existing_node_id: existingNodeId,
             node_type: preset.node_type,
@@ -220,19 +225,20 @@ function CreatePage() {
           floor: floorLabel ? { label: floorLabel, order: Number(floorLabel) || 0 } : null,
           unit: unitLabel
             ? {
-                node_type: intent === "home" ? "apartment" : "unit",
+                node_type: classification === "private_residence" ? "apartment" : "unit",
                 label: unitLabel,
                 description: unitNote || undefined,
               }
             : null,
-          is_public: isPublic,
           business:
-            isPublic && businessName
+            commercial && businessName
               ? {
                   name_ar: businessName,
                   category: businessCategory || undefined,
                   place_category: businessPlaceCategory || undefined,
                   phone: businessPhone || undefined,
+                  website: businessWebsite || undefined,
+                  opening_hours: businessHours || undefined,
                 }
               : null,
         },
@@ -408,15 +414,15 @@ function CreatePage() {
                 <button
                   key={item.value}
                   type="button"
-                  onClick={() => setIntent(item.value)}
-                  aria-pressed={intent === item.value}
+                  onClick={() => setClassification(item.value)}
+                  aria-pressed={classification === item.value}
                   className={`rounded-xl border p-4 text-start text-sm font-bold transition-colors ${
-                    intent === item.value
+                    classification === item.value
                       ? "border-primary bg-primary/5 text-foreground"
                       : "border-border bg-surface text-muted-foreground"
                   }`}
                 >
-                  {t({ ar: item.ar, en: item.en })}
+                  {t(ADDRESS_CLASSIFICATION_LABELS[item.value])}
                 </button>
               ))}
             </div>
@@ -741,45 +747,19 @@ function CreatePage() {
         {step === 4 ? (
           <section className="animate-entrance space-y-3">
             <h1 className="text-lg font-bold">{t({ ar: "الخصوصية والنشر", en: "Privacy & publishing" })}</h1>
-            <div className="space-y-2">
-              <button
-                type="button"
-                onClick={() => setIsPublic(false)}
-                aria-pressed={!isPublic}
-                className={`w-full rounded-xl border p-4 text-start ${
-                  !isPublic ? "border-primary bg-primary/5" : "border-border bg-surface"
-                }`}
-              >
-                <p className="text-sm font-bold">{t({ ar: "خاص (موصى به للسكني)", en: "Private (recommended for homes)" })}</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {t({
-                    ar: "لا يظهر في البحث ولا يُحلّ عبر الـ API العام. تشارك الوصول عبر عنوان مؤقت ينتهي تلقائياً.",
-                    en: "Won't appear in search or resolve through the public API. Share access with a temporary address that expires automatically.",
-                  })}
-                </p>
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsPublic(true)}
-                aria-pressed={isPublic}
-                className={`w-full rounded-xl border p-4 text-start ${
-                  isPublic ? "border-primary bg-primary/5" : "border-border bg-surface"
-                }`}
-              >
-                <p className="text-sm font-bold">{t({ ar: "عام", en: "Public" })}</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {t({
-                    ar: "مناسب للأعمال والمرافق: يظهر في البحث ويُحلّ للجميع حسب الغرض.",
-                    en: "Suited to businesses and facilities: appears in search and resolves for everyone, per purpose.",
-                  })}
-                </p>
-              </button>
+            <div className="rounded-xl border border-border bg-surface p-4">
+              <p className="text-sm font-bold">{t(ADDRESS_CLASSIFICATION_LABELS[classification])}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {isPublicClassification(classification)
+                  ? t({ ar: "هذا النوع جزء من دليل المواقع العام ويمكن الوصول إليه بالبحث والرمز.", en: "This classification belongs to the public location directory and can be found by search or code." })
+                  : t({ ar: "السكن خاص دائماً: لا يظهر في البحث، وتتم مشاركته بالرمز الخاص أو رابط مؤقت.", en: "A residence is always private: it stays out of search and is shared by private code or temporary link." })}
+              </p>
             </div>
 
-            {isPublic ? (
+            {isCommercialClassification(classification) ? (
               <div className="grid gap-2 rounded-xl border border-border bg-surface p-3">
                 <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-                  {t({ ar: "بطاقة العمل (اختياري)", en: "Business card (optional)" })}
+                  {t({ ar: "بيانات الموقع التجاري الأساسية — مجانية", en: "Basic business listing — free" })}
                 </p>
                 <input
                   aria-label={t({ ar: "اسم النشاط", en: "Business name" })}
@@ -788,6 +768,8 @@ function CreatePage() {
                   placeholder={t({ ar: "اسم النشاط", en: "Business name" })}
                   className="rounded-lg border border-border bg-background px-3 py-2.5 text-sm"
                 />
+                <input aria-label={t({ ar: "الموقع الإلكتروني", en: "Website" })} value={businessWebsite} dir="ltr" onChange={(event) => setBusinessWebsite(event.target.value)} placeholder="https://…" className="rounded-lg border border-border bg-background px-3 py-2.5 text-sm" />
+                <input aria-label={t({ ar: "ساعات العمل", en: "Opening hours" })} value={businessHours} onChange={(event) => setBusinessHours(event.target.value)} placeholder={t({ ar: "ساعات العمل", en: "Opening hours" })} className="rounded-lg border border-border bg-background px-3 py-2.5 text-sm" />
                 <input
                   aria-label={t({ ar: "تصنيف النشاط", en: "Business category" })}
                   value={businessCategory}
@@ -851,7 +833,7 @@ function CreatePage() {
           ) : (
             <button
               type="button"
-              disabled={mutation.isPending}
+              disabled={mutation.isPending || (isCommercialClassification(classification) && businessName.trim().length < 2)}
               onClick={() => mutation.mutate()}
               className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground disabled:opacity-60"
             >

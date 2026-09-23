@@ -25,6 +25,18 @@ export async function callerIsAdministrator(supa: any, userId: string) {
   return Boolean(data);
 }
 
+export const reviewCommercialAddress = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ review_id: z.string().uuid(), decision: z.enum(["dismissed", "conversion_requested"]), note: z.string().max(1000).optional() }).parse(input))
+  .handler(async ({ data, context }) => {
+    if (!(await callerIsAdministrator(context.supabase, context.userId))) throw new Error("forbidden");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row, error } = await supabaseAdmin.from("commercial_address_reviews").update({ status: data.decision, decision_note: data.note ?? null, reviewed_by: context.userId, reviewed_at: new Date().toISOString() }).eq("id", data.review_id).select("smart_address_id").single();
+    if (error) throw new Error(error.message);
+    await supabaseAdmin.from("audit_logs").insert({ actor_id: context.userId, action: "commercial_address_reviewed", resource_type: "smart_address", resource_id: row.smart_address_id, metadata: { decision: data.decision } });
+    return { ok: true as const };
+  });
+
 function dates(query: any, filters: z.infer<typeof filterSchema>) {
   let next = query;
   if (filters.from) next = next.gte("created_at", `${filters.from}T00:00:00.000Z`);
@@ -60,7 +72,12 @@ export const adminControlCenter = createServerFn({ method: "POST" })
     let rows: any[] = [];
     switch (data.section) {
       case "addresses": {
-        let q = db.from("smart_addresses").select("id, code, status, is_public, created_at, location_nodes(display_name, node_type, governorate, city, verification_level, place_category)").order("created_at", { ascending: false }).limit(100);
+        if (data.status === "commercial_review") {
+          const reviewResult = await db.from("commercial_address_reviews").select("id, smart_address_id, reasons, score, status, owner_response, reviewed_at, created_at, smart_addresses(code, address_classification, location_nodes(display_name, governorate, city))").in("status", ["open", "owner_confirmed_private", "conversion_requested"]).order("score", { ascending: false }).limit(100);
+          rows = reviewResult.data ?? [];
+          break;
+        }
+        let q = db.from("smart_addresses").select("id, code, status, is_public, address_classification, classification_status, created_at, location_nodes(display_name, node_type, governorate, city, verification_level, place_category)").order("created_at", { ascending: false }).limit(100);
         q = dates(q, data);
         if (data.status) q = q.eq("status", data.status);
         const result = await q;
