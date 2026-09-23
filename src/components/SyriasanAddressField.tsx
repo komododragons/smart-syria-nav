@@ -10,7 +10,7 @@
  * Private unit information is never revealed unless the owner shared it through
  * a temporary link.
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useId, useState } from "react";
 import { AlertCircle, CheckCircle2, Loader2, MapPin, Search, ShieldCheck } from "lucide-react";
 
 export type CheckoutAddressPayload = {
@@ -156,6 +156,9 @@ export function SyriasanAddressField({
   const [error, setError] = useState<string | null>(null);
   const [resolved, setResolved] = useState<CheckoutAddressPayload | null>(null);
   const [confirmed, setConfirmed] = useState(false);
+  const fieldId = useId();
+  const hintId = `${fieldId}-hint`;
+  const statusId = `${fieldId}-status`;
 
   const lookup = useCallback(
     async (raw?: string) => {
@@ -199,17 +202,19 @@ export function SyriasanAddressField({
 
   return (
     <div dir={dir} className={`w-full rounded-2xl border border-border bg-surface p-4 shadow-sm ${align}`}>
-      <h3 className="flex items-center gap-2 text-sm font-bold">
+      <label htmlFor={fieldId} className="flex items-center gap-2 text-sm font-bold">
         <MapPin className="size-4 text-primary" /> {title ?? t.title}
-      </h3>
-      {!compact ? <p className="mt-1 text-xs text-muted-foreground">{t.hint}</p> : null}
+      </label>
+      {!compact ? <p id={hintId} className="mt-1 text-xs text-muted-foreground">{t.hint}</p> : null}
 
       <div className="mt-3 flex gap-2">
         <input
+          id={fieldId}
           dir="ltr"
           value={value}
           placeholder="SY-DAM-K7X4"
-          aria-label={title ?? t.title}
+          aria-describedby={[!compact ? hintId : null, error || busy ? statusId : null].filter(Boolean).join(" ") || undefined}
+          aria-invalid={Boolean(error)}
           onChange={(e) => {
             setValue(e.target.value.toUpperCase());
             if (confirmed) {
@@ -238,14 +243,16 @@ export function SyriasanAddressField({
       </div>
 
       {error ? (
-        <p className="mt-3 flex items-start gap-1.5 rounded-lg bg-destructive/10 p-2 text-xs text-destructive">
+        <p id={statusId} role="alert" className="mt-3 flex items-start gap-1.5 rounded-lg bg-destructive/10 p-2 text-xs text-destructive">
           <AlertCircle className="mt-0.5 size-3.5 shrink-0" /> {error}
         </p>
       ) : null}
 
+      {busy ? <p id={statusId} role="status" aria-live="polite" className="sr-only">{t.check}</p> : null}
+
       {resolved ? (
         <div className="mt-3 rounded-xl border border-border bg-background p-3">
-          <p className="flex items-center gap-1.5 text-xs font-bold text-success">
+          <p role="status" aria-live="polite" className="flex items-center gap-1.5 text-xs font-bold text-success">
             <CheckCircle2 className="size-3.5" /> {t.found}
           </p>
           <p className="mt-1 text-sm font-bold">{resolved.summary}</p>

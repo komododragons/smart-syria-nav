@@ -150,8 +150,8 @@
   }
 
   :where(a, button, input, select, textarea, [tabindex]):focus-visible {
-    outline: 3px solid var(--color-ring);
-    outline-offset: 3px;
+    outline: 3px solid var(--color-ring) !important;
+    outline-offset: 3px !important;
   }
 }
 
