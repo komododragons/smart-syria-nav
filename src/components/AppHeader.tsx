@@ -64,7 +64,7 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-header-foreground/10 bg-header text-header-foreground shadow-sm">
       <div className="mx-auto grid min-h-14 max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5">
-        <Link to="/" className="flex min-w-0 flex-col leading-none">
+        <Link to="/" aria-label={t({ ar: "سرياسان — الصفحة الرئيسية", en: "Syriasan — home" })} className="flex min-w-0 flex-col leading-none">
           <span className="truncate text-lg font-bold">{t({ ar: "سرياسان", en: "Syriasan" })}</span>
           <span className="mt-1 truncate text-[10px] font-medium text-header-muted">
             {t({ ar: "شبكة العنوان الذكي السورية", en: "Syrian Smart Address Network" })}

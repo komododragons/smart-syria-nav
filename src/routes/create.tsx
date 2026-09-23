@@ -376,10 +376,10 @@ function CreatePage() {
     <div className="min-h-screen bg-background pb-28 text-foreground">
       <AppHeader />
 
-      <div className="border-b border-border bg-surface/70 px-4 py-3">
-        <div className="mx-auto flex max-w-3xl items-center gap-1.5">
+      <nav aria-label={t({ ar: "خطوات إنشاء العنوان", en: "Address creation steps" })} className="border-b border-border bg-surface/70 px-4 py-3">
+        <ol className="mx-auto flex max-w-3xl items-center gap-1.5">
           {STEPS.map((label, index) => (
-            <div key={label.ar} className="flex flex-1 flex-col gap-1">
+            <li key={label.ar} aria-current={index === step ? "step" : undefined} className="flex flex-1 flex-col gap-1">
               <span
                 className={`h-1 rounded-full ${index <= step ? "bg-primary" : "bg-border"}`}
               />
@@ -388,10 +388,10 @@ function CreatePage() {
               >
                 {t(label)}
               </span>
-            </div>
+            </li>
           ))}
-        </div>
-      </div>
+        </ol>
+      </nav>
 
       <main className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-6">
         {step === 0 ? (
@@ -409,6 +409,7 @@ function CreatePage() {
                   key={item.value}
                   type="button"
                   onClick={() => setIntent(item.value)}
+                  aria-pressed={intent === item.value}
                   className={`rounded-xl border p-4 text-start text-sm font-bold transition-colors ${
                     intent === item.value
                       ? "border-primary bg-primary/5 text-foreground"
@@ -483,6 +484,7 @@ function CreatePage() {
 
             <div className="grid gap-2">
               <select
+                aria-label={t({ ar: "المحافظة", en: "Governorate" })}
                 value={governorateCode}
                 onChange={(event) => setGovernorateCode(event.target.value)}
                 className="rounded-lg border border-border bg-surface px-3 py-2.5 text-sm"
@@ -494,24 +496,28 @@ function CreatePage() {
                 ))}
               </select>
               <input
+                aria-label={t({ ar: "اسم المبنى أو الموقع", en: "Building or site name" })}
                 value={siteName}
                 onChange={(event) => setSiteName(event.target.value)}
                 placeholder={t({ ar: "اسم المبنى أو الموقع", en: "Building or site name" })}
                 className="rounded-lg border border-border bg-surface px-3 py-2.5 text-sm"
               />
               <input
+                aria-label={t({ ar: "الحي", en: "Neighborhood" })}
                 value={neighborhood}
                 onChange={(event) => setNeighborhood(event.target.value)}
                 placeholder={t({ ar: "الحي", en: "Neighborhood" })}
                 className="rounded-lg border border-border bg-surface px-3 py-2.5 text-sm"
               />
               <input
+                aria-label={t({ ar: "الشارع", en: "Street" })}
                 value={street}
                 onChange={(event) => setStreet(event.target.value)}
                 placeholder={t({ ar: "الشارع", en: "Street" })}
                 className="rounded-lg border border-border bg-surface px-3 py-2.5 text-sm"
               />
               <input
+                aria-label={t({ ar: "معلم قريب", en: "Nearby landmark" })}
                 value={landmark}
                 onChange={(event) => setLandmark(event.target.value)}
                 placeholder={t({
@@ -541,6 +547,7 @@ function CreatePage() {
               <>
                 <div className="grid gap-2">
                   <select
+                    aria-label={t({ ar: "نوع المدخل", en: "Entrance type" })}
                     value={accessType}
                     onChange={(event) => setAccessType(event.target.value)}
                     className="rounded-lg border border-border bg-surface px-3 py-2.5 text-sm"
@@ -552,6 +559,7 @@ function CreatePage() {
                     ))}
                   </select>
                   <input
+                    aria-label={t({ ar: "اسم المدخل", en: "Entrance name" })}
                     value={entranceName}
                     onChange={(event) => setEntranceName(event.target.value)}
                     placeholder={t({
@@ -561,6 +569,7 @@ function CreatePage() {
                     className="rounded-lg border border-border bg-surface px-3 py-2.5 text-sm"
                   />
                   <textarea
+                    aria-label={t({ ar: "تعليمات الوصول", en: "Access instructions" })}
                     value={instructions}
                     onChange={(event) => setInstructions(event.target.value)}
                     rows={3}
@@ -582,6 +591,7 @@ function CreatePage() {
                         key={purpose.value}
                         type="button"
                         onClick={() => toggle(allowed, setAllowed, purpose.value)}
+                        aria-pressed={allowed.includes(purpose.value)}
                         className={`rounded-full px-3 py-1 text-xs font-medium ${
                           allowed.includes(purpose.value)
                             ? "bg-allow-surface text-allow"
@@ -601,6 +611,7 @@ function CreatePage() {
                         key={purpose.value}
                         type="button"
                         onClick={() => toggle(prohibited, setProhibited, purpose.value)}
+                        aria-pressed={prohibited.includes(purpose.value)}
                         className={`rounded-full px-3 py-1 text-xs font-medium ${
                           prohibited.includes(purpose.value)
                             ? "bg-prohibit-surface text-prohibit"
@@ -623,6 +634,7 @@ function CreatePage() {
                         key={value}
                         type="button"
                         onClick={() => toggle(restrictions, setRestrictions, value)}
+                        aria-pressed={restrictions.includes(value)}
                         className={`rounded-full px-3 py-1 text-xs ${
                           restrictions.includes(value)
                             ? "bg-foreground text-background"
@@ -642,6 +654,7 @@ function CreatePage() {
                         key={value}
                         type="button"
                         onClick={() => toggle(accessibility, setAccessibility, value)}
+                        aria-pressed={accessibility.includes(value)}
                         className={`rounded-full px-3 py-1 text-xs ${
                           accessibility.includes(value)
                             ? "bg-foreground text-background"
@@ -668,12 +681,14 @@ function CreatePage() {
                     <div className="mt-3 grid grid-cols-2 gap-2" dir="ltr">
                       <input
                         type="time"
+                        aria-label={t({ ar: "وقت الفتح", en: "Opening time" })}
                         value={opensAt}
                         onChange={(event) => setOpensAt(event.target.value)}
                         className="rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm"
                       />
                       <input
                         type="time"
+                        aria-label={t({ ar: "وقت الإغلاق", en: "Closing time" })}
                         value={closesAt}
                         onChange={(event) => setClosesAt(event.target.value)}
                         className="rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm"
@@ -696,18 +711,21 @@ function CreatePage() {
               })}
             </p>
             <input
+              aria-label={t({ ar: "الطابق", en: "Floor" })}
               value={floorLabel}
               onChange={(event) => setFloorLabel(event.target.value)}
               placeholder={t({ ar: "الطابق (مثال: 3 أو أرضي)", en: "Floor (e.g. 3 or ground)" })}
               className="w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm"
             />
             <input
+              aria-label={t({ ar: "الوحدة أو الشقة", en: "Unit or apartment" })}
               value={unitLabel}
               onChange={(event) => setUnitLabel(event.target.value)}
               placeholder={t({ ar: "الوحدة / الشقة (مثال: 12)", en: "Unit / apartment (e.g. 12)" })}
               className="w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm"
             />
             <textarea
+              aria-label={t({ ar: "ملاحظة داخلية", en: "Internal note" })}
               value={unitNote}
               onChange={(event) => setUnitNote(event.target.value)}
               rows={2}
@@ -727,6 +745,7 @@ function CreatePage() {
               <button
                 type="button"
                 onClick={() => setIsPublic(false)}
+                aria-pressed={!isPublic}
                 className={`w-full rounded-xl border p-4 text-start ${
                   !isPublic ? "border-primary bg-primary/5" : "border-border bg-surface"
                 }`}
@@ -742,6 +761,7 @@ function CreatePage() {
               <button
                 type="button"
                 onClick={() => setIsPublic(true)}
+                aria-pressed={isPublic}
                 className={`w-full rounded-xl border p-4 text-start ${
                   isPublic ? "border-primary bg-primary/5" : "border-border bg-surface"
                 }`}
@@ -762,18 +782,21 @@ function CreatePage() {
                   {t({ ar: "بطاقة العمل (اختياري)", en: "Business card (optional)" })}
                 </p>
                 <input
+                  aria-label={t({ ar: "اسم النشاط", en: "Business name" })}
                   value={businessName}
                   onChange={(event) => setBusinessName(event.target.value)}
                   placeholder={t({ ar: "اسم النشاط", en: "Business name" })}
                   className="rounded-lg border border-border bg-background px-3 py-2.5 text-sm"
                 />
                 <input
+                  aria-label={t({ ar: "تصنيف النشاط", en: "Business category" })}
                   value={businessCategory}
                   onChange={(event) => setBusinessCategory(event.target.value)}
                   placeholder={t({ ar: "التصنيف (صيدلية، مطعم…)", en: "Category (pharmacy, restaurant…)" })}
                   className="rounded-lg border border-border bg-background px-3 py-2.5 text-sm"
                 />
                 <select
+                  aria-label={t({ ar: "تصنيف الدليل العام", en: "Public directory category" })}
                   value={businessPlaceCategory}
                   onChange={(event) => setBusinessPlaceCategory(event.target.value)}
                   className="rounded-lg border border-border bg-background px-3 py-2.5 text-sm"
@@ -786,6 +809,7 @@ function CreatePage() {
                   ))}
                 </select>
                 <input
+                  aria-label={t({ ar: "هاتف النشاط", en: "Business phone" })}
                   value={businessPhone}
                   dir="ltr"
                   onChange={(event) => setBusinessPhone(event.target.value)}

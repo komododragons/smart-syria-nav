@@ -255,13 +255,29 @@ export function CadastralMap({
           if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
             onPick({ latitude: view.latitude, longitude: view.longitude });
+            return;
+          }
+          const step = event.shiftKey ? 0.0005 : 0.0001;
+          const delta = {
+            ArrowUp: { latitude: step, longitude: 0 },
+            ArrowDown: { latitude: -step, longitude: 0 },
+            ArrowLeft: { latitude: 0, longitude: -step },
+            ArrowRight: { latitude: 0, longitude: step },
+          }[event.key];
+          if (delta) {
+            event.preventDefault();
+            setView((current) => ({
+              ...current,
+              latitude: current.latitude + delta.latitude,
+              longitude: current.longitude + delta.longitude,
+            }));
           }
         }}
         role={onPick ? "button" : undefined}
         tabIndex={onPick ? 0 : undefined}
         aria-label={
           onPick
-            ? t({ ar: "اختر موقعاً على الخريطة", en: "Pick a point on the map" })
+            ? t({ ar: "اختر موقعاً على الخريطة. استخدم الأسهم للتحريك ثم Enter للتحديد", en: "Pick a point on the map. Use arrow keys to move, then press Enter to select" })
             : t({ ar: "خريطة المواقع", en: "Locations map" })
         }
         style={{ touchAction: "none" }}
