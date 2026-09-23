@@ -102,7 +102,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "theme-color", content: "#0f1b3d" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
-      { name: "apple-mobile-web-app-title", content: "سيرياسان" },
+      { name: "apple-mobile-web-app-title", content: "سيريا سان" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
