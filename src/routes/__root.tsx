@@ -127,7 +127,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="ar" dir="rtl">
+    <LocaleProvider>
+      <LocalizedDocument>{children}</LocalizedDocument>
+    </LocaleProvider>
+  );
+}
+
+function LocalizedDocument({ children }: { children: ReactNode }) {
+  const { lang, dir } = useI18n();
+  return (
+    <html lang={lang} dir={dir}>
       <head>
         <HeadContent />
       </head>
@@ -151,16 +160,14 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <LocaleProvider>
-        <OfflineBanner />
-        {/* The skip target wraps routed content without adding a second main landmark. */}
-        <div id="main-content" tabIndex={-1}>
-          <Outlet />
-        </div>
-        <MobileTabBar />
-        <InstallPrompt />
-        <Toaster position="top-center" />
-      </LocaleProvider>
+      <OfflineBanner />
+      {/* The skip target wraps routed content without adding a second main landmark. */}
+      <div id="main-content" tabIndex={-1}>
+        <Outlet />
+      </div>
+      <MobileTabBar />
+      <InstallPrompt />
+      <Toaster position="top-center" />
     </QueryClientProvider>
   );
 }
