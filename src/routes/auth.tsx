@@ -40,9 +40,11 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
+    setFormError(null);
     setBusy(true);
     try {
       if (mode === "signup") {
@@ -59,9 +61,11 @@ function AuthPage() {
       }
       navigate({ to: next });
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : t({ ar: "تعذر إتمام العملية", en: "Couldn't complete this action" }),
-      );
+      const message = error instanceof Error
+        ? error.message
+        : t({ ar: "تعذر إتمام العملية", en: "Couldn't complete this action" });
+      setFormError(message);
+      toast.error(message);
     } finally {
       setBusy(false);
     }
@@ -96,28 +100,49 @@ function AuthPage() {
         </p>
 
         <form onSubmit={submit} className="mt-6 space-y-3">
+          <label htmlFor="auth-email" className="block text-sm font-bold">
+            {t({ ar: "البريد الإلكتروني", en: "Email address" })}
+          </label>
           <input
+            id="auth-email"
             type="email"
             required
             dir="ltr"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            placeholder="name@example.com"
+            autoComplete="email"
+            aria-invalid={Boolean(formError)}
+            aria-describedby={formError ? "auth-error" : undefined}
             className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-sm focus:border-primary focus:outline-none"
           />
+          <label htmlFor="auth-password" className="block text-sm font-bold">
+            {t({ ar: "كلمة المرور", en: "Password" })}
+          </label>
           <input
+            id="auth-password"
             type="password"
             required
             minLength={6}
             dir="ltr"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            placeholder="••••••••"
+            autoComplete={mode === "signin" ? "current-password" : "new-password"}
+            aria-invalid={Boolean(formError)}
+            aria-describedby={formError ? "auth-error" : "password-help"}
             className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-sm focus:border-primary focus:outline-none"
           />
+          <p id="password-help" className="text-xs text-muted-foreground">
+            {t({ ar: "ستة أحرف على الأقل.", en: "At least six characters." })}
+          </p>
+          {formError ? (
+            <p id="auth-error" role="alert" className="rounded-md bg-prohibit-surface p-3 text-sm font-bold text-prohibit">
+              {formError}
+            </p>
+          ) : null}
           <button
             type="submit"
             disabled={busy}
+            aria-busy={busy}
             className="w-full rounded-lg bg-primary py-3 text-sm font-bold text-primary-foreground disabled:opacity-60"
           >
             {mode === "signin" ? t({ ar: "دخول", en: "Sign in" }) : t({ ar: "إنشاء الحساب", en: "Create account" })}

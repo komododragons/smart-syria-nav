@@ -126,6 +126,7 @@ export function AddressFeedback({ smartCode, purpose, nodeId, accessPointId, bus
             <button
               type="button"
               onClick={() => pickVisit(true)}
+              aria-pressed={successful === true}
               className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-sm font-bold transition-colors ${
                 successful === true
                   ? "bg-allow text-primary-foreground"
@@ -138,6 +139,7 @@ export function AddressFeedback({ smartCode, purpose, nodeId, accessPointId, bus
             <button
               type="button"
               onClick={() => pickVisit(false)}
+              aria-pressed={successful === false}
               className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-sm font-bold transition-colors ${
                 successful === false
                   ? "bg-prohibit text-primary-foreground"
@@ -152,6 +154,7 @@ export function AddressFeedback({ smartCode, purpose, nodeId, accessPointId, bus
           {visitState === "notes" ? (
             <div className="space-y-2">
               <textarea
+                aria-label={t({ ar: "ملاحظة الوصول الاختيارية", en: "Optional arrival note" })}
                 value={notes}
                 onChange={(event) => setNotes(event.target.value)}
                 rows={2}
@@ -176,7 +179,7 @@ export function AddressFeedback({ smartCode, purpose, nodeId, accessPointId, bus
 
       <div className="mt-4 border-t border-border pt-4">
         {reportSent ? (
-          <p className="flex items-center gap-2 text-sm font-bold text-allow">
+          <p role="status" aria-live="polite" className="flex items-center gap-2 text-sm font-bold text-allow">
             <CircleCheck className="size-4" />
             {t({ ar: "وصل تقريرك إلى فريق المراجعة.", en: "Your report reached the review team." })}
           </p>
@@ -199,6 +202,7 @@ export function AddressFeedback({ smartCode, purpose, nodeId, accessPointId, bus
                   key={type.value}
                   type="button"
                   onClick={() => setIssueType(type.value)}
+                  aria-pressed={issueType === type.value}
                   className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                     issueType === type.value
                       ? "bg-primary text-primary-foreground"
@@ -228,6 +232,7 @@ export function AddressFeedback({ smartCode, purpose, nodeId, accessPointId, bus
               </label>
             ) : null}
             <textarea
+              aria-label={t({ ar: "تفاصيل إضافية عن المشكلة", en: "Additional problem details" })}
               value={details}
               onChange={(event) => setDetails(event.target.value)}
               rows={2}

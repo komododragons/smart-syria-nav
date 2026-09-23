@@ -250,6 +250,13 @@ export function CadastralMap({
         onClick={handleClick}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
+        onKeyDown={(event) => {
+          if (!onPick) return;
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            onPick({ latitude: view.latitude, longitude: view.longitude });
+          }
+        }}
         role={onPick ? "button" : undefined}
         tabIndex={onPick ? 0 : undefined}
         aria-label={
@@ -315,7 +322,7 @@ export function CadastralMap({
               e.stopPropagation();
               zoomBy(2);
             }}
-            className="grid size-9 place-items-center rounded-full border border-border bg-surface/95 text-base font-bold text-foreground shadow-plate"
+            className="grid size-11 place-items-center rounded-full border border-border bg-surface/95 text-base font-bold text-foreground shadow-plate"
           >
             −
           </button>
@@ -326,7 +333,7 @@ export function CadastralMap({
               e.stopPropagation();
               zoomBy(0.5);
             }}
-            className="grid size-9 place-items-center rounded-full border border-border bg-surface/95 text-base font-bold text-foreground shadow-plate"
+            className="grid size-11 place-items-center rounded-full border border-border bg-surface/95 text-base font-bold text-foreground shadow-plate"
           >
             +
           </button>
@@ -337,7 +344,7 @@ export function CadastralMap({
               e.stopPropagation();
               setView({ latitude: 34.8, longitude: 38.5, span: 700_000 });
             }}
-            className="grid h-9 place-items-center rounded-full border border-border bg-surface/95 px-3 text-[11px] font-bold text-foreground shadow-plate"
+            className="grid min-h-11 place-items-center rounded-full border border-border bg-surface/95 px-3 text-[11px] font-bold text-foreground shadow-plate"
           >
             {t({ ar: "سوريا", en: "Syria" })}
           </button>
@@ -348,7 +355,7 @@ export function CadastralMap({
               e.stopPropagation();
               setView({ ...center, span: spanMeters });
             }}
-            className="grid h-9 place-items-center rounded-full border border-border bg-surface/95 px-3 text-[11px] font-bold text-foreground shadow-plate"
+            className="grid min-h-11 place-items-center rounded-full border border-border bg-surface/95 px-3 text-[11px] font-bold text-foreground shadow-plate"
           >
             ⤾
           </button>
@@ -371,7 +378,7 @@ export function CadastralMap({
                     ? t({ ar: `فتح ${pin.label}`, en: `Open ${pin.label}` })
                     : undefined
                 }
-                className={`animate-entrance absolute -translate-x-1/2 -translate-y-1/2 ${selectable ? "cursor-pointer" : "pointer-events-none"}`}
+                  className={`animate-entrance absolute min-h-11 min-w-11 -translate-x-1/2 -translate-y-1/2 rounded-md focus-visible:z-20 ${selectable ? "cursor-pointer" : "pointer-events-none"}`}
                 style={{ left: `${clampedLeft}%`, top: `${clampedTop}%` }}
                 onMouseEnter={() => setHover(pin.id)}
                 onMouseLeave={() => setHover(null)}

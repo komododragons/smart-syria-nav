@@ -180,7 +180,10 @@ function ScanPage() {
                 {t({ ar: "تشغيل الكاميرا", en: "Start camera" })}
               </button>
             )}
-            {error ? <p className="mt-2 text-xs text-prohibit">{error}</p> : null}
+            <div role="status" aria-live="polite" className="sr-only">
+              {scanning ? t({ ar: "الكاميرا تعمل وجارٍ البحث عن رمز", en: "Camera active and looking for a code" }) : ""}
+            </div>
+            {error ? <p role="alert" className="mt-2 rounded-md bg-prohibit-surface p-3 text-xs font-bold text-prohibit">{error}</p> : null}
           </div>
         </div>
 

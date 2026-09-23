@@ -148,6 +148,29 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
+
+  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    outline: 3px solid var(--color-ring);
+    outline-offset: 3px;
+  }
+}
+
+.skip-link {
+  position: fixed;
+  inset-block-start: 0.75rem;
+  inset-inline-start: 0.75rem;
+  z-index: 100;
+  transform: translateY(-200%);
+  border-radius: var(--radius-md);
+  background: var(--color-foreground);
+  color: var(--color-background);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
 }
 
 @keyframes blueprint-slide-up {
@@ -309,6 +332,12 @@
   select,
   textarea {
     touch-action: manipulation;
+  }
+  button,
+  [role="button"],
+  a[class*="rounded"] {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
   }
   /* Prevent iOS auto-zoom on focus: inputs stay at 16px on phones. */
   input,
