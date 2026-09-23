@@ -163,6 +163,7 @@ export const calculateRoute = createServerFn({ method: "POST" })
         originMethod: z.string().max(30).nullish(),
         destinationKind: z.string().max(40).nullish(),
         city: z.string().max(60).nullish(),
+        success: z.boolean().nullish(),
       })
       .parse(input),
   )
@@ -182,6 +183,7 @@ export const calculateRoute = createServerFn({ method: "POST" })
       origin_method: data.originMethod ?? null,
       destination_kind: data.destinationKind ?? null,
       city: data.city ?? null,
+      success: data.success ?? null,
     };
 
     const straightDistance = haversineMeters(data.origin, data.destination);

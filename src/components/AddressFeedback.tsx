@@ -7,6 +7,7 @@ import { CircleCheck, Flag, ThumbsDown, ThumbsUp, X } from "lucide-react";
 import { reportCorrection, submitVisitFeedback } from "@/lib/addresses.functions";
 import { CORRECTION_TYPES, CORRECTION_FIELD_EN, correctionTypeLabel, purposeLabel } from "@/lib/smart-address";
 import { useI18n } from "@/lib/i18n";
+import { trackNavigationEvent } from "@/lib/navigation/navigation.functions";
 
 type Props = {
   smartCode: string;
@@ -21,6 +22,7 @@ export function AddressFeedback({ smartCode, purpose, nodeId, accessPointId, bus
   const { t, lang } = useI18n();
   const report = useServerFn(reportCorrection);
   const feedback = useServerFn(submitVisitFeedback);
+  const trackNavigation = useServerFn(trackNavigationEvent);
 
   const [visitState, setVisitState] = useState<"idle" | "notes" | "done">("idle");
   const [successful, setSuccessful] = useState<boolean | null>(null);
@@ -51,6 +53,14 @@ export function AddressFeedback({ smartCode, purpose, nodeId, accessPointId, bus
     if (successful === null) return;
     setSending(true);
     try {
+      await trackNavigation({
+        data: {
+          event: "navigation_completed",
+          smartCode,
+          destinationKind: accessPointId ? "entrance" : "location",
+          success: successful,
+        },
+      });
       await feedback({
         data: {
           smart_code: smartCode,

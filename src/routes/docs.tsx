@@ -324,6 +324,30 @@ export function parseSyriasanEvent(
     },
   },
   {
+    id: "integration",
+    title: { ar: "طبقة التكامل المحايدة", en: "Provider-neutral integration layer" },
+    intro: {
+      ar: "تعرض /capabilities عقد القدرات وسياقات الوصول، بينما يسجل /events دورة استخدام العنوان بمعرّف رحلة ومفتاح منع تكرار. لا توجد موصلات أو بيانات اعتماد وهمية؛ يضاف كل مزود مستقبلاً كمحوّل مستقل.",
+      en: "/capabilities exposes the capability and access-context contract, while /events records the address lifecycle with a journey ID and idempotency key. No fake connectors or credentials exist; each future provider is added as an isolated adapter.",
+    },
+    bullets: [
+      { ar: "القطاعات: التوصيل، التجارة الإلكترونية، المال، التأمين، المرافق، الصحة، الضيافة، الحكومة، البلديات، الطوارئ واللوجستيات.", en: "Sectors include courier, e-commerce, finance, insurance, utilities, healthcare, hospitality, government, municipalities, emergency and logistics." },
+      { ar: "الأحداث: address_used وnavigation_started وdestination_reached.", en: "Events: address_used, navigation_started and destination_reached." },
+      { ar: "كل حدث خارجي يقبل رمزاً عاماً فقط؛ لا تقبل الواجهة وحدة سكنية أو اسماً أو هاتفاً أو ملاحظات خاصة.", en: "Every external event accepts a public code only; unit, resident name, phone and private notes are not accepted." },
+    ],
+    samples: samples("POST", "/events", {
+      code: "SY-DAM-K7X4",
+      event: "destination_reached",
+      correlation_id: "550e8400-e29b-41d4-a716-446655440000",
+      idempotency_key: "order-784-arrived",
+      routing_context: "parcel",
+    }),
+    note: {
+      ar: "يتطلب /events صلاحية events:write. تكرار المفتاح لن ينشئ حدثاً ثانياً.",
+      en: "/events requires events:write. Reusing an idempotency key will not create a second event.",
+    },
+  },
+  {
     id: "errors",
     title: { ar: "الأخطاء", en: "Errors" },
     intro: {
