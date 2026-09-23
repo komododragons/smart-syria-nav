@@ -57,7 +57,7 @@ export function AdminControlCenter() {
     retry: false,
   });
   const data = query.data?.authorized ? query.data : null;
-  const selected = sections.find((item) => item.id === section) ?? sections[0];
+  const selected = sections.find((item) => item.id === section) ?? sections[0]!;
   const update = (key: keyof Filters, value: string) => setFilters((current) => ({ ...current, [key]: value }));
 
   if (query.data && !query.data.authorized) {
