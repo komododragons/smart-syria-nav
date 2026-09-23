@@ -258,8 +258,8 @@ const address = await syriasan("/resolve/SY-DAM-K7X4");`,
     id: "webhooks",
     title: { ar: "Webhooks", en: "Webhooks" },
     intro: {
-      ar: "سجّل رابط HTTPS ليصلك إشعار فوري عند وقوع الأحداث: address.created، address.resolved، address.navigation_started، address.delivery_viewed، address.qr_scanned. يُعاد السر مرة واحدة فقط عند الإنشاء.",
-      en: "Register an HTTPS URL to receive an instant notification when events occur: address.created, address.resolved, address.navigation_started, address.delivery_viewed, address.qr_scanned. The secret is returned only once, at creation.",
+      ar: "سجّل رابط HTTPS ليصلك إشعار فوري عند وقوع أحداث العنوان والتوجيه، بما فيها الوصول الناجح والتصحيح المطبق. يُعاد السر مرة واحدة فقط عند الإنشاء.",
+      en: "Register an HTTPS URL for address and navigation events, including successful arrival and applied corrections. The secret is returned only once, at creation.",
     },
     bullets: [
       { ar: "POST /webhooks — إنشاء اشتراك (url + events).", en: "POST /webhooks — create a subscription (url + events)." },
@@ -298,7 +298,9 @@ type SyriasanEvent = {
     | "address.resolved"
     | "address.navigation_started"
     | "address.delivery_viewed"
-    | "address.qr_scanned";
+    | "address.qr_scanned"
+    | "address.destination_reached"
+    | "address.correction_applied";
   created_at: string;
   data: { code: string; source: string | null };
 };

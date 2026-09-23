@@ -69,7 +69,7 @@ export const platformAnalytics = createServerFn({ method: "POST" })
       count("correction_reports", (q) => q.gte("created_at", since)),
       count("correction_reports", (q) => q.eq("applied", true).gte("applied_at", since)),
       count("location_nodes", (q) => q.gte("created_at", since)),
-      count("api_usage", (q) => q.eq("endpoint", "/api/v1/resolve").gte("created_at", since).lt("status_code", 400)),
+      count("api_usage", (q) => q.like("endpoint", "/api/v1/resolve/%").gte("created_at", since).lt("status_code", 400)),
       count("navigation_events", (q) => q.eq("event", "navigation_completed").eq("success", true).gte("created_at", since)),
     ]);
 
