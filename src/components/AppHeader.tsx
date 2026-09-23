@@ -95,6 +95,7 @@ export function AppHeader() {
                 buttonVariants({ size: "sm" }),
                 "border border-header-foreground/15 bg-header-foreground/10 text-header-foreground shadow-none hover:bg-header-foreground/15",
               )}
+              activeProps={{ "aria-current": "page" }}
             >
               <ShieldCheck />
               {t({ ar: "دخول", en: "Sign in" })}
@@ -129,6 +130,7 @@ export function AppHeader() {
               key={item.to}
               to={item.to}
               className="hidden h-10 shrink-0 items-center gap-1.5 rounded-md px-3 text-xs font-bold text-header-muted transition-colors hover:bg-header-foreground/10 hover:text-header-foreground md:flex"
+              activeProps={{ "aria-current": "page" }}
             >
               <item.icon className="size-4 shrink-0" />
               <span>{t(item.label)}</span>

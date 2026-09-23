@@ -101,6 +101,7 @@ function SearchPage() {
   const [governorate, setGovernorate] = useState<string | undefined>(undefined);
   const [origin, setOrigin] = useState<{ latitude: number; longitude: number } | null>(null);
   const [geoBusy, setGeoBusy] = useState(false);
+  const [geoError, setGeoError] = useState<string | null>(null);
   const mutation = useMutation({
     mutationFn: (value: string) =>
       search({
@@ -120,12 +121,16 @@ function SearchPage() {
     }
     if (typeof navigator === "undefined" || !navigator.geolocation) return;
     setGeoBusy(true);
+    setGeoError(null);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setOrigin({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
         setGeoBusy(false);
       },
-      () => setGeoBusy(false),
+      () => {
+        setGeoBusy(false);
+        setGeoError(t({ ar: "تعذّر تحديد موقعك. يمكنك متابعة البحث دون الموقع.", en: "We couldn't access your location. You can keep searching without it." }));
+      },
       { enableHighAccuracy: false, timeout: 8000, maximumAge: 120000 },
     );
   };
@@ -146,12 +151,16 @@ function SearchPage() {
         <div className="relative mx-auto max-w-3xl">
           <SearchIcon className="pointer-events-none absolute inset-y-0 start-3 my-auto size-4 text-muted-foreground" />
           <input
+            id="network-search"
+            type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder={t({
               ar: "رمز ذكي، اسم نشاط، حي، منطقة، معلم… (عربي أو English)",
               en: "Smart code, business name, neighborhood, district, landmark… (Arabic or English)",
             })}
+            aria-label={t({ ar: "ابحث في شبكة العناوين العامة", en: "Search the public address network" })}
+            aria-describedby="search-privacy search-status"
             className="w-full rounded-lg border border-border bg-background py-3 pe-4 ps-9 text-sm focus:border-primary focus:outline-none"
           />
           <div className="mt-3 flex flex-wrap gap-1.5">
@@ -164,6 +173,7 @@ function SearchPage() {
             <button
               type="button"
               onClick={() => setCategory(undefined)}
+              aria-pressed={!category}
               className={`rounded-full border px-3 py-1.5 text-[11px] font-bold ${
                 category ? "border-border bg-background text-muted-foreground" : "border-primary bg-primary text-primary-foreground"
               }`}
@@ -175,6 +185,7 @@ function SearchPage() {
                 key={c.value}
                 type="button"
                 onClick={() => setCategory(category === c.value ? undefined : c.value)}
+                aria-pressed={category === c.value}
                 className={`rounded-full border px-3 py-1.5 text-[11px] font-bold ${
                   category === c.value
                     ? "border-primary bg-primary text-primary-foreground"
@@ -189,6 +200,8 @@ function SearchPage() {
             <button
               type="button"
               onClick={useMyLocation}
+              aria-pressed={Boolean(origin)}
+              aria-busy={geoBusy}
               className={`flex items-center gap-1 rounded-full border px-3 py-1.5 text-[11px] font-bold ${
                 origin
                   ? "border-primary bg-primary text-primary-foreground"
@@ -205,6 +218,7 @@ function SearchPage() {
             <button
               type="button"
               onClick={() => setGovernorate(undefined)}
+              aria-pressed={!governorate}
               className={`rounded-full border px-3 py-1.5 text-[11px] font-bold ${
                 governorate
                   ? "border-border bg-background text-muted-foreground"
@@ -218,6 +232,7 @@ function SearchPage() {
                 key={g.code}
                 type="button"
                 onClick={() => setGovernorate(governorate === g.ar ? undefined : g.ar)}
+                aria-pressed={governorate === g.ar}
                 className={`rounded-full border px-3 py-1.5 text-[11px] font-bold ${
                   governorate === g.ar
                     ? "border-primary bg-primary text-primary-foreground"
@@ -233,13 +248,25 @@ function SearchPage() {
 
       <main className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-6">
         {query.trim().length < 2 ? (
-          <p className="py-12 text-center text-sm text-muted-foreground">
+          <p id="search-privacy" className="py-12 text-center text-sm text-muted-foreground">
             {t({
               ar: "البحث يفهم الأسماء العربية الشائعة والمعالم والاختصارات. العناوين السكنية غير مُدرجة في النتائج.",
               en: "Search understands common Arabic names, landmarks, and abbreviations. Residential addresses never appear in results.",
             })}
           </p>
         ) : null}
+
+        <div id="search-status" role="status" aria-live="polite" className="sr-only">
+          {mutation.isPending
+            ? t({ ar: "جارٍ البحث", en: "Searching" })
+            : data
+              ? t({
+                  ar: `${data.codes.length + data.businesses.length + data.places.length} نتيجة`,
+                  en: `${data.codes.length + data.businesses.length + data.places.length} results`,
+                })
+              : ""}
+        </div>
+        {geoError ? <p role="alert" className="rounded-md bg-prohibit-surface p-3 text-sm text-prohibit">{geoError}</p> : null}
 
         {data?.codes.length ? (
           <section className="animate-entrance space-y-2">

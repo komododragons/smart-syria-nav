@@ -132,6 +132,9 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        <a href="#main-content" className="skip-link">
+          الانتقال إلى المحتوى الرئيسي / Skip to main content
+        </a>
         {children}
         <Scripts />
       </body>
@@ -150,8 +153,10 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <LocaleProvider>
         <OfflineBanner />
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
+        {/* The skip target wraps routed content without adding a second main landmark. */}
+        <div id="main-content" tabIndex={-1}>
+          <Outlet />
+        </div>
         <MobileTabBar />
         <InstallPrompt />
         <Toaster position="top-center" />

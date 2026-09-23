@@ -318,7 +318,7 @@ function ResolverPage() {
     : { latitude: 33.5138, longitude: 36.2765 };
 
   return (
-    <div className="flex h-screen flex-col bg-background text-foreground selection:bg-primary/20">
+    <div className="flex h-dvh flex-col bg-background text-foreground selection:bg-primary/20">
       <AppHeader />
 
       <div className="flex min-h-0 flex-1 flex-col-reverse md:flex-row">
@@ -377,6 +377,7 @@ function ResolverPage() {
                 onChange={(event) => setCode(event.target.value.toUpperCase())}
                 dir="ltr"
                 aria-label={t({ ar: "العنوان الذكي", en: "Smart address" })}
+                aria-describedby="resolver-help resolver-status"
                 placeholder="SY-XXX-XXXX"
                 className="w-full rounded-xl border-2 border-transparent bg-secondary py-3 pe-11 ps-4 font-mono text-base text-foreground outline-none transition-all placeholder:text-muted-foreground/70 focus:border-primary focus:bg-surface"
               />
@@ -395,6 +396,7 @@ function ResolverPage() {
                   key={value}
                   type="button"
                   onClick={() => setPurpose(value)}
+                  aria-pressed={purpose === value}
                   className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                     purpose === value
                       ? "bg-primary text-primary-foreground"
@@ -407,6 +409,7 @@ function ResolverPage() {
               <button
                 type="button"
                 onClick={() => setWheelchair((v) => !v)}
+                aria-pressed={wheelchair}
                 className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                   wheelchair
                     ? "bg-foreground text-background"
@@ -417,7 +420,7 @@ function ResolverPage() {
               </button>
             </div>
 
-            <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px] text-muted-foreground">
+            <div id="resolver-help" className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px] text-muted-foreground">
               <span>{t({ ar: "أمثلة:", en: "Examples:" })}</span>
               {DEMO_CODES.map((demo) => (
                 <button
@@ -438,11 +441,11 @@ function ResolverPage() {
 
           <div className="flex flex-col gap-4 p-5">
             {mutation.isPending ? (
-              <p className="py-12 text-center text-sm text-muted-foreground">{t({ ar: "جارٍ التحليل…", en: "Resolving…" })}</p>
+              <p id="resolver-status" role="status" aria-live="polite" className="py-12 text-center text-sm text-muted-foreground">{t({ ar: "جارٍ التحليل…", en: "Resolving…" })}</p>
             ) : null}
 
             {result && result.status !== "ok" && !mutation.isPending ? (
-              <section className="animate-entrance rounded-xl border border-border bg-background p-5 text-center">
+              <section id="resolver-status" role="alert" className="animate-entrance rounded-xl border border-border bg-background p-5 text-center">
                 <p className="font-bold">
                   {result.status === "not_found"
                     ? t({ ar: "لا يوجد عنوان ذكي عام بهذا الرمز", en: "No public smart address matches this code" })
@@ -460,7 +463,7 @@ function ResolverPage() {
             ) : null}
 
             {mutation.isError && !offlineCache ? (
-              <section className="animate-entrance rounded-xl border border-border bg-background p-5 text-center">
+              <section id="resolver-status" role="alert" className="animate-entrance rounded-xl border border-border bg-background p-5 text-center">
                 <p className="font-bold">{t({ ar: "تعذر الاتصال بالخادم", en: "Couldn't reach the server" })}</p>
                 <p className="mt-2 text-sm text-muted-foreground">
                   {t({
