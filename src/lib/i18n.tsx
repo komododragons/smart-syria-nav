@@ -11,6 +11,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -20,6 +21,12 @@ export type Lang = "ar" | "en";
 
 export const LANG_STORAGE_KEY = "ssan.lang";
 export const DEFAULT_LANG: Lang = "ar";
+
+function applyDocumentLanguage(lang: Lang) {
+  if (typeof document === "undefined") return;
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+}
 
 export type Bilingual = { ar: string; en: string };
 
@@ -67,14 +74,10 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-    const dir = lang === "ar" ? "rtl" : "ltr";
-    document.documentElement.setAttribute("lang", lang);
-    document.documentElement.setAttribute("dir", dir);
-  }, [lang]);
+  useLayoutEffect(() => applyDocumentLanguage(lang), [lang]);
 
   const setLang = useCallback((next: Lang) => {
+    applyDocumentLanguage(next);
     setLangState(next);
     try {
       window.localStorage.setItem(LANG_STORAGE_KEY, next);
