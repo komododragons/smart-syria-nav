@@ -21,7 +21,7 @@ import {
   INTEGRATION_SECTORS,
   integrationAdapter,
 } from "./integration-adapters";
-import { ROUTING_CONTEXT_VALUES, routingContext } from "./routing-contexts";
+import { ROUTING_CONTEXT_VALUES, routingContext, type RoutingContext } from "./routing-contexts";
 
 type Admin = SupabaseClient<Database>;
 
@@ -891,7 +891,7 @@ async function recordIntegrationEvent(body: unknown, admin: Admin, auth: AuthOk)
   const adapter = integrationAdapter(auth.sector);
   const context = parsed.data.routing_context ?? adapter.defaultContext;
   const purpose = routingContext(context).purpose;
-  const resolved = await resolvePublicCode(code, purpose as never, {});
+  const resolved = await resolvePublicCode(code, purpose as never, { context: context as RoutingContext });
   if (resolved.status === "not_found") return fail("not_found", 404, "Unknown smart code.");
   if (resolved.status !== "ok") return fail("private", 403, "This address is private and cannot be disclosed.");
 
@@ -925,6 +925,13 @@ async function recordIntegrationEvent(body: unknown, admin: Admin, auth: AuthOk)
     if (error.code === "23505") return json({ accepted: true, duplicate: true, correlation_id: parsed.data.correlation_id });
     return fail("event_failed", 500, "The event could not be recorded.");
   }
+
+  await audit(admin, auth, "integration_event_recorded", "smart_address", code, {
+    event_type: parsed.data.event,
+    correlation_id: parsed.data.correlation_id,
+    routing_context: context,
+    sector: adapter.sector,
+  });
 
   if (parsed.data.event === "destination_reached") {
     await dispatchWebhooks("address.destination_reached", {
