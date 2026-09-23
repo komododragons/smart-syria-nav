@@ -1,4 +1,5 @@
 import { Download, LayoutTemplate, Printer, QrCode, Share2, X } from "lucide-react";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { QRCodeSVG } from "qrcode.react";
 import { useId, useState } from "react";
 
@@ -121,31 +122,25 @@ export function QrCard({
   };
 
   return (
-    <div
-      className="qr-print-sheet fixed inset-0 z-[60] flex items-center justify-center bg-background/85 p-4 backdrop-blur-sm"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-label={t({ ar: `رمز QR للعنوان ${code}`, en: `QR code for address ${code}` })}
-    >
-      <div
-        className="flex max-h-[94vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-plate"
-        onClick={(event) => event.stopPropagation()}
-      >
+    <DialogPrimitive.Root open onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogPrimitive.Portal>
+        <DialogPrimitive.Overlay className="qr-print-sheet fixed inset-0 z-[60] bg-background/85 backdrop-blur-sm" />
+        <DialogPrimitive.Content className="qr-print-sheet fixed start-1/2 top-1/2 z-[61] flex max-h-[94vh] w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-plate">
         <header className="no-print flex items-center justify-between border-b border-border px-4 py-3">
           <div className="flex items-center gap-2">
             <QrCode className="size-4 text-primary" />
-            <h2 className="text-sm font-bold">{t({ ar: "نظام QR ولوحة العنوان", en: "QR code and address plate" })}</h2>
+            <DialogPrimitive.Title className="text-sm font-bold">{t({ ar: "نظام QR ولوحة العنوان", en: "QR code and address plate" })}</DialogPrimitive.Title>
           </div>
-          <button type="button" onClick={onClose} aria-label={t({ ar: "إغلاق", en: "Close" })} className="grid size-9 place-items-center rounded-lg border border-border">
+          <DialogPrimitive.Close aria-label={t({ ar: "إغلاق", en: "Close" })} className="grid size-11 place-items-center rounded-lg border border-border">
             <X className="size-4" />
-          </button>
+          </DialogPrimitive.Close>
         </header>
 
         <div className="no-print flex gap-2 border-b border-border p-3">
           <button
             type="button"
             onClick={() => setPlateMode(false)}
+            aria-pressed={!plateMode}
             className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold ${!plateMode ? "bg-primary text-primary-foreground" : "border border-border"}`}
           >
             <QrCode className="size-3.5" /> {t({ ar: "رمز QR", en: "QR code" })}
@@ -153,6 +148,7 @@ export function QrCard({
           <button
             type="button"
             onClick={() => setPlateMode(true)}
+            aria-pressed={plateMode}
             className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold ${plateMode ? "bg-primary text-primary-foreground" : "border border-border"}`}
           >
             <LayoutTemplate className="size-3.5" /> {t({ ar: "إنشاء لوحة عنوان", en: "Create address plate" })}
@@ -166,6 +162,7 @@ export function QrCard({
                 key={option.value}
                 type="button"
                 onClick={() => setFormat(option.value)}
+                aria-pressed={format === option.value}
                 title={option.dimensions}
                 className={`shrink-0 rounded-lg px-3 py-2 text-xs font-bold ${format === option.value ? "bg-foreground text-background" : "border border-border"}`}
               >
@@ -212,7 +209,8 @@ export function QrCard({
             <Share2 className="size-4" /> {t({ ar: "مشاركة QR", en: "Share QR" })}
           </button>
         </div>
-      </div>
-    </div>
+        </DialogPrimitive.Content>
+      </DialogPrimitive.Portal>
+    </DialogPrimitive.Root>
   );
 }

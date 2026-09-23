@@ -7,6 +7,7 @@
  * header stays clean on small screens.
  */
 import { Link, useRouterState } from "@tanstack/react-router";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useEffect, useState } from "react";
 import {
   BadgeCheck,
@@ -84,24 +85,24 @@ export function MobileTabBar() {
   return (
     <>
       {open ? (
-        <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true">
-          <button
-            type="button"
-            aria-label={t({ ar: "إغلاق القائمة", en: "Close menu" })}
-            onClick={() => setOpen(false)}
-            className="absolute inset-0 bg-foreground/50"
-          />
-          <div className="absolute inset-x-0 bottom-0 max-h-[80vh] overflow-y-auto rounded-t-2xl border-t border-border bg-surface pb-[calc(env(safe-area-inset-bottom)+1rem)]">
+        <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
+          <DialogPrimitive.Portal>
+            <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-foreground/50 md:hidden" />
+            <DialogPrimitive.Content
+              aria-describedby="mobile-more-description"
+              className="fixed inset-x-0 bottom-0 z-50 max-h-[80vh] overflow-y-auto rounded-t-2xl border-t border-border bg-surface pb-[calc(env(safe-area-inset-bottom)+1rem)] md:hidden"
+            >
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
-              <span className="text-sm font-bold">{t({ ar: "المزيد", en: "More" })}</span>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
+              <DialogPrimitive.Title className="text-sm font-bold">{t({ ar: "المزيد", en: "More" })}</DialogPrimitive.Title>
+              <DialogPrimitive.Description id="mobile-more-description" className="sr-only">
+                {t({ ar: "خدمات وروابط إضافية", en: "Additional services and links" })}
+              </DialogPrimitive.Description>
+              <DialogPrimitive.Close
                 aria-label={t({ ar: "إغلاق", en: "Close" })}
-                className="grid size-10 place-items-center rounded-lg border border-border"
+                className="grid size-11 place-items-center rounded-lg border border-border"
               >
                 <X className="size-4" />
-              </button>
+              </DialogPrimitive.Close>
             </div>
             <div className="grid grid-cols-2 gap-2 p-3">
               {moreLinks.map((item) => (
@@ -134,33 +135,34 @@ export function MobileTabBar() {
                 })}
               </p>
             </div>
-          </div>
-        </div>
+            </DialogPrimitive.Content>
+          </DialogPrimitive.Portal>
+        </DialogPrimitive.Root>
       ) : null}
 
       <nav
         aria-label={t({ ar: "التنقل السريع", en: "Quick navigation" })}
         className="fixed inset-x-0 bottom-0 z-40 flex items-stretch gap-1 border-t border-border bg-surface/95 px-2 pb-[env(safe-area-inset-bottom)] pt-1 backdrop-blur-md md:hidden"
       >
-        <Link to="/" className={tabClass(pathname === "/")}>
+        <Link to="/" className={tabClass(pathname === "/")} aria-current={pathname === "/" ? "page" : undefined}>
           <Search className="size-5" />
           {t({ ar: "المحلّل", en: "Resolve" })}
         </Link>
-        <Link to="/search" className={tabClass(pathname.startsWith("/search"))}>
+        <Link to="/search" className={tabClass(pathname.startsWith("/search"))} aria-current={pathname.startsWith("/search") ? "page" : undefined}>
           <Landmark className="size-5" />
           {t({ ar: "بحث", en: "Search" })}
         </Link>
-        <Link to="/scan" className={tabClass(pathname.startsWith("/scan"))}>
+        <Link to="/scan" className={tabClass(pathname.startsWith("/scan"))} aria-current={pathname.startsWith("/scan") ? "page" : undefined}>
           <QrCode className="size-5" />
           {t({ ar: "مسح", en: "Scan" })}
         </Link>
         {signedIn ? (
-          <Link to="/my-addresses" className={tabClass(pathname.startsWith("/my-addresses"))}>
+          <Link to="/my-addresses" className={tabClass(pathname.startsWith("/my-addresses"))} aria-current={pathname.startsWith("/my-addresses") ? "page" : undefined}>
             <User className="size-5" />
             {t({ ar: "عناويني", en: "Mine" })}
           </Link>
         ) : (
-          <Link to="/auth" className={tabClass(pathname.startsWith("/auth"))}>
+          <Link to="/auth" className={tabClass(pathname.startsWith("/auth"))} aria-current={pathname.startsWith("/auth") ? "page" : undefined}>
             <User className="size-5" />
             {t({ ar: "الدخول", en: "Sign in" })}
           </Link>
