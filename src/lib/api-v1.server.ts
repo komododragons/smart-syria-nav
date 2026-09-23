@@ -15,6 +15,13 @@ import { z } from "zod";
 
 import type { Database } from "@/integrations/supabase/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  INTEGRATION_ADAPTERS,
+  INTEGRATION_CONTRACT,
+  INTEGRATION_SECTORS,
+  integrationAdapter,
+} from "./integration-adapters";
+import { ROUTING_CONTEXT_VALUES, routingContext } from "./routing-contexts";
 
 type Admin = SupabaseClient<Database>;
 
@@ -29,6 +36,7 @@ export const API_SCOPES = [
   "qr",
   "keys:manage",
   "webhooks:manage",
+  "events:write",
 ] as const;
 export type ApiScope = (typeof API_SCOPES)[number];
 
@@ -81,6 +89,7 @@ type AuthOk = {
   used: number;
   /** `test` keys run in sandbox mode: reads are real, writes are simulated. */
   environment: "live" | "test";
+  sector: (typeof INTEGRATION_SECTORS)[number];
 };
 
 async function authenticate(request: Request, admin: Admin): Promise<AuthOk | Response> {
@@ -112,7 +121,7 @@ async function authenticate(request: Request, admin: Admin): Promise<AuthOk | Re
 
   const { data: client } = await admin
     .from("api_clients")
-    .select("id, owner_id, scopes, rate_limit_per_minute, is_active, environment")
+    .select("id, owner_id, scopes, rate_limit_per_minute, is_active, environment, integration_sector")
     .eq("id", keyRow.client_id)
     .maybeSingle();
   if (!client || !client.is_active) {
@@ -152,6 +161,7 @@ async function authenticate(request: Request, admin: Admin): Promise<AuthOk | Re
     limit,
     used,
     environment: client.environment === "test" ? "test" : "live",
+    sector: integrationAdapter(client.integration_sector).sector,
   };
 }
 
@@ -705,6 +715,8 @@ export const WEBHOOK_EVENTS = [
   "address.navigation_started",
   "address.delivery_viewed",
   "address.qr_scanned",
+  "address.destination_reached",
+  "address.correction_applied",
 ] as const;
 export type WebhookEvent = (typeof WEBHOOK_EVENTS)[number];
 
@@ -862,6 +874,68 @@ async function testWebhook(body: unknown, admin: Admin, auth: AuthOk) {
   return json({ delivered: status >= 200 && status < 300, status_code: status });
 }
 
+async function recordIntegrationEvent(body: unknown, admin: Admin, auth: AuthOk) {
+  const parsed = z.object({
+    code: z.string().trim().regex(CODE_RE),
+    event: z.enum(["address_used", "navigation_started", "destination_reached"]),
+    correlation_id: z.string().uuid(),
+    idempotency_key: z.string().trim().min(8).max(120),
+    routing_context: z.enum(ROUTING_CONTEXT_VALUES as [string, ...string[]]).optional(),
+    source: z.string().trim().min(2).max(40).default("external_application"),
+    occurred_at: z.string().datetime().optional(),
+  }).safeParse(body);
+  if (!parsed.success) return fail("invalid_request", 400, "Invalid external event payload.");
+
+  const code = parsed.data.code.toUpperCase();
+  const { resolvePublicCode } = await import("./addresses.server");
+  const adapter = integrationAdapter(auth.sector);
+  const context = parsed.data.routing_context ?? adapter.defaultContext;
+  const purpose = routingContext(context).purpose;
+  const resolved = await resolvePublicCode(code, purpose as never, {});
+  if (resolved.status === "not_found") return fail("not_found", 404, "Unknown smart code.");
+  if (resolved.status !== "ok") return fail("private", 403, "This address is private and cannot be disclosed.");
+
+  if (auth.environment === "test") {
+    return json({ accepted: true, duplicate: false, mode: "test", correlation_id: parsed.data.correlation_id });
+  }
+
+  const { data: existing } = await admin
+    .from("integration_events")
+    .select("id, correlation_id")
+    .eq("client_id", auth.clientId)
+    .eq("idempotency_key", parsed.data.idempotency_key)
+    .maybeSingle();
+  if (existing) {
+    return json({ accepted: true, duplicate: true, correlation_id: existing.correlation_id });
+  }
+
+  const { error } = await admin.from("integration_events").insert({
+    client_id: auth.clientId,
+    smart_code: code,
+    sector: adapter.sector,
+    routing_context: context,
+    event_type: parsed.data.event,
+    correlation_id: parsed.data.correlation_id,
+    idempotency_key: parsed.data.idempotency_key,
+    source: parsed.data.source,
+    successful: parsed.data.event === "destination_reached" ? true : null,
+    occurred_at: parsed.data.occurred_at ?? new Date().toISOString(),
+  });
+  if (error) {
+    if (error.code === "23505") return json({ accepted: true, duplicate: true, correlation_id: parsed.data.correlation_id });
+    return fail("event_failed", 500, "The event could not be recorded.");
+  }
+
+  if (parsed.data.event === "destination_reached") {
+    await dispatchWebhooks("address.destination_reached", {
+      code,
+      correlation_id: parsed.data.correlation_id,
+      routing_context: context,
+    });
+  }
+  return json({ accepted: true, duplicate: false, correlation_id: parsed.data.correlation_id }, 202);
+}
+
 
 
 // ---------------------------------------------------------------- dispatcher
@@ -900,6 +974,8 @@ export async function handleApiV1(request: Request): Promise<Response> {
         "POST /api/v1/webhooks",
         "POST /api/v1/webhooks/test",
         "POST /api/v1/webhooks/delete",
+        "GET /api/v1/capabilities",
+        "POST /api/v1/events",
       ],
       sandbox: "Keys issued on a `test` client run in sandbox mode: reads are real, writes are simulated.",
       privacy: "Private residential addresses are never exposed through this API.",
@@ -949,8 +1025,19 @@ export async function handleApiV1(request: Request): Promise<Response> {
       if (r.status !== "ok") {
         return fail("private", 403, "This address is private and cannot be disclosed.");
       }
-      return json({ ...publicAddressPayload(r), purpose: r.purpose, prohibited: r.prohibited, notes: r.notes });
+      const correlationId = crypto.randomUUID();
+      return json({ ...publicAddressPayload(r), purpose: r.purpose, prohibited: r.prohibited, notes: r.notes, correlation_id: correlationId });
     });
+  } else if (resource === "capabilities" && request.method === "GET") {
+    handled = await run("addresses:read", async () => json({
+      contract: INTEGRATION_CONTRACT,
+      sectors: INTEGRATION_ADAPTERS,
+      routing_contexts: ROUTING_CONTEXT_VALUES,
+      active_sector: integrationAdapter(auth.sector),
+      provider_connections: [],
+    }));
+  } else if (resource === "events" && request.method === "POST" && !param) {
+    handled = await run("events:write", () => recordIntegrationEvent(body, admin, auth));
   } else if (resource === "search" && request.method === "GET") {
     handled = await run("search", () => searchAddresses(url, admin));
   } else if (resource === "validate" && request.method === "POST") {

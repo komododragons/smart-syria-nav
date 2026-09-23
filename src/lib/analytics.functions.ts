@@ -47,7 +47,9 @@ export const platformAnalytics = createServerFn({ method: "POST" })
       apiRequests,
       addressesCreated,
       correctionsSubmitted,
+      correctionsApplied,
       newNodes,
+      apiResolutions,
     ] = await Promise.all([
       count("smart_addresses", (q) => q.eq("status", "active")),
       count("location_nodes", (q) =>
@@ -64,8 +66,22 @@ export const platformAnalytics = createServerFn({ method: "POST" })
       count("api_usage", (q) => q.gte("created_at", since)),
       count("smart_addresses", (q) => q.gte("created_at", since)),
       count("correction_reports", (q) => q.gte("created_at", since)),
+      count("correction_reports", (q) => q.eq("applied", true).gte("applied_at", since)),
       count("location_nodes", (q) => q.gte("created_at", since)),
+      count("api_usage", (q) => q.eq("endpoint", "/api/v1/resolve").gte("created_at", since).lt("status_code", 400)),
     ]);
+
+    const { data: integrationEvents } = await supabaseAdmin
+      .from("integration_events")
+      .select("event_type, correlation_id, smart_code")
+      .gte("occurred_at", since)
+      .limit(50000);
+    const reached = new Set<string>();
+    const externalCodes = new Set<string>();
+    for (const event of integrationEvents ?? []) {
+      externalCodes.add(event.smart_code);
+      if (event.event_type === "destination_reached") reached.add(event.correlation_id);
+    }
 
     // Aggregate usage events for the window.
     const { data: events } = await supabaseAdmin
@@ -84,6 +100,7 @@ export const platformAnalytics = createServerFn({ method: "POST" })
     };
     const byDay = new Map<string, number>();
     const byCode = new Map<string, number>();
+    const resolutionByCode = new Map<string, number>();
 
     for (const ev of events ?? []) {
       const type = ev.event_type as string;
@@ -93,6 +110,7 @@ export const platformAnalytics = createServerFn({ method: "POST" })
       if (type === "resolve" || type === "navigate_start" || type === "delivery_view") {
         byCode.set(ev.smart_code, (byCode.get(ev.smart_code) ?? 0) + 1);
       }
+      if (type === "resolve") resolutionByCode.set(ev.smart_code, (resolutionByCode.get(ev.smart_code) ?? 0) + 1);
     }
 
     // Top addresses: public, business-facing codes only — homes never appear.
@@ -152,6 +170,11 @@ export const platformAnalytics = createServerFn({ method: "POST" })
         api_requests: apiRequests,
         delivery_share: deliveryShare,
         corrections_submitted: correctionsSubmitted,
+        successful_corrections: correctionsApplied,
+        api_address_resolutions: apiResolutions,
+        repeat_address_usage: [...resolutionByCode.values()].filter((count) => count > 1).length,
+        external_application_addresses: externalCodes.size,
+        successful_destinations_reached: reached.size,
       },
       series,
       top_addresses: topAddresses,
