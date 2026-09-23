@@ -124,8 +124,8 @@ export function QrCard({
   return (
     <DialogPrimitive.Root open onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="qr-print-sheet fixed inset-0 z-[60] bg-background/85 backdrop-blur-sm" />
-        <DialogPrimitive.Content className="qr-print-sheet fixed start-1/2 top-1/2 z-[61] flex max-h-[94vh] w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-plate">
+        <DialogPrimitive.Overlay className="fixed inset-0 z-[60] bg-background/85 backdrop-blur-sm" />
+        <DialogPrimitive.Content className="qr-print-sheet fixed left-1/2 top-1/2 z-[61] flex max-h-[94vh] w-[calc(100%_-_2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-plate">
         <header className="no-print flex items-center justify-between border-b border-border px-4 py-3">
           <div className="flex items-center gap-2">
             <QrCode className="size-4 text-primary" />

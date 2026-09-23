@@ -389,6 +389,15 @@ function ResolverPage() {
                 <Search className="size-4" />
               </button>
             </form>
+            <div id="resolver-status" role="status" aria-live="polite" className="sr-only">
+              {mutation.isPending
+                ? t({ ar: "جارٍ تحليل الرمز", en: "Resolving the code" })
+                : result?.status === "ok"
+                  ? t({ ar: `تم العثور على ${result.site.display_name}`, en: `Found ${result.site.display_name}` })
+                  : result
+                    ? t({ ar: "تعذر حل هذا الرمز علناً", en: "This code could not be resolved publicly" })
+                    : ""}
+            </div>
 
             <div className="no-scrollbar mt-3 flex gap-1.5 overflow-x-auto pb-0.5">
               {QUICK_PURPOSES.map((value) => (
@@ -441,11 +450,11 @@ function ResolverPage() {
 
           <div className="flex flex-col gap-4 p-5">
             {mutation.isPending ? (
-              <p id="resolver-status" role="status" aria-live="polite" className="py-12 text-center text-sm text-muted-foreground">{t({ ar: "جارٍ التحليل…", en: "Resolving…" })}</p>
+              <p className="py-12 text-center text-sm text-muted-foreground">{t({ ar: "جارٍ التحليل…", en: "Resolving…" })}</p>
             ) : null}
 
             {result && result.status !== "ok" && !mutation.isPending ? (
-              <section id="resolver-status" role="alert" className="animate-entrance rounded-xl border border-border bg-background p-5 text-center">
+              <section role="alert" className="animate-entrance rounded-xl border border-border bg-background p-5 text-center">
                 <p className="font-bold">
                   {result.status === "not_found"
                     ? t({ ar: "لا يوجد عنوان ذكي عام بهذا الرمز", en: "No public smart address matches this code" })
@@ -463,7 +472,7 @@ function ResolverPage() {
             ) : null}
 
             {mutation.isError && !offlineCache ? (
-              <section id="resolver-status" role="alert" className="animate-entrance rounded-xl border border-border bg-background p-5 text-center">
+              <section role="alert" className="animate-entrance rounded-xl border border-border bg-background p-5 text-center">
                 <p className="font-bold">{t({ ar: "تعذر الاتصال بالخادم", en: "Couldn't reach the server" })}</p>
                 <p className="mt-2 text-sm text-muted-foreground">
                   {t({
