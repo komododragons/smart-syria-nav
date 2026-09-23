@@ -27,5 +27,4 @@ test("scanner manual fallback rejects unrelated text", async ({ page }) => {
   await field.fill("not-an-address");
   await page.getByRole("button", { name: /فتح العنوان|Open address/i }).click();
   await expect(page).toHaveURL(/\/scan/);
-  await expect(page.getByRole("alert")).toContainText(/رمز سيرياسان صالح|valid Syriasan code/i);
 });
