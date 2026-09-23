@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { cn } from "@/lib/utils";
+import logoAsset from "@/assets/syriasan-logo.png.asset.json";
 
 export function AppHeader() {
   const router = useRouter();
@@ -64,10 +65,24 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-header-foreground/10 bg-header text-header-foreground shadow-sm">
       <div className="mx-auto grid min-h-14 max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5">
-        <Link to="/" aria-label={t({ ar: "سرياسان — الصفحة الرئيسية", en: "Syriasan — home" })} className="flex min-w-0 flex-col leading-none">
-          <span className="truncate text-lg font-bold">{t({ ar: "سرياسان", en: "Syriasan" })}</span>
-          <span className="mt-1 truncate text-[10px] font-medium text-header-muted">
+        <Link
+          to="/"
+          aria-label={t({ ar: "سيريا سان — الصفحة الرئيسية", en: "Syriasan — home" })}
+          className="flex min-w-0 items-center gap-2.5"
+        >
+          <img
+            src={logoAsset.url}
+            alt=""
+            aria-hidden="true"
+            width={48}
+            height={48}
+            className="size-11 shrink-0 object-contain md:size-12"
+          />
+          <span className="flex min-w-0 flex-col leading-none">
+            <span className="truncate text-lg font-bold">{t({ ar: "سيريا سان", en: "Syriasan" })}</span>
+            <span className="mt-1.5 truncate text-xs font-semibold text-header-muted md:text-sm">
             {t({ ar: "شبكة العنوان الذكي السورية", en: "Syrian Smart Address Network" })}
+            </span>
           </span>
         </Link>
 
