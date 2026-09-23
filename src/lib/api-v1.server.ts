@@ -442,7 +442,16 @@ async function searchAddresses(url: URL, admin: Admin) {
     .eq("node.is_active", true)
     .limit(limit);
 
-  if (q) query = query.or(`display_name.ilike.%${q}%,name_en.ilike.%${q}%,street.ilike.%${q}%`, { referencedTable: "node" });
+  // Strip PostgREST filter metacharacters so `q` cannot inject extra filters.
+  const safeQ = q.replace(/[,()"\\*:.%]/g, " ").replace(/\s+/g, " ").trim();
+  if (q && !safeQ) {
+    return fail("invalid_request", 400, "Provide a searchable `q` value.");
+  }
+  if (safeQ)
+    query = query.or(
+      `display_name.ilike.%${safeQ}%,name_en.ilike.%${safeQ}%,street.ilike.%${safeQ}%`,
+      { referencedTable: "node" },
+    );
   if (governorate) query = query.ilike("node.governorate", `%${governorate}%`);
   if (city) query = query.ilike("node.city", `%${city}%`);
 

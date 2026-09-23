@@ -785,8 +785,12 @@ export const createTemporaryAddress = createServerFn({ method: "POST" })
     const { readPrivacy, filterSharedFields, clampShareHours } = await import("./privacy.functions");
     const prefs = await readPrivacy(context.supabase, context.userId);
 
+    // Share tokens gate private address details: use a CSPRNG and enough
+    // entropy (16 chars over a 32-symbol alphabet = 80 bits) to prevent guessing.
     const alphabet = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
-    const token = `SY-TMP-${Array.from({ length: 5 }, () => alphabet[Math.floor(Math.random() * alphabet.length)]).join("")}`;
+    const bytes = new Uint8Array(16);
+    crypto.getRandomValues(bytes);
+    const token = `SY-TMP-${Array.from(bytes, (b) => alphabet[b % alphabet.length]).join("")}`;
     const hours = clampShareHours(data.hours, prefs);
     const expires = new Date(Date.now() + hours * 3600_000).toISOString();
     // Owner privacy switches win over whatever the caller requested.

@@ -58,7 +58,10 @@ function EmbedAddressPage() {
     function onMessage(event: MessageEvent) {
       const data = event.data as { type?: string; payload?: { code?: string; resolve?: boolean } } | null;
       if (!data || data.type !== "syriasan:set-code") return;
-      if (targetOrigin !== "*" && event.origin !== targetOrigin) return;
+      // Only the declared host origin may drive this widget. Without a valid
+      // `origin` parameter we never trust inbound messages.
+      if (targetOrigin === "*" || event.origin !== targetOrigin) return;
+      if (event.source !== window.parent) return;
       const code = String(data.payload?.code ?? "").slice(0, 40);
       setInjected({ code, resolve: data.payload?.resolve !== false, nonce: Date.now() });
     }
