@@ -156,3 +156,5 @@ PHASE 26 — HOMEPAGE POSITIONING — DONE (hero proposition "عنوان واح�
 PHASE 29 — PERFORMANCE — DONE (geospatial GiST + FK/lookup indexes; 60s public-only resolve cache; public cache headers on /api/public/resolve, no-store otherwise; reused server Supabase client; query staleTime + intent route preloading; lazy QrCard chunk; tile preconnect + async decoding)
 
 PHASE 30 — ACCESSIBILITY — DONE (WCAG-oriented skip navigation and focus visibility; dynamic Arabic/English lang+dir; keyboard map selection; accessible Radix dialogs; labelled forms; announced loading, result, success, and error states; selected-state semantics; 44px mobile targets.)
+
+PHASE 31 — TESTING — IN PROGRESS (Vitest + Testing Library + Playwright foundation; unit coverage for privacy, codes, QR, i18n, public-place exclusion and entrance-first routing; public API contract tests; mobile/desktop browser smoke journeys. Database-backed role/claim/import/share-expiry concurrency fixtures remain gated on isolated test identities.)

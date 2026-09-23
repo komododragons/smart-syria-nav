@@ -12,6 +12,7 @@ import { Camera, CameraOff, Keyboard, QrCode } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
 import { useI18n } from "@/lib/i18n";
+import { extractSyriasanCode } from "@/lib/qr";
 
 export const Route = createFileRoute("/scan")({
   head: () => ({
@@ -35,19 +36,7 @@ export const Route = createFileRoute("/scan")({
 type Detector = { detect: (source: CanvasImageSource) => Promise<{ rawValue: string }[]> };
 
 /** Pulls a Syriasan code out of a raw QR payload (bare code or full URL). */
-function extractCode(raw: string): string | null {
-  const text = raw.trim();
-  const direct = text.match(/SY-[A-Z]{2,4}-[A-Z0-9]{3,8}/i);
-  if (direct) return direct[0].toUpperCase();
-  try {
-    const url = new URL(text);
-    const segment = url.pathname.split("/").filter(Boolean).pop();
-    if (segment && /^[A-Z0-9-]{4,}$/i.test(segment)) return segment.toUpperCase();
-  } catch {
-    /* not a URL */
-  }
-  return null;
-}
+const extractCode = extractSyriasanCode;
 
 function ScanPage() {
   const { t } = useI18n();
