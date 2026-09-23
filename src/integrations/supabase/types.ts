@@ -2884,6 +2884,10 @@ export type Database = {
         }
         Returns: string
       }
+      resolve_smart_address_redirect: {
+        Args: { p_old_code: string }
+        Returns: string
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       st_3dclosestpoint: {
