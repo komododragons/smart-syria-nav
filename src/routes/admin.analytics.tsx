@@ -146,7 +146,18 @@ function AnalyticsPage() {
                 />
                 <Stat label={t({ ar: "ظهور في البحث", en: "Search appearances" })} value={data.usage.search_appearance} />
                 <Stat label={t({ ar: "طلبات الواجهة البرمجية", en: "API requests" })} value={data.usage.api_requests} />
+                <Stat label={t({ ar: "حلّ العنوان عبر API", en: "API address resolutions" })} value={data.usage.api_address_resolutions} />
+                <Stat label={t({ ar: "استخدام متكرر للعناوين", en: "Repeat address usage" })} value={data.usage.repeat_address_usage} />
+                <Stat label={t({ ar: "تصحيحات ناجحة", en: "Successful corrections" })} value={data.usage.successful_corrections} />
+                <Stat label={t({ ar: "عناوين استخدمتها تطبيقات خارجية", en: "Addresses used by external apps" })} value={data.usage.external_application_addresses} />
               </div>
+            </section>
+
+            <section className="border border-primary/40 bg-header p-5 text-header-foreground">
+              <p className="text-[10px] font-bold uppercase text-header-muted">NORTH STAR</p>
+              <p className="mt-2 font-mono text-4xl font-bold text-primary">{data.usage.successful_destinations_reached.toLocaleString("en-US")}</p>
+              <h2 className="mt-2 text-sm font-bold">{t({ ar: "وجهات ناجحة تم الوصول إليها باستخدام عنوان سيرياسان", en: "Successful destinations reached using a Syriasan address" })}</h2>
+              <p className="mt-1 text-xs text-header-muted">{t({ ar: "تأكيدات وصول مجهولة ومزالة التكرار حسب رحلة التكامل.", en: "Anonymous arrival confirmations deduplicated by integration journey." })}</p>
             </section>
 
             <section className={card}>

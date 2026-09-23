@@ -331,7 +331,7 @@ export const listApiClients = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     const { data: clients, error } = await context.supabase
       .from("api_clients")
-      .select("id, name, environment, scopes, rate_limit_per_minute, is_active, created_at")
+      .select("id, name, environment, integration_sector, scopes, rate_limit_per_minute, is_active, created_at")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
 
@@ -361,6 +361,10 @@ export const createApiClient = createServerFn({ method: "POST" })
       .object({
         name: z.string().min(2).max(80),
         environment: z.enum(["live", "test"]).default("live"),
+        sector: z.enum([
+          "general", "courier", "ecommerce", "banking", "fintech", "insurance", "utilities",
+          "healthcare", "hospitality", "government", "municipality", "emergency", "logistics",
+        ]).default("general"),
       })
       .parse(input),
   )
@@ -371,6 +375,7 @@ export const createApiClient = createServerFn({ method: "POST" })
         name: data.name,
         environment: data.environment,
         owner_id: context.userId,
+        integration_sector: data.sector,
         // Read-only v1 scopes by default; `addresses:write` is granted on request.
         // The owner may always manage their own keys and webhook subscriptions.
         scopes: [
@@ -383,6 +388,7 @@ export const createApiClient = createServerFn({ method: "POST" })
           "qr",
           "keys:manage",
           "webhooks:manage",
+          "events:write",
         ],
       })
       .select("id")

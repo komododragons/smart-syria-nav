@@ -45,6 +45,7 @@ function DevelopersPage() {
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [name, setName] = useState("");
   const [environment, setEnvironment] = useState<"live" | "test">("live");
+  const [sector, setSector] = useState("general");
   const [freshKey, setFreshKey] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -134,6 +135,26 @@ function DevelopersPage() {
               placeholder={t({ ar: "اسم التطبيق أو الشركة", en: "App or company name" })}
               className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
             />
+            <select
+              value={sector}
+              onChange={(event) => setSector(event.target.value)}
+              aria-label={t({ ar: "قطاع التكامل", en: "Integration sector" })}
+              className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            >
+              <option value="general">{t({ ar: "استخدام عام", en: "General" })}</option>
+              <option value="courier">{t({ ar: "شركة توصيل", en: "Courier" })}</option>
+              <option value="ecommerce">{t({ ar: "تجارة إلكترونية", en: "E-commerce" })}</option>
+              <option value="banking">{t({ ar: "مصرف", en: "Banking" })}</option>
+              <option value="fintech">{t({ ar: "تقنية مالية", en: "Fintech" })}</option>
+              <option value="insurance">{t({ ar: "تأمين", en: "Insurance" })}</option>
+              <option value="utilities">{t({ ar: "مرافق", en: "Utilities" })}</option>
+              <option value="healthcare">{t({ ar: "رعاية صحية", en: "Healthcare" })}</option>
+              <option value="hospitality">{t({ ar: "ضيافة", en: "Hospitality" })}</option>
+              <option value="government">{t({ ar: "خدمات حكومية", en: "Government" })}</option>
+              <option value="municipality">{t({ ar: "بلدية", en: "Municipality" })}</option>
+              <option value="emergency">{t({ ar: "طوارئ", en: "Emergency" })}</option>
+              <option value="logistics">{t({ ar: "لوجستيات", en: "Logistics" })}</option>
+            </select>
             <div className="flex gap-1.5 text-xs">
               {(["live", "test"] as const).map((env) => (
                 <button
@@ -156,7 +177,7 @@ function DevelopersPage() {
               onClick={async () => {
                 setBusy(true);
                 try {
-                  await createClientFn({ data: { name: name.trim(), environment } });
+                  await createClientFn({ data: { name: name.trim(), environment, sector: sector as never } });
                   setName("");
                   toast.success(t({ ar: "تم إنشاء العميل", en: "Client created" }));
                   await refresh();
@@ -211,6 +232,7 @@ function DevelopersPage() {
                     {client.environment === "live" ? t({ ar: "إنتاج", en: "Live" }) : t({ ar: "تجريبي", en: "Test" })} ·{" "}
                     {t({ ar: "حد المعدل", en: "Rate limit" })} {client.rate_limit_per_minute}
                     {t({ ar: "/دقيقة", en: "/min" })}
+                    {" · "}{client.integration_sector}
                   </p>
                 </div>
                 <button

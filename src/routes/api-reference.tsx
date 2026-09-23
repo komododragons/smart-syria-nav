@@ -114,6 +114,23 @@ const ENDPOINTS: Endpoint[] = [
   -H "x-api-key: san_live_…"`,
   },
   {
+    method: "GET",
+    path: "/api/v1/capabilities",
+    scope: "addresses:read",
+    desc: { ar: "عقد تكامل محايد يعلن القطاعات والقدرات وسياقات المداخل وحدود الخصوصية، دون ادعاء وجود موصلات حية.", en: "A provider-neutral contract describing sectors, capabilities, entrance contexts and privacy boundaries, without claiming live connectors." },
+    example: `curl https://syriasan.com/api/v1/capabilities \\
+  -H "x-api-key: san_live_…"`,
+  },
+  {
+    method: "POST",
+    path: "/api/v1/events",
+    scope: "events:write",
+    desc: { ar: "تسجيل استخدام عنوان أو بدء توجيه أو وصول ناجح مع مفتاح منع تكرار ومعرّف رحلة؛ يقبل العناوين العامة فقط.", en: "Record address use, navigation start or successful arrival with idempotency and journey correlation; public addresses only." },
+    example: `curl -X POST https://syriasan.com/api/v1/events \\
+  -H "x-api-key: san_live_…" -H "Content-Type: application/json" \\
+  -d '{"code":"SY-DAM-K7X4","event":"destination_reached","correlation_id":"550e8400-e29b-41d4-a716-446655440000","idempotency_key":"order-784-arrived","routing_context":"parcel"}'`,
+  },
+  {
     method: "POST",
     path: "/api/v1/keys/revoke",
     scope: "keys:manage",
