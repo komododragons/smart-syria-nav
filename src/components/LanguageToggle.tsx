@@ -1,4 +1,5 @@
 import { Languages } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
@@ -12,12 +13,16 @@ export function LanguageToggle({
   inverse?: boolean;
 }) {
   const { lang, setLang, t } = useI18n();
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => setReady(true), []);
 
   return (
     <Button
       type="button"
       variant="ghost"
       size="sm"
+      disabled={!ready}
       onClick={() => setLang(lang === "ar" ? "en" : "ar")}
       aria-label={t({ ar: "التبديل إلى الإنجليزية", en: "Switch to Arabic" })}
       title={t({ ar: "English", en: "العربية" })}
