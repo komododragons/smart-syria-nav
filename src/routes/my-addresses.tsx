@@ -18,6 +18,7 @@ import { QrCardLazy as QrCard } from "@/components/QrCardLazy";
 import { supabase } from "@/integrations/supabase/client";
 import {
   createTemporaryAddress,
+  convertMyAddressToBusiness,
   listMyAddresses,
   listTemporaryLinks,
   revokeTemporaryLink,
@@ -28,6 +29,12 @@ import { myClaims, withdrawClaim } from "@/lib/claims.functions";
 import { listFavorites, toggleFavorite } from "@/lib/network.functions";
 import { nodeTypeLabel, purposeLabel, QUICK_PURPOSES, verificationLabel } from "@/lib/smart-address";
 import { useI18n } from "@/lib/i18n";
+import {
+  ADDRESS_CLASSIFICATIONS,
+  ADDRESS_CLASSIFICATION_LABELS,
+  isCommercialClassification,
+  type AddressClassification,
+} from "@/lib/address-classification";
 
 const SHARE_FIELD_LABELS: { value: ShareField; ar: string; en: string }[] = [
   { value: "location", ar: "الموقع", en: "Location" },
@@ -100,10 +107,11 @@ function MyAddressesPage() {
   const [linkLabel, setLinkLabel] = useState("");
   const [issued, setIssued] = useState<{ token: string; expires_at: string } | null>(null);
   const updateFn = useServerFn(updateMyAddress);
+  const convertFn = useServerFn(convertMyAddressToBusiness);
   const [editFor, setEditFor] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({
     label: "",
-    is_public: false,
+    address_classification: "private_residence" as AddressClassification,
     display_name: "",
     neighborhood: "",
     street: "",
@@ -171,7 +179,7 @@ function MyAddressesPage() {
           node_id: vars.node_id,
           access_point_id: vars.access_point_id,
           label: editForm.label.trim() || null,
-          is_public: editForm.is_public,
+          address_classification: editForm.address_classification,
           display_name: editForm.display_name.trim(),
           neighborhood: editForm.neighborhood.trim() || null,
           street: editForm.street.trim() || null,
@@ -201,6 +209,19 @@ function MyAddressesPage() {
           ? t({ ar: "لا تملك صلاحية تعديل هذا العنوان", en: "You don't have permission to edit this address" })
           : t({ ar: "تعذر حفظ التعديلات", en: "Couldn't save the changes" }),
       ),
+  });
+
+  const convertMutation = useMutation({
+    mutationFn: (row: { id: string; name: string }) => convertFn({ data: {
+      smart_address_id: row.id,
+      classification: "business_shop",
+      name_ar: row.name,
+    } }),
+    onSuccess: async () => {
+      toast.success(t({ ar: "تم تحويل العنوان إلى قائمة أعمال مجانية", en: "Address converted to a free business listing" }));
+      await query.refetch();
+    },
+    onError: () => toast.error(t({ ar: "تعذر تحويل العنوان", en: "Couldn't convert the address" })),
   });
 
   if (authed === false) {
@@ -301,6 +322,8 @@ function MyAddressesPage() {
         {query.data?.map((row) => {
           const node = Array.isArray(row.location_nodes) ? row.location_nodes[0] : row.location_nodes;
           const ap = Array.isArray(row.access_points) ? row.access_points[0] : row.access_points;
+          const reviews = Array.isArray(row.commercial_address_reviews) ? row.commercial_address_reviews : [];
+          const openReview = reviews.find((review) => ["open", "owner_confirmed_private", "conversion_requested"].includes(review.status));
           return (
             <section
               key={row.id}
@@ -315,6 +338,9 @@ function MyAddressesPage() {
                     <DirectionsButton code={row.code} variant="chip" />
                   </span>
                   <p className="text-sm font-bold">{row.label ?? node?.display_name}</p>
+                  <p className="mt-0.5 text-[11px] font-bold text-primary">
+                    {t(ADDRESS_CLASSIFICATION_LABELS[row.address_classification])}
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     {[
                       node ? nodeTypeLabel(node.node_type, lang) : null,
@@ -336,6 +362,16 @@ function MyAddressesPage() {
                   {row.is_public ? t({ ar: "عام", en: "Public" }) : t({ ar: "خاص", en: "Private" })}
                 </span>
               </div>
+
+              {openReview ? (
+                <div className="mt-3 border border-warning/40 bg-warning/10 p-3" role="status">
+                  <p className="text-sm font-bold">{t({ ar: "قد يكون هذا العنوان تابعاً لنشاط تجاري", en: "This address may represent a business" })}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{t({ ar: "لن نحذف العنوان. حوّله إلى قائمة أعمال مجانية لتحافظ على ظهوره الصحيح وتضيف الاسم والتصنيف وساعات العمل.", en: "We won't delete it. Convert it to a free business listing to keep its correct public presence and add its name, category, and opening hours." })}</p>
+                  <button type="button" disabled={convertMutation.isPending} onClick={() => convertMutation.mutate({ id: row.id, name: row.label ?? node?.display_name ?? "نشاط تجاري" })} className="mt-2 rounded-lg bg-primary px-3 py-2 text-xs font-bold text-primary-foreground disabled:opacity-60">
+                    {t({ ar: "تحويل إلى قائمة أعمال مجانية", en: "Convert to a free business listing" })}
+                  </button>
+                </div>
+              ) : null}
 
               <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
                 {ap ? <span>{t({ ar: "المدخل:", en: "Entrance:" })} {ap.display_name}</span> : null}
@@ -388,7 +424,7 @@ function MyAddressesPage() {
                       setEditFor(row.id);
                       setEditForm({
                         label: row.label ?? "",
-                        is_public: row.is_public,
+                        address_classification: row.address_classification,
                         display_name: node.display_name ?? "",
                         neighborhood: node.neighborhood ?? "",
                         street: node.street ?? "",
@@ -522,14 +558,14 @@ function MyAddressesPage() {
                         يوجد مصعد
                       </label>
                     </div>
-                    <label className="flex items-center gap-2 self-end text-xs font-medium">
-                      <input
-                        type="checkbox"
-                        checked={editForm.is_public}
-                        onChange={(e) => setEditForm({ ...editForm, is_public: e.target.checked })}
-                        className="size-3.5"
-                      />
-                      عنوان عام (قابل للبحث)
+                    <label className="flex flex-col gap-1 text-xs font-medium sm:col-span-2">
+                      {t({ ar: "تصنيف العنوان", en: "Address classification" })}
+                      <select value={editForm.address_classification} onChange={(e) => setEditForm({ ...editForm, address_classification: e.target.value as AddressClassification })} className="rounded-lg border border-border bg-surface px-3 py-2 text-sm">
+                        {ADDRESS_CLASSIFICATIONS.map((value) => <option key={value} value={value}>{t(ADDRESS_CLASSIFICATION_LABELS[value])}</option>)}
+                      </select>
+                      <span className="text-[11px] text-muted-foreground">
+                        {editForm.address_classification === "private_residence" ? t({ ar: "السكن يبقى خاصاً دائماً.", en: "A residence always remains private." }) : isCommercialClassification(editForm.address_classification) ? t({ ar: "لتحويل السكن إلى نشاط استخدم زر التحويل أعلى البطاقة.", en: "Use the conversion action above when changing a residence into a business." }) : t({ ar: "هذا الموقع جزء من الدليل العام.", en: "This location is part of the public directory." })}
+                      </span>
                     </label>
                     <label className="flex flex-col gap-1 text-xs font-medium">
                       خط العرض

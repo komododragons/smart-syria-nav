@@ -734,6 +734,62 @@ export type Database = {
           },
         ]
       }
+      commercial_address_reviews: {
+        Row: {
+          created_at: string
+          decision_note: string | null
+          evidence: Json
+          id: string
+          owner_id: string
+          owner_response: string | null
+          reasons: string[]
+          reviewed_at: string | null
+          reviewed_by: string | null
+          score: number
+          smart_address_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          decision_note?: string | null
+          evidence?: Json
+          id?: string
+          owner_id: string
+          owner_response?: string | null
+          reasons?: string[]
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          score?: number
+          smart_address_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          decision_note?: string | null
+          evidence?: Json
+          id?: string
+          owner_id?: string
+          owner_response?: string | null
+          reasons?: string[]
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          score?: number
+          smart_address_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commercial_address_reviews_smart_address_id_fkey"
+            columns: ["smart_address_id"]
+            isOneToOne: false
+            referencedRelation: "smart_addresses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       confidence_events: {
         Row: {
           access_point_id: string | null
@@ -2179,6 +2235,8 @@ export type Database = {
       }
       smart_addresses: {
         Row: {
+          address_classification: Database["public"]["Enums"]["address_classification"]
+          classification_status: string
           code: string
           created_at: string
           created_by: string | null
@@ -2192,6 +2250,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          address_classification: Database["public"]["Enums"]["address_classification"]
+          classification_status?: string
           code: string
           created_at?: string
           created_by?: string | null
@@ -2205,6 +2265,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          address_classification?: Database["public"]["Enums"]["address_classification"]
+          classification_status?: string
           code?: string
           created_at?: string
           created_by?: string | null
@@ -3481,6 +3543,15 @@ export type Database = {
       }
     }
     Enums: {
+      address_classification:
+        | "private_residence"
+        | "business_shop"
+        | "office"
+        | "government_institution"
+        | "healthcare_facility"
+        | "hotel_accommodation"
+        | "building_residential_complex"
+        | "warehouse_industrial"
       app_role:
         | "user"
         | "business_owner"
@@ -3624,6 +3695,16 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      address_classification: [
+        "private_residence",
+        "business_shop",
+        "office",
+        "government_institution",
+        "healthcare_facility",
+        "hotel_accommodation",
+        "building_residential_complex",
+        "warehouse_industrial",
+      ],
       app_role: [
         "user",
         "business_owner",

@@ -312,6 +312,8 @@ export const commitBulkImport = createServerFn({ method: "POST" })
             default_access_point_id: accessPointId,
             label: row.branch_label ?? row.name_ar,
             is_public: true,
+             address_classification: "business_shop",
+             classification_status: "confirmed",
             created_by: context.userId,
           })
           .select("id, code")

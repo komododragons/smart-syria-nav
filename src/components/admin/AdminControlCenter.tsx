@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import {
@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { adminControlCenter } from "@/lib/admin-control.functions";
+import { adminControlCenter, reviewCommercialAddress } from "@/lib/admin-control.functions";
 import { GOVERNORATES } from "@/lib/smart-address";
 import { PLACE_CATEGORIES } from "@/lib/place-categories";
 import { useI18n, type Bilingual } from "@/lib/i18n";
@@ -57,6 +57,9 @@ export function AdminControlCenter() {
     retry: false,
   });
   const data = query.data?.authorized ? query.data : null;
+  const queryClient = useQueryClient();
+  const review = useServerFn(reviewCommercialAddress);
+  const reviewMutation = useMutation({ mutationFn: (input: { review_id: string; decision: "dismissed" | "conversion_requested" }) => review({ data: input }), onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-control-center"] }) });
   const selected = sections.find((item) => item.id === section) ?? sections[0]!;
   const update = (key: keyof Filters, value: string) => setFilters((current) => ({ ...current, [key]: value }));
   const supportsPlace = section === "addresses" || section === "businesses" || section === "verification";
@@ -98,7 +101,7 @@ export function AdminControlCenter() {
               {supportsPlace ? <input aria-label={t({ ar: "المدينة", en: "City" })} value={filters.city} onChange={(e) => update("city", e.target.value)} placeholder={t({ ar: "المدينة", en: "City" })} className="h-10 border border-input bg-background px-2 text-xs" /> : null}
               {supportsPlace ? <select aria-label={t({ ar: "التوثيق", en: "Verification" })} value={filters.verification} onChange={(e) => update("verification", e.target.value)} className="h-10 border border-input bg-background px-2 text-xs"><option value="">{t({ ar: "كل مستويات التوثيق", en: "All verification" })}</option><option value="unverified">{t({ ar: "غير موثق", en: "Unverified" })}</option><option value="user_confirmed">{t({ ar: "مؤكد من المستخدم", en: "User confirmed" })}</option><option value="officially_verified">{t({ ar: "موثق رسمياً", en: "Officially verified" })}</option></select> : null}
               {supportsCategory ? <select aria-label={t({ ar: "التصنيف", en: "Category" })} value={filters.category} onChange={(e) => update("category", e.target.value)} className="h-10 border border-input bg-background px-2 text-xs"><option value="">{t({ ar: "كل التصنيفات", en: "All categories" })}</option>{PLACE_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{t({ ar: c.ar, en: c.en })}</option>)}</select> : null}
-              <input aria-label={t({ ar: "الحالة", en: "Status" })} value={filters.status} onChange={(e) => update("status", e.target.value)} placeholder={t({ ar: "الحالة", en: "Status" })} className="h-10 border border-input bg-background px-2 text-xs" />
+              {section === "addresses" ? <select aria-label={t({ ar: "الحالة", en: "Status" })} value={filters.status} onChange={(e) => update("status", e.target.value)} className="h-10 border border-input bg-background px-2 text-xs"><option value="">{t({ ar: "كل الحالات", en: "All statuses" })}</option><option value="active">{t({ ar: "نشط", en: "Active" })}</option><option value="commercial_review">{t({ ar: "مراجعة استخدام تجاري", en: "Commercial-use review" })}</option></select> : <input aria-label={t({ ar: "الحالة", en: "Status" })} value={filters.status} onChange={(e) => update("status", e.target.value)} placeholder={t({ ar: "الحالة", en: "Status" })} className="h-10 border border-input bg-background px-2 text-xs" />}
               <input aria-label={t({ ar: "من تاريخ", en: "From date" })} type="date" value={filters.from} onChange={(e) => update("from", e.target.value)} className="h-10 border border-input bg-background px-2 text-xs" />
               <input aria-label={t({ ar: "إلى تاريخ", en: "To date" })} type="date" value={filters.to} onChange={(e) => update("to", e.target.value)} className="h-10 border border-input bg-background px-2 text-xs" />
             </div>
@@ -120,7 +123,7 @@ export function AdminControlCenter() {
                 <div className="border border-border bg-header p-4 text-header-foreground"><ShieldCheck className="size-5 text-primary"/><h3 className="mt-3 font-bold">{t({ ar: "الخصوصية أولاً", en: "Privacy first" })}</h3><p className="mt-2 text-xs leading-6 text-header-muted">{t({ ar: "التحليلات مجمّعة. السلوك السكني الفردي والبيانات الخاصة لا تظهر في هذا المركز.", en: "Analytics are aggregated. Individual residential behavior and private data never appear in this center." })}</p></div>
               </section>
             </>
-          ) : section === "health" ? <Health rows={data.rows} t={t} /> : section === "analytics" ? <Analytics rows={data.rows} t={t} /> : <section className="overflow-hidden border border-border bg-surface"><div className="flex items-center justify-between border-b border-border px-4 py-3"><h3 className="text-sm font-bold">{t(selected.label)}</h3><span className="font-mono text-xs text-muted-foreground">{data.rows.length}</span></div><RowList rows={data.rows} date={date} empty={t({ ar: "لا نتائج تطابق الفلاتر.", en: "No results match the filters." })} /></section>
+          ) : section === "health" ? <Health rows={data.rows} t={t} /> : section === "analytics" ? <Analytics rows={data.rows} t={t} /> : section === "addresses" && filters.status === "commercial_review" ? <section className="overflow-hidden border border-border bg-surface"><div className="border-b border-border px-4 py-3"><h3 className="text-sm font-bold">{t({ ar: "مراجعة الاستخدام التجاري", en: "Commercial-use review" })}</h3></div><div className="divide-y divide-border">{data.rows.map((row: any) => <div key={row.id} className="p-4"><p className="font-mono text-sm font-bold" dir="ltr">{row.smart_addresses?.code ?? "—"}</p><p className="mt-1 text-xs text-muted-foreground">{(row.reasons ?? []).join(" · ")} · {row.score}%</p><div className="mt-3 flex gap-2"><Button size="sm" disabled={reviewMutation.isPending} onClick={() => reviewMutation.mutate({ review_id: row.id, decision: "conversion_requested" })}>{t({ ar: "طلب التحويل", en: "Request conversion" })}</Button><Button size="sm" variant="outline" disabled={reviewMutation.isPending} onClick={() => reviewMutation.mutate({ review_id: row.id, decision: "dismissed" })}>{t({ ar: "استبعاد", en: "Dismiss" })}</Button></div></div>)}</div></section> : <section className="overflow-hidden border border-border bg-surface"><div className="flex items-center justify-between border-b border-border px-4 py-3"><h3 className="text-sm font-bold">{t(selected.label)}</h3><span className="font-mono text-xs text-muted-foreground">{data.rows.length}</span></div><RowList rows={data.rows} date={date} empty={t({ ar: "لا نتائج تطابق الفلاتر.", en: "No results match the filters." })} /></section>
         ) : null}
       </div>
     </div>

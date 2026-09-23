@@ -18,6 +18,8 @@ export type Entitlement =
   | "qr_codes"
   | "temporary_links"
   | "address_vault"
+  | "basic_business_listing"
+  | "basic_business_claim"
   // business
   | "business_verification"
   | "multi_location"
@@ -65,6 +67,8 @@ const FREE_ENTITLEMENTS: Entitlement[] = [
   "qr_codes",
   "temporary_links",
   "address_vault",
+  "basic_business_listing",
+  "basic_business_claim",
 ];
 
 const BUSINESS_ENTITLEMENTS: Entitlement[] = [
@@ -99,8 +103,8 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     id: "free",
     name_ar: "مجاني",
     name_en: "Free",
-    tagline_ar: "العنونة الشخصية مجانية دائماً",
-    audience_ar: "للأفراد والعائلات",
+    tagline_ar: "العنوان مجاني؛ الإدارة الاحترافية مدفوعة",
+    audience_ar: "للأفراد والعائلات والأعمال الأساسية",
     entitlements: FREE_ENTITLEMENTS,
     limits: {
       locations: 5,
@@ -173,6 +177,8 @@ export const ENTITLEMENT_LABELS_AR: Record<Entitlement, string> = {
   qr_codes: "رموز QR للعنوان",
   temporary_links: "روابط مشاركة تنتهي صلاحيتها",
   address_vault: "خزنة عناوين خاصة",
+  basic_business_listing: "اسم النشاط وموقعه وتصنيفه وهاتفه وساعات عمله",
+  basic_business_claim: "المطالبة بالملكية والمراجعة الأساسية",
   business_verification: "توثيق النشاط التجاري",
   multi_location: "فروع ومواقع متعددة",
   business_analytics: "تحليلات الاستخدام للأعمال",

@@ -26,6 +26,7 @@ import {
 import { AppHeader } from "@/components/AppHeader";
 import { PLACE_CATEGORIES } from "@/lib/place-categories";
 import { myEntitlements } from "@/lib/plans.functions";
+import { ADDRESS_CLASSIFICATION_LABELS, type AddressClassification } from "@/lib/address-classification";
 import { LIMIT_LABELS_AR, PLANS, formatLimit, type LimitKey } from "@/lib/plans";
 import { BulkImportTab } from "@/components/BulkImportTab";
 import { CadastralMap } from "@/components/CadastralMap";
@@ -316,6 +317,7 @@ type LocationForm = {
   entrance_name: string;
   entrance_instructions: string;
   is_published: boolean;
+  address_classification: Exclude<AddressClassification, "private_residence" | "building_residential_complex">;
 };
 
 const emptyForm: LocationForm = {
@@ -336,6 +338,7 @@ const emptyForm: LocationForm = {
   entrance_name: "",
   entrance_instructions: "",
   is_published: true,
+  address_classification: "business_shop",
 };
 
 function LocationsTab({
@@ -376,23 +379,30 @@ function LocationsTab({
       const payload = {
         organization_id: orgId,
         name_ar: form.name_ar.trim(),
+        name_en: null,
         branch_label: form.branch_label.trim() || null,
         category: form.category.trim() || null,
         place_category: form.place_category || null,
         phone: form.phone.trim() || null,
+        website: null,
         opening_hours: form.opening_hours.trim() || null,
+        logo_url: null,
         governorate,
         governorate_code: form.governorate_code,
         city: form.city.trim() || null,
+        district: null,
         neighborhood: form.neighborhood.trim() || null,
         street: form.street.trim() || null,
         landmark: form.landmark.trim() || null,
         building_number: form.building_number.trim() || null,
+        parking_info: null,
+        loading_info: null,
         latitude: form.latitude,
         longitude: form.longitude,
         entrance_name: form.entrance_name.trim() || null,
         entrance_instructions: form.entrance_instructions.trim() || null,
         is_published: form.is_published,
+        address_classification: form.address_classification,
       };
       if (form.business_id && form.node_id) {
         await update({ data: { ...payload, business_id: form.business_id, node_id: form.node_id } });
@@ -465,6 +475,11 @@ function LocationsTab({
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <Field label={t({ ar: "اسم الموقع", en: "Location name" })}>
               <input className={input} value={form.name_ar} onChange={(e) => setForm({ ...form, name_ar: e.target.value })} />
+            </Field>
+            <Field label={t({ ar: "نوع الموقع", en: "Location type" })}>
+              <select className={input} value={form.address_classification} onChange={(e) => setForm({ ...form, address_classification: e.target.value as LocationForm["address_classification"] })}>
+                {(["business_shop", "office", "government_institution", "healthcare_facility", "hotel_accommodation", "warehouse_industrial"] as const).map((value) => <option key={value} value={value}>{t(ADDRESS_CLASSIFICATION_LABELS[value])}</option>)}
+              </select>
             </Field>
             <Field label={t({ ar: "اسم الفرع", en: "Branch name" })}>
               <input className={input} value={form.branch_label} onChange={(e) => setForm({ ...form, branch_label: e.target.value })} />
@@ -619,6 +634,7 @@ function LocationsTab({
                         entrance_name: "",
                         entrance_instructions: "",
                         is_published: loc.is_published,
+                        address_classification: (loc.smart_address?.address_classification ?? "business_shop") as LocationForm["address_classification"],
                       })
                     }
                   >

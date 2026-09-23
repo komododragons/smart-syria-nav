@@ -73,9 +73,12 @@ function PlansPage() {
           <h1 className="text-xl font-bold">{t({ ar: "الخطط", en: "Plans" })}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             {t({
-              ar: "إنشاء العنوان الشخصي وحلّ العناوين والمشاركة ورموز QR مجانية دائماً ولن تُسعَّر. الخطط الأخرى مخصّصة للأعمال والمطوّرين والمؤسسات.",
-              en: "Creating a personal address, resolving addresses, sharing, and QR codes are free forever and will never be priced. Other plans are for businesses, developers, and enterprises.",
+              ar: "أضف عنوان نشاطك الأساسي إلى سيريا سان مجاناً. رقِّ لإثبات نشاطك، وإدارة الفروع، وإضافة تفاصيل المداخل والطوابق، والاطلاع على التحليلات، والاتصال بالعملاء ومزودي التوصيل.",
+              en: "Add your basic business address to Syriasan for free. Upgrade to verify your business, manage branches, add detailed entrance and floor information, view analytics, and connect with customers and delivery providers.",
             })}
+          </p>
+          <p className="mt-3 text-sm font-bold text-primary">
+            {t({ ar: "العنوان مجاني؛ الإدارة الاحترافية للعنوان مدفوعة.", en: "The address is free; professional address management is paid." })}
           </p>
           <p className="mt-3 flex items-start gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-[12px] font-bold text-primary">
             <Sparkles className="mt-0.5 size-3.5 shrink-0" />

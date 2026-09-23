@@ -12,6 +12,7 @@
 import { createHash, createHmac, randomBytes } from "node:crypto";
 
 import { z } from "zod";
+import { ADDRESS_CLASSIFICATIONS, isPublicClassification } from "./address-classification";
 
 import type { Database } from "@/integrations/supabase/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -299,12 +300,16 @@ async function createAddress(body: unknown, admin: Admin, auth: AuthOk) {
     category: z.string().trim().max(60).optional(),
     phone: z.string().trim().max(30).optional(),
     label: z.string().trim().max(80).optional(),
+    address_classification: z.enum(ADDRESS_CLASSIFICATIONS),
   });
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
     return fail("invalid_request", 400, "Validation failed.", {}) as Response;
   }
   const d = parsed.data;
+  if (!isPublicClassification(d.address_classification)) {
+    return fail("private_creation_not_supported", 422, "Private residences must be created by their owner in Syriasan.");
+  }
   if (!inSyria(d.latitude, d.longitude)) {
     return fail("out_of_bounds", 422, "Coordinates must fall inside Syria.");
   }
@@ -388,6 +393,8 @@ async function createAddress(body: unknown, admin: Admin, auth: AuthOk) {
     default_access_point_id: accessPointId,
     label: d.label ?? d.name_ar,
     is_public: true,
+    address_classification: d.address_classification,
+    classification_status: "confirmed",
     created_by: auth.ownerId,
   });
   if (codeErr) return fail("create_failed", 500, codeErr.message);
