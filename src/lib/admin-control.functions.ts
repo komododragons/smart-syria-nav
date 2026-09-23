@@ -20,7 +20,7 @@ const filterSchema = z.object({
   to: z.string().max(10).default(""),
 });
 
-export async function callerIsAdministrator(supa: { rpc: (name: string, args: Record<string, string>) => Promise<{ data: unknown }> }, userId: string) {
+export async function callerIsAdministrator(supa: any, userId: string) {
   const { data } = await supa.rpc("has_role", { _user_id: userId, _role: "admin" });
   return Boolean(data);
 }
