@@ -27,4 +27,13 @@ describe("public address contracts", () => {
     await expect(response.json()).resolves.toMatchObject({ error: "missing_api_key" });
     expect(response.headers.get("cache-control")).toBe("no-store");
   });
+
+  it("rejects malformed developer API keys without disclosing data", async () => {
+    const response = await fetch(`${origin}/api/public/v1/resolve/SY-DAM-9M4Q`, {
+      headers: { "x-api-key": "not-a-syriasan-key" },
+    });
+    expect(response.status).toBe(401);
+    await expect(response.json()).resolves.toMatchObject({ error: "invalid_api_key" });
+    expect(response.headers.get("cache-control")).toBe("no-store");
+  });
 });
