@@ -14,7 +14,9 @@ test("resolve, delivery, and emergency modes keep their intended public context"
 test("Arabic and English switch page direction", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
-  await page.getByRole("button", { name: "التبديل إلى الإنجليزية" }).click();
+  const languageToggle = page.getByRole("button", { name: "التبديل إلى الإنجليزية" });
+  await expect(languageToggle).toBeEnabled();
+  await languageToggle.click();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
 });
