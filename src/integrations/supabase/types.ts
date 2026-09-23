@@ -356,6 +356,7 @@ export type Database = {
           created_at: string
           environment: string
           id: string
+          integration_sector: string
           is_active: boolean
           name: string
           owner_id: string | null
@@ -366,6 +367,7 @@ export type Database = {
           created_at?: string
           environment?: string
           id?: string
+          integration_sector?: string
           is_active?: boolean
           name: string
           owner_id?: string | null
@@ -376,6 +378,7 @@ export type Database = {
           created_at?: string
           environment?: string
           id?: string
+          integration_sector?: string
           is_active?: boolean
           name?: string
           owner_id?: string | null
@@ -1211,6 +1214,59 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_events: {
+        Row: {
+          client_id: string
+          correlation_id: string
+          created_at: string
+          event_type: string
+          id: string
+          idempotency_key: string
+          occurred_at: string
+          routing_context: string
+          sector: string
+          smart_code: string
+          source: string
+          successful: boolean | null
+        }
+        Insert: {
+          client_id: string
+          correlation_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          idempotency_key: string
+          occurred_at?: string
+          routing_context: string
+          sector: string
+          smart_code: string
+          source?: string
+          successful?: boolean | null
+        }
+        Update: {
+          client_id?: string
+          correlation_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          idempotency_key?: string
+          occurred_at?: string
+          routing_context?: string
+          sector?: string
+          smart_code?: string
+          source?: string
+          successful?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "api_clients"
             referencedColumns: ["id"]
           },
         ]
