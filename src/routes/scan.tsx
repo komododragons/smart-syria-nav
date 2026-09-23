@@ -12,6 +12,7 @@ import { Camera, CameraOff, Keyboard, QrCode } from "lucide-react";
 
 import { AppHeader } from "@/components/AppHeader";
 import { useI18n } from "@/lib/i18n";
+import { extractSyriasanCode } from "@/lib/qr";
 
 export const Route = createFileRoute("/scan")({
   head: () => ({
@@ -35,19 +36,7 @@ export const Route = createFileRoute("/scan")({
 type Detector = { detect: (source: CanvasImageSource) => Promise<{ rawValue: string }[]> };
 
 /** Pulls a Syriasan code out of a raw QR payload (bare code or full URL). */
-function extractCode(raw: string): string | null {
-  const text = raw.trim();
-  const direct = text.match(/SY-[A-Z]{2,4}-[A-Z0-9]{3,8}/i);
-  if (direct) return direct[0].toUpperCase();
-  try {
-    const url = new URL(text);
-    const segment = url.pathname.split("/").filter(Boolean).pop();
-    if (segment && /^[A-Z0-9-]{4,}$/i.test(segment)) return segment.toUpperCase();
-  } catch {
-    /* not a URL */
-  }
-  return null;
-}
+const extractCode = extractSyriasanCode;
 
 function ScanPage() {
   const { t } = useI18n();
@@ -191,8 +180,18 @@ function ScanPage() {
           className="mt-4 rounded-2xl border border-border bg-surface p-3"
           onSubmit={(event) => {
             event.preventDefault();
-            const code = extractCode(manual) ?? manual.trim().toUpperCase();
-            if (code) go(code);
+             const code = extractCode(manual);
+             if (code) {
+               setError(null);
+               go(code);
+               return;
+             }
+             setError(
+               t({
+                 ar: "أدخل رمز سيرياسان صالحاً، مثل SY-DAM-0001.",
+                 en: "Enter a valid Syriasan code, such as SY-DAM-0001.",
+               }),
+             );
           }}
         >
           <label className="flex items-center gap-2 text-xs font-bold text-muted-foreground" htmlFor="manual-code">
@@ -213,6 +212,7 @@ function ScanPage() {
             />
             <button
               type="submit"
+               aria-label={t({ ar: "فتح العنوان", en: "Open address" })}
               className="min-h-14 rounded-xl bg-foreground px-4 text-sm font-bold text-background"
             >
               {t({ ar: "فتح", en: "Open" })}
