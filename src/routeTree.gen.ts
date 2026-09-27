@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AboutRouteImport } from './routes/about'
-import { Route as AdminRouteImport } from './routes/admin'
 import { Route as ApiReferenceRouteImport } from './routes/api-reference'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CheckoutComponentRouteImport } from './routes/checkout-component'
@@ -40,6 +39,7 @@ import { Route as AuthenticatedPrivacyRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedVaultRouteImport } from './routes/_authenticated/vault'
 import { Route as AuthenticatedVerifyRouteImport } from './routes/_authenticated/verify'
 import { Route as ACodeRouteImport } from './routes/a.$code'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminClaimsRouteImport } from './routes/admin.claims'
@@ -71,11 +71,6 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiReferenceRoute = ApiReferenceRouteImport.update({
@@ -216,6 +211,11 @@ const ACodeRoute = ACodeRouteImport.update({
   path: '/a/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
@@ -310,7 +310,6 @@ const ApiPublicV1SplatRoute = ApiPublicV1SplatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRouteWithChildren
   '/api-reference': typeof ApiReferenceRoute
   '/auth': typeof AuthRoute
   '/checkout-component': typeof CheckoutComponentRoute
@@ -352,6 +351,7 @@ export interface FileRoutesByFullPath {
   '/embed/address': typeof EmbedAddressRoute
   '/navigation/$code': typeof NavigationCodeRoute
   '/t/$token': typeof TTokenRoute
+  '/admin/': typeof AdminIndexRoute
   '/api/public/checkout': typeof ApiPublicCheckoutRoute
   '/api/public/resolve': typeof ApiPublicResolveRoute
   '/api/v1/$': typeof ApiV1SplatRoute
@@ -360,7 +360,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRouteWithChildren
   '/api-reference': typeof ApiReferenceRoute
   '/auth': typeof AuthRoute
   '/checkout-component': typeof CheckoutComponentRoute
@@ -402,6 +401,7 @@ export interface FileRoutesByTo {
   '/embed/address': typeof EmbedAddressRoute
   '/navigation/$code': typeof NavigationCodeRoute
   '/t/$token': typeof TTokenRoute
+  '/admin': typeof AdminIndexRoute
   '/api/public/checkout': typeof ApiPublicCheckoutRoute
   '/api/public/resolve': typeof ApiPublicResolveRoute
   '/api/v1/$': typeof ApiV1SplatRoute
@@ -412,7 +412,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRouteWithChildren
   '/api-reference': typeof ApiReferenceRoute
   '/auth': typeof AuthRoute
   '/checkout-component': typeof CheckoutComponentRoute
@@ -454,6 +453,7 @@ export interface FileRoutesById {
   '/embed/address': typeof EmbedAddressRoute
   '/navigation/$code': typeof NavigationCodeRoute
   '/t/$token': typeof TTokenRoute
+  '/admin/': typeof AdminIndexRoute
   '/api/public/checkout': typeof ApiPublicCheckoutRoute
   '/api/public/resolve': typeof ApiPublicResolveRoute
   '/api/v1/$': typeof ApiV1SplatRoute
@@ -464,7 +464,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
-    | '/admin'
     | '/api-reference'
     | '/auth'
     | '/checkout-component'
@@ -506,6 +505,7 @@ export interface FileRouteTypes {
     | '/embed/address'
     | '/navigation/$code'
     | '/t/$token'
+    | '/admin/'
     | '/api/public/checkout'
     | '/api/public/resolve'
     | '/api/v1/$'
@@ -514,7 +514,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
-    | '/admin'
     | '/api-reference'
     | '/auth'
     | '/checkout-component'
@@ -556,6 +555,7 @@ export interface FileRouteTypes {
     | '/embed/address'
     | '/navigation/$code'
     | '/t/$token'
+    | '/admin'
     | '/api/public/checkout'
     | '/api/public/resolve'
     | '/api/v1/$'
@@ -565,7 +565,6 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/about'
-    | '/admin'
     | '/api-reference'
     | '/auth'
     | '/checkout-component'
@@ -607,6 +606,7 @@ export interface FileRouteTypes {
     | '/embed/address'
     | '/navigation/$code'
     | '/t/$token'
+    | '/admin/'
     | '/api/public/checkout'
     | '/api/public/resolve'
     | '/api/v1/$'
@@ -617,7 +617,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
-  AdminRoute: typeof AdminRouteWithChildren
   ApiReferenceRoute: typeof ApiReferenceRoute
   AuthRoute: typeof AuthRoute
   CheckoutComponentRoute: typeof CheckoutComponentRoute
@@ -644,6 +643,7 @@ export interface RootRouteChildren {
   EmbedAddressRoute: typeof EmbedAddressRoute
   NavigationCodeRoute: typeof NavigationCodeRoute
   TTokenRoute: typeof TTokenRoute
+  AdminIndexRoute: typeof AdminIndexRoute
   ApiPublicCheckoutRoute: typeof ApiPublicCheckoutRoute
   ApiPublicResolveRoute: typeof ApiPublicResolveRoute
   ApiV1SplatRoute: typeof ApiV1SplatRoute
@@ -671,13 +671,6 @@ declare module '@tanstack/react-router' {
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof AboutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api-reference': {
@@ -869,6 +862,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ACodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/analytics': {
       id: '/admin/analytics'
       path: '/analytics'
@@ -1023,33 +1023,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
-interface AdminRouteChildren {
-  AdminAnalyticsRoute: typeof AdminAnalyticsRoute
-  AdminAuditRoute: typeof AdminAuditRoute
-  AdminClaimsRoute: typeof AdminClaimsRoute
-  AdminCorrectionsRoute: typeof AdminCorrectionsRoute
-  AdminNavigationRoute: typeof AdminNavigationRoute
-  AdminPlansRoute: typeof AdminPlansRoute
-  AdminQualityRoute: typeof AdminQualityRoute
-}
-
-const AdminRouteChildren: AdminRouteChildren = {
-  AdminAnalyticsRoute: AdminAnalyticsRoute,
-  AdminAuditRoute: AdminAuditRoute,
-  AdminClaimsRoute: AdminClaimsRoute,
-  AdminCorrectionsRoute: AdminCorrectionsRoute,
-  AdminNavigationRoute: AdminNavigationRoute,
-  AdminPlansRoute: AdminPlansRoute,
-  AdminQualityRoute: AdminQualityRoute,
-}
-
-const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AboutRoute: AboutRoute,
-  AdminRoute: AdminRouteWithChildren,
   ApiReferenceRoute: ApiReferenceRoute,
   AuthRoute: AuthRoute,
   CheckoutComponentRoute: CheckoutComponentRoute,
@@ -1076,6 +1053,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmbedAddressRoute: EmbedAddressRoute,
   NavigationCodeRoute: NavigationCodeRoute,
   TTokenRoute: TTokenRoute,
+  AdminIndexRoute: AdminIndexRoute,
   ApiPublicCheckoutRoute: ApiPublicCheckoutRoute,
   ApiPublicResolveRoute: ApiPublicResolveRoute,
   ApiV1SplatRoute: ApiV1SplatRoute,
