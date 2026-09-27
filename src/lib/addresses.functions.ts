@@ -571,6 +571,44 @@ export const listMyAddresses = createServerFn({ method: "POST" })
     return data ?? [];
   });
 
+/** Owner-only permanent deletion of a smart address and its location (cascades). */
+export const deleteMyAddress = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ smart_address_id: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: addr } = await context.supabase
+      .from("smart_addresses")
+      .select("id, code, node_id, created_by")
+      .eq("id", data.smart_address_id)
+      .eq("created_by", context.userId)
+      .maybeSingle();
+    if (!addr) throw new Error("not_found_or_forbidden");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: node } = await supabaseAdmin
+      .from("location_nodes")
+      .select("id, created_by")
+      .eq("id", addr.node_id)
+      .maybeSingle();
+    if (node && node.created_by === context.userId) {
+      const { error } = await supabaseAdmin.from("location_nodes").delete().eq("id", node.id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await supabaseAdmin.from("smart_addresses").delete().eq("id", addr.id);
+      if (error) throw new Error(error.message);
+    }
+    await supabaseAdmin.from("audit_logs").insert({
+      actor_id: context.userId,
+      action: "address_deleted",
+      resource_type: "smart_address",
+      resource_id: addr.id,
+      metadata: { code: addr.code },
+    });
+    return { ok: true as const };
+  });
+
 /** Owner-only edit of a smart address: label/privacy, site details, and default entrance. */
 export const updateMyAddress = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
