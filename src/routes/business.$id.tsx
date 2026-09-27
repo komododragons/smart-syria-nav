@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
@@ -164,6 +165,9 @@ function BusinessPage() {
                   <BadgeCheck className="size-3" />
                   {verificationLabel(ok.business!.verification_level, lang) ?? t({ ar: "غير موثق", en: "Unverified" })}
                 </span>
+              </div>
+              <div className="mt-2">
+                <VerifiedBadge kind="business" level={ok.business!.verification_level} />
               </div>
 
               <p className="mt-3 flex items-center gap-1.5 text-sm text-muted-foreground">
