@@ -564,6 +564,7 @@ export const listMyAddresses = createServerFn({ method: "POST" })
       .select(
         "id, code, label, is_public, status, address_classification, classification_status, created_at, location_nodes(id, display_name, node_type, unit_label, floor_label, neighborhood, city, governorate, street, landmark, public_notes, visibility, latitude, longitude, confidence_score, verification_level, building_number, parking_info, loading_info, wheelchair_accessible, has_elevator), access_points(id, display_name, instructions_ar, access_type, latitude, longitude, parking_info, loading_info), commercial_address_reviews(id, reasons, score, status, owner_response, created_at)",
       )
+      .eq("created_by", context.userId)
       .order("created_at", { ascending: false })
       .limit(100);
     if (error) throw new Error(error.message);

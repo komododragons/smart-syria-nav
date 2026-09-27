@@ -169,5 +169,5 @@ PHASE 33 — FUTURE-READY INTEGRATION LAYER — DONE (additive integration secto
 - [x] Add tests and verify critical journeys
 
 - [x] Access reorganization: public info pages, simplified nav + footer, sign-in gate for account pages
-- [ ] Verified Address / Verified Business badges (next step)
-- [ ] Signed-in permission tests for individual, business, courier, developer, admin (needs test accounts)
+- [x] Verified Address / Verified Business badges
+- [x] Signed-in checks: admin + regular user (no separate business/courier/developer roles assigned to any account yet)
