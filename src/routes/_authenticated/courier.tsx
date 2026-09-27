@@ -17,7 +17,7 @@ import { formatDistance, formatDuration } from "@/lib/navigation/geo";
 import type { Coordinates } from "@/lib/navigation/types";
 import { useI18n } from "@/lib/i18n";
 
-export const Route = createFileRoute("/courier")({
+export const Route = createFileRoute("/_authenticated/courier")({
   head: () => ({
     meta: [
       { title: "مسارات التوصيل متعددة المحطات" },

@@ -63,7 +63,7 @@ const CLAIM_STATUS_LABELS: Record<string, { ar: string; en: string }> = {
 };
 
 
-export const Route = createFileRoute("/my-addresses")({
+export const Route = createFileRoute("/_authenticated/my-addresses")({
   head: () => ({
     meta: [
       { title: "عناويني الذكية" },

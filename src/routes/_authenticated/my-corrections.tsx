@@ -10,7 +10,7 @@ import { myCorrections } from "@/lib/corrections.functions";
 import { correctionDecisionLabel, correctionTypeLabel } from "@/lib/smart-address";
 import { useI18n } from "@/lib/i18n";
 
-export const Route = createFileRoute("/my-corrections")({
+export const Route = createFileRoute("/_authenticated/my-corrections")({
   head: () => ({
     meta: [
       { title: "تصحيحاتي — سيرياسان" },

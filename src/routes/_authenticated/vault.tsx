@@ -50,7 +50,7 @@ const EXPIRY_PRESETS = [
   { hours: 168, ar: "٧ أيام", en: "7 days" },
 ];
 
-export const Route = createFileRoute("/vault")({
+export const Route = createFileRoute("/_authenticated/vault")({
   head: () => ({
     meta: [
       { title: "خزنة العناوين الخاصة — سيرياسان" },

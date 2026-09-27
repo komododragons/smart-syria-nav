@@ -11,7 +11,7 @@ import { submitVerification, verifierQueue } from "@/lib/network.functions";
 import { accessTypeLabel, nodeTypeLabel, verificationLabel } from "@/lib/smart-address";
 import { useI18n } from "@/lib/i18n";
 
-export const Route = createFileRoute("/verify")({
+export const Route = createFileRoute("/_authenticated/verify")({
   head: () => ({
     meta: [
       { title: "توثيق المواقع الميداني" },

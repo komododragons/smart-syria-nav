@@ -15,7 +15,7 @@ import {
 } from "@/lib/network.functions";
 import { useI18n } from "@/lib/i18n";
 
-export const Route = createFileRoute("/developers")({
+export const Route = createFileRoute("/_authenticated/developer-dashboard")({
   head: () => ({
     meta: [
       { title: "واجهة المطورين وAPI" },
