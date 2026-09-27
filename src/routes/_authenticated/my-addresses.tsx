@@ -23,6 +23,7 @@ import {
   listTemporaryLinks,
   revokeTemporaryLink,
   updateMyAddress,
+  deleteMyAddress,
   type ShareField,
 } from "@/lib/addresses.functions";
 import { myClaims, withdrawClaim } from "@/lib/claims.functions";
@@ -108,6 +109,7 @@ function MyAddressesPage() {
   const [issued, setIssued] = useState<{ token: string; expires_at: string } | null>(null);
   const updateFn = useServerFn(updateMyAddress);
   const convertFn = useServerFn(convertMyAddressToBusiness);
+  const deleteFn = useServerFn(deleteMyAddress);
   const [editFor, setEditFor] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({
     label: "",
@@ -209,6 +211,15 @@ function MyAddressesPage() {
           ? t({ ar: "لا تملك صلاحية تعديل هذا العنوان", en: "You don't have permission to edit this address" })
           : t({ ar: "تعذر حفظ التعديلات", en: "Couldn't save the changes" }),
       ),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteFn({ data: { smart_address_id: id } }),
+    onSuccess: async () => {
+      toast.success(t({ ar: "تم حذف العنوان نهائياً", en: "Address permanently deleted" }));
+      await query.refetch();
+    },
+    onError: () => toast.error(t({ ar: "تعذر حذف العنوان", en: "Couldn't delete the address" })),
   });
 
   const convertMutation = useMutation({
@@ -448,6 +459,24 @@ function MyAddressesPage() {
                     <Pencil className="size-3.5" /> {t({ ar: "تعديل", en: "Edit" })}
                   </button>
                 ) : null}
+                <button
+                  type="button"
+                  disabled={deleteMutation.isPending}
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        t({
+                          ar: `حذف العنوان ${row.code} نهائياً؟ لا يمكن التراجع، وستتوقف روابطه ورموز QR عن العمل.`,
+                          en: `Permanently delete ${row.code}? This cannot be undone; its links and QR codes will stop working.`,
+                        }),
+                      )
+                    )
+                      deleteMutation.mutate(row.id);
+                  }}
+                  className="flex items-center gap-1.5 rounded-lg border border-destructive/40 px-3 py-2 text-xs font-bold text-destructive disabled:opacity-60"
+                >
+                  <Trash2 className="size-3.5" /> {t({ ar: "حذف", en: "Delete" })}
+                </button>
               </div>
 
               {qrFor === row.id && row.is_public ? (
