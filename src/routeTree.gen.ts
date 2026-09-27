@@ -19,7 +19,6 @@ import { Route as DocsRouteImport } from './routes/docs'
 import { Route as OfflineRouteImport } from './routes/offline'
 import { Route as PlacesRouteImport } from './routes/places'
 import { Route as PlansRouteImport } from './routes/plans'
-import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ScanRouteImport } from './routes/scan'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as WidgetRouteImport } from './routes/widget'
@@ -28,6 +27,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedDeveloperDashboardRouteImport } from './routes/_authenticated/developer-dashboard'
 import { Route as AuthenticatedMyAddressesRouteImport } from './routes/_authenticated/my-addresses'
 import { Route as AuthenticatedMyCorrectionsRouteImport } from './routes/_authenticated/my-corrections'
+import { Route as AuthenticatedPrivacyRouteImport } from './routes/_authenticated/privacy'
 import { Route as AuthenticatedVaultRouteImport } from './routes/_authenticated/vault'
 import { Route as AuthenticatedVerifyRouteImport } from './routes/_authenticated/verify'
 import { Route as ACodeRouteImport } from './routes/a.$code'
@@ -100,11 +100,6 @@ const PlansRoute = PlansRouteImport.update({
   path: '/plans',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ScanRoute = ScanRouteImport.update({
   id: '/scan',
   path: '/scan',
@@ -148,6 +143,11 @@ const AuthenticatedMyCorrectionsRoute =
     path: '/my-corrections',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedPrivacyRoute = AuthenticatedPrivacyRouteImport.update({
+  id: '/_authenticated/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedVaultRoute = AuthenticatedVaultRouteImport.update({
   id: '/_authenticated/vault',
   path: '/vault',
@@ -265,7 +265,6 @@ export interface FileRoutesByFullPath {
   '/offline': typeof OfflineRoute
   '/places': typeof PlacesRoute
   '/plans': typeof PlansRoute
-  '/privacy': typeof PrivacyRoute
   '/scan': typeof ScanRoute
   '/search': typeof SearchRoute
   '/widget': typeof WidgetRoute
@@ -274,6 +273,7 @@ export interface FileRoutesByFullPath {
   '/developer-dashboard': typeof AuthenticatedDeveloperDashboardRoute
   '/my-addresses': typeof AuthenticatedMyAddressesRoute
   '/my-corrections': typeof AuthenticatedMyCorrectionsRoute
+  '/privacy': typeof AuthenticatedPrivacyRoute
   '/vault': typeof AuthenticatedVaultRoute
   '/verify': typeof AuthenticatedVerifyRoute
   '/a/$code': typeof ACodeRoute
@@ -307,7 +307,6 @@ export interface FileRoutesByTo {
   '/offline': typeof OfflineRoute
   '/places': typeof PlacesRoute
   '/plans': typeof PlansRoute
-  '/privacy': typeof PrivacyRoute
   '/scan': typeof ScanRoute
   '/search': typeof SearchRoute
   '/widget': typeof WidgetRoute
@@ -316,6 +315,7 @@ export interface FileRoutesByTo {
   '/developer-dashboard': typeof AuthenticatedDeveloperDashboardRoute
   '/my-addresses': typeof AuthenticatedMyAddressesRoute
   '/my-corrections': typeof AuthenticatedMyCorrectionsRoute
+  '/privacy': typeof AuthenticatedPrivacyRoute
   '/vault': typeof AuthenticatedVaultRoute
   '/verify': typeof AuthenticatedVerifyRoute
   '/a/$code': typeof ACodeRoute
@@ -350,7 +350,6 @@ export interface FileRoutesById {
   '/offline': typeof OfflineRoute
   '/places': typeof PlacesRoute
   '/plans': typeof PlansRoute
-  '/privacy': typeof PrivacyRoute
   '/scan': typeof ScanRoute
   '/search': typeof SearchRoute
   '/widget': typeof WidgetRoute
@@ -359,6 +358,7 @@ export interface FileRoutesById {
   '/_authenticated/developer-dashboard': typeof AuthenticatedDeveloperDashboardRoute
   '/_authenticated/my-addresses': typeof AuthenticatedMyAddressesRoute
   '/_authenticated/my-corrections': typeof AuthenticatedMyCorrectionsRoute
+  '/_authenticated/privacy': typeof AuthenticatedPrivacyRoute
   '/_authenticated/vault': typeof AuthenticatedVaultRoute
   '/_authenticated/verify': typeof AuthenticatedVerifyRoute
   '/a/$code': typeof ACodeRoute
@@ -394,7 +394,6 @@ export interface FileRouteTypes {
     | '/offline'
     | '/places'
     | '/plans'
-    | '/privacy'
     | '/scan'
     | '/search'
     | '/widget'
@@ -403,6 +402,7 @@ export interface FileRouteTypes {
     | '/developer-dashboard'
     | '/my-addresses'
     | '/my-corrections'
+    | '/privacy'
     | '/vault'
     | '/verify'
     | '/a/$code'
@@ -436,7 +436,6 @@ export interface FileRouteTypes {
     | '/offline'
     | '/places'
     | '/plans'
-    | '/privacy'
     | '/scan'
     | '/search'
     | '/widget'
@@ -445,6 +444,7 @@ export interface FileRouteTypes {
     | '/developer-dashboard'
     | '/my-addresses'
     | '/my-corrections'
+    | '/privacy'
     | '/vault'
     | '/verify'
     | '/a/$code'
@@ -478,7 +478,6 @@ export interface FileRouteTypes {
     | '/offline'
     | '/places'
     | '/plans'
-    | '/privacy'
     | '/scan'
     | '/search'
     | '/widget'
@@ -487,6 +486,7 @@ export interface FileRouteTypes {
     | '/_authenticated/developer-dashboard'
     | '/_authenticated/my-addresses'
     | '/_authenticated/my-corrections'
+    | '/_authenticated/privacy'
     | '/_authenticated/vault'
     | '/_authenticated/verify'
     | '/a/$code'
@@ -521,7 +521,6 @@ export interface RootRouteChildren {
   OfflineRoute: typeof OfflineRoute
   PlacesRoute: typeof PlacesRoute
   PlansRoute: typeof PlansRoute
-  PrivacyRoute: typeof PrivacyRoute
   ScanRoute: typeof ScanRoute
   SearchRoute: typeof SearchRoute
   WidgetRoute: typeof WidgetRoute
@@ -530,6 +529,7 @@ export interface RootRouteChildren {
   AuthenticatedDeveloperDashboardRoute: typeof AuthenticatedDeveloperDashboardRoute
   AuthenticatedMyAddressesRoute: typeof AuthenticatedMyAddressesRoute
   AuthenticatedMyCorrectionsRoute: typeof AuthenticatedMyCorrectionsRoute
+  AuthenticatedPrivacyRoute: typeof AuthenticatedPrivacyRoute
   AuthenticatedVaultRoute: typeof AuthenticatedVaultRoute
   AuthenticatedVerifyRoute: typeof AuthenticatedVerifyRoute
   ACodeRoute: typeof ACodeRoute
@@ -618,13 +618,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlansRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/scan': {
       id: '/scan'
       path: '/scan'
@@ -679,6 +672,13 @@ declare module '@tanstack/react-router' {
       path: '/my-corrections'
       fullPath: '/my-corrections'
       preLoaderRoute: typeof AuthenticatedMyCorrectionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/privacy': {
+      id: '/_authenticated/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof AuthenticatedPrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/vault': {
@@ -864,7 +864,6 @@ const rootRouteChildren: RootRouteChildren = {
   OfflineRoute: OfflineRoute,
   PlacesRoute: PlacesRoute,
   PlansRoute: PlansRoute,
-  PrivacyRoute: PrivacyRoute,
   ScanRoute: ScanRoute,
   SearchRoute: SearchRoute,
   WidgetRoute: WidgetRoute,
@@ -873,6 +872,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedDeveloperDashboardRoute: AuthenticatedDeveloperDashboardRoute,
   AuthenticatedMyAddressesRoute: AuthenticatedMyAddressesRoute,
   AuthenticatedMyCorrectionsRoute: AuthenticatedMyCorrectionsRoute,
+  AuthenticatedPrivacyRoute: AuthenticatedPrivacyRoute,
   AuthenticatedVaultRoute: AuthenticatedVaultRoute,
   AuthenticatedVerifyRoute: AuthenticatedVerifyRoute,
   ACodeRoute: ACodeRoute,
