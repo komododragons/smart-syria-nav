@@ -8,3 +8,4 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+- Account-only pages live under src/routes/_authenticated/ (URLs unchanged) — the sign-in gate is enforced in one place, before the page loads.
