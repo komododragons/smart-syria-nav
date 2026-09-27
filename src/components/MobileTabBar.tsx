@@ -77,9 +77,12 @@ export function MobileTabBar() {
           { to: "/courier", icon: Truck, label: { ar: "مسارات التوصيل", en: "Delivery routes" } },
           { to: "/verify", icon: BadgeCheck, label: { ar: "التوثيق الميداني", en: "Field verification" } },
           { to: "/privacy", icon: ShieldCheck, label: { ar: "مركز الخصوصية", en: "Privacy centre" } },
-          { to: "/developers", icon: Code2, label: { ar: "واجهة المطورين", en: "Developer tools" } },
+          { to: "/developer-dashboard", icon: Code2, label: { ar: "لوحة المطور", en: "Developer dashboard" } },
         ]
-      : [{ to: "/docs", icon: Code2, label: { ar: "دليل المطورين", en: "Developer docs" } }]),
+      : [
+          { to: "/for-business", icon: LayoutDashboard, label: { ar: "للأعمال", en: "For Business" } },
+          { to: "/developers", icon: Code2, label: { ar: "المطورون", en: "Developers" } },
+        ]),
   ] as const;
 
   return (
