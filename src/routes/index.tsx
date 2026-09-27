@@ -361,7 +361,7 @@ function ResolverPage() {
               </Link>
             </div>
           </div>
-          <div className="sticky top-0 z-10 border-b border-border bg-surface/95 px-5 py-4 backdrop-blur-md">
+          <div className="relative z-10 border-b border-border bg-surface/95 px-5 py-4 md:sticky md:top-0 md:backdrop-blur-md">
             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               {t({ ar: "حلّل رمزاً ذكياً", en: "Resolve a code" })}
             </span>
