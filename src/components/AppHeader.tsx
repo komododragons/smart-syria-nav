@@ -19,7 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { cn } from "@/lib/utils";
-import logoAsset from "@/assets/syriasan-logo.png.asset.json";
+import logoAsset from "@/assets/syriasan-logo-v2.png.asset.json";
 
 export function AppHeader() {
   const router = useRouter();
