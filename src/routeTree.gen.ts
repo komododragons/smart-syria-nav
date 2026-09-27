@@ -217,39 +217,39 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
-  id: '/analytics',
-  path: '/analytics',
-  getParentRoute: () => AdminRoute,
+  id: '/admin/analytics',
+  path: '/admin/analytics',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminAuditRoute = AdminAuditRouteImport.update({
-  id: '/audit',
-  path: '/audit',
-  getParentRoute: () => AdminRoute,
+  id: '/admin/audit',
+  path: '/admin/audit',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminClaimsRoute = AdminClaimsRouteImport.update({
-  id: '/claims',
-  path: '/claims',
-  getParentRoute: () => AdminRoute,
+  id: '/admin/claims',
+  path: '/admin/claims',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminCorrectionsRoute = AdminCorrectionsRouteImport.update({
-  id: '/corrections',
-  path: '/corrections',
-  getParentRoute: () => AdminRoute,
+  id: '/admin/corrections',
+  path: '/admin/corrections',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminNavigationRoute = AdminNavigationRouteImport.update({
-  id: '/navigation',
-  path: '/navigation',
-  getParentRoute: () => AdminRoute,
+  id: '/admin/navigation',
+  path: '/admin/navigation',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminPlansRoute = AdminPlansRouteImport.update({
-  id: '/plans',
-  path: '/plans',
-  getParentRoute: () => AdminRoute,
+  id: '/admin/plans',
+  path: '/admin/plans',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminQualityRoute = AdminQualityRouteImport.update({
-  id: '/quality',
-  path: '/quality',
-  getParentRoute: () => AdminRoute,
+  id: '/admin/quality',
+  path: '/admin/quality',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const BusinessIdRoute = BusinessIdRouteImport.update({
   id: '/business/$id',
@@ -636,6 +636,13 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   WidgetRoute: typeof WidgetRoute
   ACodeRoute: typeof ACodeRoute
+  AdminAnalyticsRoute: typeof AdminAnalyticsRoute
+  AdminAuditRoute: typeof AdminAuditRoute
+  AdminClaimsRoute: typeof AdminClaimsRoute
+  AdminCorrectionsRoute: typeof AdminCorrectionsRoute
+  AdminNavigationRoute: typeof AdminNavigationRoute
+  AdminPlansRoute: typeof AdminPlansRoute
+  AdminQualityRoute: typeof AdminQualityRoute
   BusinessIdRoute: typeof BusinessIdRoute
   ClaimIdRoute: typeof ClaimIdRoute
   DCodeRoute: typeof DCodeRoute
@@ -871,52 +878,52 @@ declare module '@tanstack/react-router' {
     }
     '/admin/analytics': {
       id: '/admin/analytics'
-      path: '/analytics'
+      path: '/admin/analytics'
       fullPath: '/admin/analytics'
       preLoaderRoute: typeof AdminAnalyticsRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof rootRouteImport
     }
     '/admin/audit': {
       id: '/admin/audit'
-      path: '/audit'
+      path: '/admin/audit'
       fullPath: '/admin/audit'
       preLoaderRoute: typeof AdminAuditRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof rootRouteImport
     }
     '/admin/claims': {
       id: '/admin/claims'
-      path: '/claims'
+      path: '/admin/claims'
       fullPath: '/admin/claims'
       preLoaderRoute: typeof AdminClaimsRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof rootRouteImport
     }
     '/admin/corrections': {
       id: '/admin/corrections'
-      path: '/corrections'
+      path: '/admin/corrections'
       fullPath: '/admin/corrections'
       preLoaderRoute: typeof AdminCorrectionsRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof rootRouteImport
     }
     '/admin/navigation': {
       id: '/admin/navigation'
-      path: '/navigation'
+      path: '/admin/navigation'
       fullPath: '/admin/navigation'
       preLoaderRoute: typeof AdminNavigationRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof rootRouteImport
     }
     '/admin/plans': {
       id: '/admin/plans'
-      path: '/plans'
+      path: '/admin/plans'
       fullPath: '/admin/plans'
       preLoaderRoute: typeof AdminPlansRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof rootRouteImport
     }
     '/admin/quality': {
       id: '/admin/quality'
-      path: '/quality'
+      path: '/admin/quality'
       fullPath: '/admin/quality'
       preLoaderRoute: typeof AdminQualityRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof rootRouteImport
     }
     '/business/$id': {
       id: '/business/$id'
@@ -1046,6 +1053,13 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   WidgetRoute: WidgetRoute,
   ACodeRoute: ACodeRoute,
+  AdminAnalyticsRoute: AdminAnalyticsRoute,
+  AdminAuditRoute: AdminAuditRoute,
+  AdminClaimsRoute: AdminClaimsRoute,
+  AdminCorrectionsRoute: AdminCorrectionsRoute,
+  AdminNavigationRoute: AdminNavigationRoute,
+  AdminPlansRoute: AdminPlansRoute,
+  AdminQualityRoute: AdminQualityRoute,
   BusinessIdRoute: BusinessIdRoute,
   ClaimIdRoute: ClaimIdRoute,
   DCodeRoute: DCodeRoute,
