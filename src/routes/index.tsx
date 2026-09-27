@@ -19,6 +19,7 @@ import {
 import { AppHeader } from "@/components/AppHeader";
 import { DirectionsButton } from "@/components/DirectionsButton";
 import { AddressFeedback } from "@/components/AddressFeedback";
+import { Button } from "@/components/ui/button";
 import { QrCardLazy as QrCard } from "@/components/QrCardLazy";
 import { CadastralMap, type MapPin } from "@/components/CadastralMap";
 import { HierarchySpine, type SpineLevel } from "@/components/HierarchySpine";
@@ -399,34 +400,36 @@ function ResolverPage() {
                     : ""}
             </div>
 
-            <div className="no-scrollbar mt-3 flex gap-1.5 overflow-x-auto pb-0.5">
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-2" role="group" aria-label={t({ ar: "غرض الوصول واحتياجاته", en: "Arrival purpose and access needs" })}>
               {QUICK_PURPOSES.map((value) => (
-                <button
+                <Button
                   key={value}
                   type="button"
+                  variant="outline"
                   onClick={() => setPurpose(value)}
                   aria-pressed={purpose === value}
-                  className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                  className={`h-auto min-h-11 min-w-0 whitespace-normal px-2 py-2 text-center text-xs leading-snug ${
                     purpose === value
-                      ? "bg-primary text-primary-foreground"
-                      : "border border-border bg-background text-muted-foreground"
+                      ? "border-primary bg-primary text-primary-foreground hover:bg-primary/90"
+                      : "border-border bg-background text-foreground hover:bg-secondary"
                   }`}
                 >
                   {purposeLabel(value, lang)}
-                </button>
+                </Button>
               ))}
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 onClick={() => setWheelchair((v) => !v)}
                 aria-pressed={wheelchair}
-                className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                className={`h-auto min-h-11 min-w-0 whitespace-normal px-2 py-2 text-center text-xs leading-snug ${
                   wheelchair
-                    ? "bg-foreground text-background"
-                    : "border border-border bg-background text-muted-foreground"
+                    ? "border-primary bg-primary text-primary-foreground hover:bg-primary/90"
+                    : "border-border bg-background text-foreground hover:bg-secondary"
                 }`}
               >
                 {t({ ar: "وصول كرسي متحرك", en: "Wheelchair access" })}
-              </button>
+              </Button>
             </div>
 
             <div id="resolver-help" className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px] text-muted-foreground">
