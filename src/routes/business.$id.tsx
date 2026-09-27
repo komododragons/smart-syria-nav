@@ -165,6 +165,9 @@ function BusinessPage() {
                   {verificationLabel(ok.business!.verification_level, lang) ?? t({ ar: "غير موثق", en: "Unverified" })}
                 </span>
               </div>
+              <div className="mt-2">
+                <VerifiedBadge kind="business" level={ok.business!.verification_level} />
+              </div>
 
               <p className="mt-3 flex items-center gap-1.5 text-sm text-muted-foreground">
                 <MapPinIcon className="size-4 shrink-0" />

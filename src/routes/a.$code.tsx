@@ -312,6 +312,8 @@ function AddressCardPage() {
             </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px]">
+              <VerifiedBadge kind="address" level={ok.verification_level} />
+              {ok.business ? <VerifiedBadge kind="business" level={ok.business.verification_level} /> : null}
               <span className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 py-1 font-bold">
                 <BadgeCheck className="size-3.5 text-primary" />
                 {VERIFICATION_LEVELS[ok.verification_level]?.ar ?? t({ ar: "غير موثق", en: "Not verified" })}
