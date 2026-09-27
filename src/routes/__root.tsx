@@ -14,6 +14,7 @@ import { MobileTabBar } from "@/components/MobileTabBar";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { registerOfflineWorker } from "@/lib/offline/register-sw";
 import { LocaleProvider, useI18n } from "@/lib/i18n";
+import { getGaMeasurementId } from "@/lib/ga.functions";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -153,10 +154,36 @@ function LocalizedDocument({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
 
   useEffect(() => {
     registerOfflineWorker();
   }, []);
+
+  useEffect(() => {
+    let unsub: (() => void) | undefined;
+    getGaMeasurementId()
+      .then((id) => {
+        if (!id) return;
+        const w = window as unknown as { dataLayer: unknown[]; gtag: (...a: unknown[]) => void };
+        const s = document.createElement("script");
+        s.async = true;
+        s.src = `https://www.googletagmanager.com/gtag/js?id=${id}`;
+        document.head.appendChild(s);
+        w.dataLayer = w.dataLayer || [];
+        w.gtag = function () {
+          // eslint-disable-next-line prefer-rest-params
+          w.dataLayer.push(arguments);
+        };
+        w.gtag("js", new Date());
+        w.gtag("config", id);
+        unsub = router.subscribe("onResolved", ({ toLocation, pathChanged }) => {
+          if (pathChanged) w.gtag("event", "page_view", { page_path: toLocation.pathname });
+        });
+      })
+      .catch(() => {});
+    return () => unsub?.();
+  }, [router]);
 
   return (
     <QueryClientProvider client={queryClient}>
