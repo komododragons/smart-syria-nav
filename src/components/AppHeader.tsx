@@ -44,23 +44,24 @@ export function AppHeader() {
 
   const publicLinks = [
     { to: "/search", icon: Search, label: { ar: "البحث", en: "Search" }, primary: false },
-    { to: "/places", icon: Landmark, label: { ar: "الأماكن العامة", en: "Public places" }, primary: false },
-    { to: "/create", icon: MapPinPlus, label: { ar: "عنوان جديد", en: "New address" }, primary: true },
-    { to: "/offline", icon: CloudDownload, label: { ar: "دون اتصال", en: "Offline" }, primary: false },
-    { to: "/plans", icon: Layers, label: { ar: "الخطط", en: "Plans" }, primary: false },
+    { to: "/", icon: CloudDownload, label: { ar: "الخريطة", en: "Map" }, primary: false },
+    { to: "/places", icon: Landmark, label: { ar: "الأماكن", en: "Places" }, primary: false },
+    { to: "/for-business", icon: Layers, label: { ar: "للأعمال", en: "For Business" }, primary: false },
+    { to: "/developers", icon: Code2, label: { ar: "المطورون", en: "Developers" }, primary: false },
+    { to: "/create", icon: MapPinPlus, label: { ar: "+ أنشئ عنواناً", en: "+ Create Address" }, primary: true },
   ] as const;
 
   const accountLinks = signedIn
     ? ([
         { to: "/my-addresses", icon: MapPinPlus, label: { ar: "عناويني", en: "My addresses" } },
-        { to: "/dashboard", icon: Landmark, label: { ar: "الأعمال", en: "Business" } },
+        { to: "/dashboard", icon: Landmark, label: { ar: "لوحة الأعمال", en: "Business" } },
         { to: "/vault", icon: ShieldCheck, label: { ar: "الخزنة", en: "Vault" } },
         { to: "/privacy", icon: ShieldCheck, label: { ar: "الخصوصية", en: "Privacy" } },
         { to: "/verify", icon: BadgeCheck, label: { ar: "التوثيق", en: "Verify" } },
         { to: "/courier", icon: Truck, label: { ar: "التوصيل", en: "Delivery" } },
-        { to: "/developers", icon: Code2, label: { ar: "المطورون", en: "Developers" } },
+        { to: "/developer-dashboard", icon: Code2, label: { ar: "لوحة المطور", en: "Dev dashboard" } },
       ] as const)
-    : ([{ to: "/docs", icon: Code2, label: { ar: "المطورون", en: "Developers" } }] as const);
+    : ([] as const);
 
   return (
     <header className="sticky top-0 z-50 border-b border-header-foreground/10 bg-header text-header-foreground shadow-sm">
