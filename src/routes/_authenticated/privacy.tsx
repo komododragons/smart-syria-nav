@@ -62,7 +62,7 @@ const HELP: Partial<Record<keyof PrivacyPreferences, { ar: string; en: string }>
   },
 };
 
-export const Route = createFileRoute("/privacy")({
+export const Route = createFileRoute("/_authenticated/privacy")({
   head: () => ({
     meta: [
       { title: "مركز الخصوصية — سيرياسان" },
