@@ -14,22 +14,22 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as ApiReferenceRouteImport } from './routes/api-reference'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CheckoutComponentRouteImport } from './routes/checkout-component'
-import { Route as CourierRouteImport } from './routes/courier'
 import { Route as CreateRouteImport } from './routes/create'
-import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as DevelopersRouteImport } from './routes/developers'
 import { Route as DocsRouteImport } from './routes/docs'
-import { Route as MyAddressesRouteImport } from './routes/my-addresses'
-import { Route as MyCorrectionsRouteImport } from './routes/my-corrections'
 import { Route as OfflineRouteImport } from './routes/offline'
 import { Route as PlacesRouteImport } from './routes/places'
 import { Route as PlansRouteImport } from './routes/plans'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ScanRouteImport } from './routes/scan'
 import { Route as SearchRouteImport } from './routes/search'
-import { Route as VaultRouteImport } from './routes/vault'
-import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as WidgetRouteImport } from './routes/widget'
+import { Route as AuthenticatedCourierRouteImport } from './routes/_authenticated/courier'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedDeveloperDashboardRouteImport } from './routes/_authenticated/developer-dashboard'
+import { Route as AuthenticatedMyAddressesRouteImport } from './routes/_authenticated/my-addresses'
+import { Route as AuthenticatedMyCorrectionsRouteImport } from './routes/_authenticated/my-corrections'
+import { Route as AuthenticatedVaultRouteImport } from './routes/_authenticated/vault'
+import { Route as AuthenticatedVerifyRouteImport } from './routes/_authenticated/verify'
 import { Route as ACodeRouteImport } from './routes/a.$code'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
@@ -75,39 +75,14 @@ const CheckoutComponentRoute = CheckoutComponentRouteImport.update({
   path: '/checkout-component',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CourierRoute = CourierRouteImport.update({
-  id: '/courier',
-  path: '/courier',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const CreateRoute = CreateRouteImport.update({
   id: '/create',
   path: '/create',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DevelopersRoute = DevelopersRouteImport.update({
-  id: '/developers',
-  path: '/developers',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const DocsRoute = DocsRouteImport.update({
   id: '/docs',
   path: '/docs',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MyAddressesRoute = MyAddressesRouteImport.update({
-  id: '/my-addresses',
-  path: '/my-addresses',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MyCorrectionsRoute = MyCorrectionsRouteImport.update({
-  id: '/my-corrections',
-  path: '/my-corrections',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OfflineRoute = OfflineRouteImport.update({
@@ -140,19 +115,47 @@ const SearchRoute = SearchRouteImport.update({
   path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VaultRoute = VaultRouteImport.update({
-  id: '/vault',
-  path: '/vault',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const VerifyRoute = VerifyRouteImport.update({
-  id: '/verify',
-  path: '/verify',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const WidgetRoute = WidgetRouteImport.update({
   id: '/widget',
   path: '/widget',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedCourierRoute = AuthenticatedCourierRouteImport.update({
+  id: '/_authenticated/courier',
+  path: '/courier',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/_authenticated/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedDeveloperDashboardRoute =
+  AuthenticatedDeveloperDashboardRouteImport.update({
+    id: '/_authenticated/developer-dashboard',
+    path: '/developer-dashboard',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedMyAddressesRoute =
+  AuthenticatedMyAddressesRouteImport.update({
+    id: '/_authenticated/my-addresses',
+    path: '/my-addresses',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedMyCorrectionsRoute =
+  AuthenticatedMyCorrectionsRouteImport.update({
+    id: '/_authenticated/my-corrections',
+    path: '/my-corrections',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedVaultRoute = AuthenticatedVaultRouteImport.update({
+  id: '/_authenticated/vault',
+  path: '/vault',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedVerifyRoute = AuthenticatedVerifyRouteImport.update({
+  id: '/_authenticated/verify',
+  path: '/verify',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ACodeRoute = ACodeRouteImport.update({
@@ -257,22 +260,22 @@ export interface FileRoutesByFullPath {
   '/api-reference': typeof ApiReferenceRoute
   '/auth': typeof AuthRoute
   '/checkout-component': typeof CheckoutComponentRoute
-  '/courier': typeof CourierRoute
   '/create': typeof CreateRoute
-  '/dashboard': typeof DashboardRoute
-  '/developers': typeof DevelopersRoute
   '/docs': typeof DocsRoute
-  '/my-addresses': typeof MyAddressesRoute
-  '/my-corrections': typeof MyCorrectionsRoute
   '/offline': typeof OfflineRoute
   '/places': typeof PlacesRoute
   '/plans': typeof PlansRoute
   '/privacy': typeof PrivacyRoute
   '/scan': typeof ScanRoute
   '/search': typeof SearchRoute
-  '/vault': typeof VaultRoute
-  '/verify': typeof VerifyRoute
   '/widget': typeof WidgetRoute
+  '/courier': typeof AuthenticatedCourierRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/developer-dashboard': typeof AuthenticatedDeveloperDashboardRoute
+  '/my-addresses': typeof AuthenticatedMyAddressesRoute
+  '/my-corrections': typeof AuthenticatedMyCorrectionsRoute
+  '/vault': typeof AuthenticatedVaultRoute
+  '/verify': typeof AuthenticatedVerifyRoute
   '/a/$code': typeof ACodeRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
@@ -299,22 +302,22 @@ export interface FileRoutesByTo {
   '/api-reference': typeof ApiReferenceRoute
   '/auth': typeof AuthRoute
   '/checkout-component': typeof CheckoutComponentRoute
-  '/courier': typeof CourierRoute
   '/create': typeof CreateRoute
-  '/dashboard': typeof DashboardRoute
-  '/developers': typeof DevelopersRoute
   '/docs': typeof DocsRoute
-  '/my-addresses': typeof MyAddressesRoute
-  '/my-corrections': typeof MyCorrectionsRoute
   '/offline': typeof OfflineRoute
   '/places': typeof PlacesRoute
   '/plans': typeof PlansRoute
   '/privacy': typeof PrivacyRoute
   '/scan': typeof ScanRoute
   '/search': typeof SearchRoute
-  '/vault': typeof VaultRoute
-  '/verify': typeof VerifyRoute
   '/widget': typeof WidgetRoute
+  '/courier': typeof AuthenticatedCourierRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/developer-dashboard': typeof AuthenticatedDeveloperDashboardRoute
+  '/my-addresses': typeof AuthenticatedMyAddressesRoute
+  '/my-corrections': typeof AuthenticatedMyCorrectionsRoute
+  '/vault': typeof AuthenticatedVaultRoute
+  '/verify': typeof AuthenticatedVerifyRoute
   '/a/$code': typeof ACodeRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
@@ -342,22 +345,22 @@ export interface FileRoutesById {
   '/api-reference': typeof ApiReferenceRoute
   '/auth': typeof AuthRoute
   '/checkout-component': typeof CheckoutComponentRoute
-  '/courier': typeof CourierRoute
   '/create': typeof CreateRoute
-  '/dashboard': typeof DashboardRoute
-  '/developers': typeof DevelopersRoute
   '/docs': typeof DocsRoute
-  '/my-addresses': typeof MyAddressesRoute
-  '/my-corrections': typeof MyCorrectionsRoute
   '/offline': typeof OfflineRoute
   '/places': typeof PlacesRoute
   '/plans': typeof PlansRoute
   '/privacy': typeof PrivacyRoute
   '/scan': typeof ScanRoute
   '/search': typeof SearchRoute
-  '/vault': typeof VaultRoute
-  '/verify': typeof VerifyRoute
   '/widget': typeof WidgetRoute
+  '/_authenticated/courier': typeof AuthenticatedCourierRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/developer-dashboard': typeof AuthenticatedDeveloperDashboardRoute
+  '/_authenticated/my-addresses': typeof AuthenticatedMyAddressesRoute
+  '/_authenticated/my-corrections': typeof AuthenticatedMyCorrectionsRoute
+  '/_authenticated/vault': typeof AuthenticatedVaultRoute
+  '/_authenticated/verify': typeof AuthenticatedVerifyRoute
   '/a/$code': typeof ACodeRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
@@ -386,22 +389,22 @@ export interface FileRouteTypes {
     | '/api-reference'
     | '/auth'
     | '/checkout-component'
-    | '/courier'
     | '/create'
-    | '/dashboard'
-    | '/developers'
     | '/docs'
-    | '/my-addresses'
-    | '/my-corrections'
     | '/offline'
     | '/places'
     | '/plans'
     | '/privacy'
     | '/scan'
     | '/search'
+    | '/widget'
+    | '/courier'
+    | '/dashboard'
+    | '/developer-dashboard'
+    | '/my-addresses'
+    | '/my-corrections'
     | '/vault'
     | '/verify'
-    | '/widget'
     | '/a/$code'
     | '/admin/analytics'
     | '/admin/audit'
@@ -428,22 +431,22 @@ export interface FileRouteTypes {
     | '/api-reference'
     | '/auth'
     | '/checkout-component'
-    | '/courier'
     | '/create'
-    | '/dashboard'
-    | '/developers'
     | '/docs'
-    | '/my-addresses'
-    | '/my-corrections'
     | '/offline'
     | '/places'
     | '/plans'
     | '/privacy'
     | '/scan'
     | '/search'
+    | '/widget'
+    | '/courier'
+    | '/dashboard'
+    | '/developer-dashboard'
+    | '/my-addresses'
+    | '/my-corrections'
     | '/vault'
     | '/verify'
-    | '/widget'
     | '/a/$code'
     | '/admin/analytics'
     | '/admin/audit'
@@ -470,22 +473,22 @@ export interface FileRouteTypes {
     | '/api-reference'
     | '/auth'
     | '/checkout-component'
-    | '/courier'
     | '/create'
-    | '/dashboard'
-    | '/developers'
     | '/docs'
-    | '/my-addresses'
-    | '/my-corrections'
     | '/offline'
     | '/places'
     | '/plans'
     | '/privacy'
     | '/scan'
     | '/search'
-    | '/vault'
-    | '/verify'
     | '/widget'
+    | '/_authenticated/courier'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/developer-dashboard'
+    | '/_authenticated/my-addresses'
+    | '/_authenticated/my-corrections'
+    | '/_authenticated/vault'
+    | '/_authenticated/verify'
     | '/a/$code'
     | '/admin/analytics'
     | '/admin/audit'
@@ -513,22 +516,22 @@ export interface RootRouteChildren {
   ApiReferenceRoute: typeof ApiReferenceRoute
   AuthRoute: typeof AuthRoute
   CheckoutComponentRoute: typeof CheckoutComponentRoute
-  CourierRoute: typeof CourierRoute
   CreateRoute: typeof CreateRoute
-  DashboardRoute: typeof DashboardRoute
-  DevelopersRoute: typeof DevelopersRoute
   DocsRoute: typeof DocsRoute
-  MyAddressesRoute: typeof MyAddressesRoute
-  MyCorrectionsRoute: typeof MyCorrectionsRoute
   OfflineRoute: typeof OfflineRoute
   PlacesRoute: typeof PlacesRoute
   PlansRoute: typeof PlansRoute
   PrivacyRoute: typeof PrivacyRoute
   ScanRoute: typeof ScanRoute
   SearchRoute: typeof SearchRoute
-  VaultRoute: typeof VaultRoute
-  VerifyRoute: typeof VerifyRoute
   WidgetRoute: typeof WidgetRoute
+  AuthenticatedCourierRoute: typeof AuthenticatedCourierRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDeveloperDashboardRoute: typeof AuthenticatedDeveloperDashboardRoute
+  AuthenticatedMyAddressesRoute: typeof AuthenticatedMyAddressesRoute
+  AuthenticatedMyCorrectionsRoute: typeof AuthenticatedMyCorrectionsRoute
+  AuthenticatedVaultRoute: typeof AuthenticatedVaultRoute
+  AuthenticatedVerifyRoute: typeof AuthenticatedVerifyRoute
   ACodeRoute: typeof ACodeRoute
   BusinessIdRoute: typeof BusinessIdRoute
   ClaimIdRoute: typeof ClaimIdRoute
@@ -580,13 +583,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutComponentRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/courier': {
-      id: '/courier'
-      path: '/courier'
-      fullPath: '/courier'
-      preLoaderRoute: typeof CourierRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/create': {
       id: '/create'
       path: '/create'
@@ -594,39 +590,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CreateRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/developers': {
-      id: '/developers'
-      path: '/developers'
-      fullPath: '/developers'
-      preLoaderRoute: typeof DevelopersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/docs': {
       id: '/docs'
       path: '/docs'
       fullPath: '/docs'
       preLoaderRoute: typeof DocsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/my-addresses': {
-      id: '/my-addresses'
-      path: '/my-addresses'
-      fullPath: '/my-addresses'
-      preLoaderRoute: typeof MyAddressesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/my-corrections': {
-      id: '/my-corrections'
-      path: '/my-corrections'
-      fullPath: '/my-corrections'
-      preLoaderRoute: typeof MyCorrectionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/offline': {
@@ -671,25 +639,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/vault': {
-      id: '/vault'
-      path: '/vault'
-      fullPath: '/vault'
-      preLoaderRoute: typeof VaultRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/verify': {
-      id: '/verify'
-      path: '/verify'
-      fullPath: '/verify'
-      preLoaderRoute: typeof VerifyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/widget': {
       id: '/widget'
       path: '/widget'
       fullPath: '/widget'
       preLoaderRoute: typeof WidgetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/courier': {
+      id: '/_authenticated/courier'
+      path: '/courier'
+      fullPath: '/courier'
+      preLoaderRoute: typeof AuthenticatedCourierRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/developer-dashboard': {
+      id: '/_authenticated/developer-dashboard'
+      path: '/developer-dashboard'
+      fullPath: '/developer-dashboard'
+      preLoaderRoute: typeof AuthenticatedDeveloperDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/my-addresses': {
+      id: '/_authenticated/my-addresses'
+      path: '/my-addresses'
+      fullPath: '/my-addresses'
+      preLoaderRoute: typeof AuthenticatedMyAddressesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/my-corrections': {
+      id: '/_authenticated/my-corrections'
+      path: '/my-corrections'
+      fullPath: '/my-corrections'
+      preLoaderRoute: typeof AuthenticatedMyCorrectionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/vault': {
+      id: '/_authenticated/vault'
+      path: '/vault'
+      fullPath: '/vault'
+      preLoaderRoute: typeof AuthenticatedVaultRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/verify': {
+      id: '/_authenticated/verify'
+      path: '/verify'
+      fullPath: '/verify'
+      preLoaderRoute: typeof AuthenticatedVerifyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/a/$code': {
@@ -856,22 +859,22 @@ const rootRouteChildren: RootRouteChildren = {
   ApiReferenceRoute: ApiReferenceRoute,
   AuthRoute: AuthRoute,
   CheckoutComponentRoute: CheckoutComponentRoute,
-  CourierRoute: CourierRoute,
   CreateRoute: CreateRoute,
-  DashboardRoute: DashboardRoute,
-  DevelopersRoute: DevelopersRoute,
   DocsRoute: DocsRoute,
-  MyAddressesRoute: MyAddressesRoute,
-  MyCorrectionsRoute: MyCorrectionsRoute,
   OfflineRoute: OfflineRoute,
   PlacesRoute: PlacesRoute,
   PlansRoute: PlansRoute,
   PrivacyRoute: PrivacyRoute,
   ScanRoute: ScanRoute,
   SearchRoute: SearchRoute,
-  VaultRoute: VaultRoute,
-  VerifyRoute: VerifyRoute,
   WidgetRoute: WidgetRoute,
+  AuthenticatedCourierRoute: AuthenticatedCourierRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDeveloperDashboardRoute: AuthenticatedDeveloperDashboardRoute,
+  AuthenticatedMyAddressesRoute: AuthenticatedMyAddressesRoute,
+  AuthenticatedMyCorrectionsRoute: AuthenticatedMyCorrectionsRoute,
+  AuthenticatedVaultRoute: AuthenticatedVaultRoute,
+  AuthenticatedVerifyRoute: AuthenticatedVerifyRoute,
   ACodeRoute: ACodeRoute,
   BusinessIdRoute: BusinessIdRoute,
   ClaimIdRoute: ClaimIdRoute,
