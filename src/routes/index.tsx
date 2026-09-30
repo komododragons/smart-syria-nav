@@ -319,16 +319,34 @@ function ResolverPage() {
     : { latitude: 33.5138, longitude: 36.2765 };
 
   return (
-    <div className="flex h-dvh flex-col bg-background text-foreground selection:bg-primary/20">
+    <div className="flex min-h-dvh flex-col bg-background text-foreground selection:bg-primary/20">
       <AppHeader />
+
+      {/* Hero — the Syriasan motto */}
+      <section className="cadastral-grid border-b border-border" aria-labelledby="hero-motto">
+        <div className="mx-auto w-full max-w-6xl px-5 py-10 md:py-14">
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-primary">
+            {t({ ar: "سيريا سان · شبكة العنوان الذكي السورية", en: "Syriasan · Syrian Smart Address Network" })}
+          </p>
+          <h1 id="hero-motto" className="mt-3 max-w-3xl text-3xl font-bold leading-[1.25] tracking-tight text-foreground md:text-5xl">
+            {t({ ar: "الخريطة توصلك إلى الموقع.", en: "The map takes you to the location." })}
+          </h1>
+          <p className="mt-2.5 max-w-3xl text-lg font-semibold leading-relaxed text-accent md:text-2xl">
+            {t({ ar: "سيريا سان يساعدك على الوصول إلى المدخل، الطابق والباب الصحيح.", en: "Syriasan helps you reach the right entrance, floor and door." })}
+          </p>
+          <p className="mt-5 font-mono text-[11px] tracking-wider text-muted-foreground" dir="ltr" aria-hidden>
+            33.5138° N · 36.2765° E — DAMASCUS · SY-XXX-XXXX
+          </p>
+        </div>
+      </section>
 
       <div className="flex min-h-0 flex-1 flex-col-reverse md:flex-row">
         {/* Resolver panel (slim, side) */}
         <aside className="flex w-full flex-1 flex-col overflow-y-auto border-t border-border bg-surface pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0 md:flex-none md:border-t-0 md:border-s md:w-[420px]">
           <div className="px-5 pt-6 pb-1">
-            <h1 className="text-2xl font-bold leading-[1.15] tracking-tight text-foreground">
+            <h2 className="text-2xl font-bold leading-[1.15] tracking-tight text-foreground">
               {t({ ar: "عنوان واحد. وصول أسهل.", en: "One Address. Easier Arrival." })}
-            </h1>
+            </h2>
             <p className="mt-2.5 text-sm leading-relaxed text-muted-foreground">
               {t({
                 ar: "أنشئ رمزاً موحداً من Syriasan لمنزلك أو عملك أو وجهتك، واستخدمه للتنقل والتوصيل والمشاركة.",
