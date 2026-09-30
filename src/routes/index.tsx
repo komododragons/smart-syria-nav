@@ -344,9 +344,9 @@ function ResolverPage() {
         {/* Resolver panel (slim, side) */}
         <aside className="flex w-full flex-1 flex-col overflow-y-auto border-t border-border bg-surface pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0 md:flex-none md:border-t-0 md:border-s md:w-[420px]">
           <div className="px-5 pt-6 pb-1">
-            <h1 className="text-2xl font-bold leading-[1.15] tracking-tight text-foreground">
+            <h2 className="text-2xl font-bold leading-[1.15] tracking-tight text-foreground">
               {t({ ar: "عنوان واحد. وصول أسهل.", en: "One Address. Easier Arrival." })}
-            </h1>
+            </h2>
             <p className="mt-2.5 text-sm leading-relaxed text-muted-foreground">
               {t({
                 ar: "أنشئ رمزاً موحداً من Syriasan لمنزلك أو عملك أو وجهتك، واستخدمه للتنقل والتوصيل والمشاركة.",
