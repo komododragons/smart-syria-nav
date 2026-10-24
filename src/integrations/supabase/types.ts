@@ -327,6 +327,75 @@ export type Database = {
           },
         ]
       }
+      address_deliverability: {
+        Row: {
+          address_code: string
+          is_field_verified: boolean
+          last_delivered_at: string | null
+          total_deliveries: number
+          total_failed: number
+          updated_at: string
+        }
+        Insert: {
+          address_code: string
+          is_field_verified?: boolean
+          last_delivered_at?: string | null
+          total_deliveries?: number
+          total_failed?: number
+          updated_at?: string
+        }
+        Update: {
+          address_code?: string
+          is_field_verified?: boolean
+          last_delivered_at?: string | null
+          total_deliveries?: number
+          total_failed?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      address_delivery_events: {
+        Row: {
+          address_code: string
+          created_at: string
+          failure_reason: string | null
+          id: string
+          idempotency_key: string
+          latitude: number | null
+          longitude: number | null
+          occurred_at: string
+          partner_slug: string
+          status: string
+          tracking_number: string
+        }
+        Insert: {
+          address_code: string
+          created_at?: string
+          failure_reason?: string | null
+          id?: string
+          idempotency_key: string
+          latitude?: number | null
+          longitude?: number | null
+          occurred_at?: string
+          partner_slug: string
+          status: string
+          tracking_number: string
+        }
+        Update: {
+          address_code?: string
+          created_at?: string
+          failure_reason?: string | null
+          id?: string
+          idempotency_key?: string
+          latitude?: number | null
+          longitude?: number | null
+          occurred_at?: string
+          partner_slug?: string
+          status?: string
+          tracking_number?: string
+        }
+        Relationships: []
+      }
       address_events: {
         Row: {
           created_at: string
@@ -1577,6 +1646,33 @@ export type Database = {
           },
         ]
       }
+      logistics_partners: {
+        Row: {
+          api_key_hash: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          partner_slug: string
+        }
+        Insert: {
+          api_key_hash: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          partner_slug: string
+        }
+        Update: {
+          api_key_hash?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          partner_slug?: string
+        }
+        Relationships: []
+      }
       navigation_events: {
         Row: {
           city: string | null
@@ -2738,6 +2834,10 @@ export type Database = {
             }
             Returns: string
           }
+      address_delivery_confidence: {
+        Args: { _address_code: string }
+        Returns: number
+      }
       disablelongtransactions: { Args: never; Returns: string }
       dropgeometrycolumn:
         | {
@@ -2937,6 +3037,20 @@ export type Database = {
       }
       postgis_version: { Args: never; Returns: string }
       postgis_wagyu_version: { Args: never; Returns: string }
+      record_partner_delivery_event: {
+        Args: {
+          _address_code: string
+          _failure_reason: string
+          _idempotency_key: string
+          _lat: number
+          _lng: number
+          _occurred_at: string
+          _partner_slug: string
+          _status: string
+          _tracking_number: string
+        }
+        Returns: Json
+      }
       record_verification: {
         Args: {
           _access_point_id: string
