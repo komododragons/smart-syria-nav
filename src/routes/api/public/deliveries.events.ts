@@ -89,21 +89,24 @@ export const Route = createFileRoute("/api/public/deliveries/events")({
           `${partner.partner_slug}:${data.tracking_number}:${data.status}`;
 
         // 3. Record the event (idempotent)
+        // Generated types mark the optional args non-nullable; the function
+        // accepts NULL for them, so pass nulls behind a cast.
+        const rpcArgs = {
+          _partner_slug: partner.partner_slug,
+          _address_code: data.address_code,
+          _tracking_number: data.tracking_number,
+          _status: data.status,
+          _occurred_at: data.occurred_at
+            ? new Date(data.occurred_at).toISOString()
+            : new Date().toISOString(),
+          _lat: data.latitude ?? null,
+          _lng: data.longitude ?? null,
+          _failure_reason: data.failure_reason ?? null,
+          _idempotency_key: idempotencyKey,
+        };
         const { data: result, error: rpcError } = await supabaseAdmin.rpc(
           "record_partner_delivery_event",
-          {
-            _partner_slug: partner.partner_slug,
-            _address_code: data.address_code,
-            _tracking_number: data.tracking_number,
-            _status: data.status,
-            _occurred_at: data.occurred_at
-              ? new Date(data.occurred_at).toISOString()
-              : new Date().toISOString(),
-            _lat: data.latitude ?? null,
-            _lng: data.longitude ?? null,
-            _failure_reason: data.failure_reason ?? null,
-            _idempotency_key: idempotencyKey,
-          },
+          rpcArgs as never,
         );
 
         if (rpcError) {
