@@ -1,0 +1,2 @@
+GRANT EXECUTE ON FUNCTION public.address_delivery_confidence(TEXT) TO postgres;
+GRANT EXECUTE ON FUNCTION public.record_partner_delivery_event(TEXT, TEXT, TEXT, TEXT, TIMESTAMPTZ, DOUBLE PRECISION, DOUBLE PRECISION, TEXT, TEXT) TO postgres;
