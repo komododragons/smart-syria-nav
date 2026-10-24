@@ -1,0 +1,34 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1792848727449,
+      "tag": "0000_logistics_delivery_tracking",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792848755839,
+      "tag": "0001_grant_confidence_fn_postgres",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792848772360,
+      "tag": "0002_grant_delivery_fns_readonly_role",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792848797055,
+      "tag": "0003_confidence_fn_default_zero",
+      "breakpoints": true
+    }
+  ]
+}
