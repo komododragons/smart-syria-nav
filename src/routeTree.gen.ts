@@ -57,6 +57,7 @@ import { Route as TTokenRouteImport } from './routes/t.$token'
 import { Route as ApiPublicCheckoutRouteImport } from './routes/api.public.checkout'
 import { Route as ApiPublicResolveRouteImport } from './routes/api.public.resolve'
 import { Route as ApiV1SplatRouteImport } from './routes/api.v1.$'
+import { Route as ApiPublicDeliveriesEventsRouteImport } from './routes/api/public/deliveries.events'
 import { Route as ApiPublicV1SplatRouteImport } from './routes/api.public.v1.$'
 
 const IndexRoute = IndexRouteImport.update({
@@ -301,6 +302,12 @@ const ApiV1SplatRoute = ApiV1SplatRouteImport.update({
   path: '/api/v1/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicDeliveriesEventsRoute =
+  ApiPublicDeliveriesEventsRouteImport.update({
+    id: '/api/public/deliveries/events',
+    path: '/api/public/deliveries/events',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicV1SplatRoute = ApiPublicV1SplatRouteImport.update({
   id: '/api/public/v1/$',
   path: '/api/public/v1/$',
@@ -355,6 +362,7 @@ export interface FileRoutesByFullPath {
   '/api/public/checkout': typeof ApiPublicCheckoutRoute
   '/api/public/resolve': typeof ApiPublicResolveRoute
   '/api/v1/$': typeof ApiV1SplatRoute
+  '/api/public/deliveries/events': typeof ApiPublicDeliveriesEventsRoute
   '/api/public/v1/$': typeof ApiPublicV1SplatRoute
 }
 export interface FileRoutesByTo {
@@ -405,6 +413,7 @@ export interface FileRoutesByTo {
   '/api/public/checkout': typeof ApiPublicCheckoutRoute
   '/api/public/resolve': typeof ApiPublicResolveRoute
   '/api/v1/$': typeof ApiV1SplatRoute
+  '/api/public/deliveries/events': typeof ApiPublicDeliveriesEventsRoute
   '/api/public/v1/$': typeof ApiPublicV1SplatRoute
 }
 export interface FileRoutesById {
@@ -457,6 +466,7 @@ export interface FileRoutesById {
   '/api/public/checkout': typeof ApiPublicCheckoutRoute
   '/api/public/resolve': typeof ApiPublicResolveRoute
   '/api/v1/$': typeof ApiV1SplatRoute
+  '/api/public/deliveries/events': typeof ApiPublicDeliveriesEventsRoute
   '/api/public/v1/$': typeof ApiPublicV1SplatRoute
 }
 export interface FileRouteTypes {
@@ -509,6 +519,7 @@ export interface FileRouteTypes {
     | '/api/public/checkout'
     | '/api/public/resolve'
     | '/api/v1/$'
+    | '/api/public/deliveries/events'
     | '/api/public/v1/$'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -559,6 +570,7 @@ export interface FileRouteTypes {
     | '/api/public/checkout'
     | '/api/public/resolve'
     | '/api/v1/$'
+    | '/api/public/deliveries/events'
     | '/api/public/v1/$'
   id:
     | '__root__'
@@ -610,6 +622,7 @@ export interface FileRouteTypes {
     | '/api/public/checkout'
     | '/api/public/resolve'
     | '/api/v1/$'
+    | '/api/public/deliveries/events'
     | '/api/public/v1/$'
   fileRoutesById: FileRoutesById
 }
@@ -654,6 +667,7 @@ export interface RootRouteChildren {
   ApiPublicCheckoutRoute: typeof ApiPublicCheckoutRoute
   ApiPublicResolveRoute: typeof ApiPublicResolveRoute
   ApiV1SplatRoute: typeof ApiV1SplatRoute
+  ApiPublicDeliveriesEventsRoute: typeof ApiPublicDeliveriesEventsRoute
   ApiPublicV1SplatRoute: typeof ApiPublicV1SplatRoute
 }
 
@@ -995,6 +1009,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1SplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/deliveries/events': {
+      id: '/api/public/deliveries/events'
+      path: '/api/public/deliveries/events'
+      fullPath: '/api/public/deliveries/events'
+      preLoaderRoute: typeof ApiPublicDeliveriesEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/v1/$': {
       id: '/api/public/v1/$'
       path: '/api/public/v1/$'
@@ -1071,6 +1092,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCheckoutRoute: ApiPublicCheckoutRoute,
   ApiPublicResolveRoute: ApiPublicResolveRoute,
   ApiV1SplatRoute: ApiV1SplatRoute,
+  ApiPublicDeliveriesEventsRoute: ApiPublicDeliveriesEventsRoute,
   ApiPublicV1SplatRoute: ApiPublicV1SplatRoute,
 }
 export const routeTree = rootRouteImport
