@@ -15,6 +15,13 @@
       "when": 1792848755839,
       "tag": "0001_grant_confidence_fn_postgres",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792848772360,
+      "tag": "0002_grant_delivery_fns_readonly_role",
+      "breakpoints": true
     }
   ]
 }
