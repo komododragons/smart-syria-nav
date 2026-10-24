@@ -319,7 +319,7 @@ function ResolverPage() {
     : { latitude: 33.5138, longitude: 36.2765 };
 
   return (
-    <div className="flex min-h-dvh flex-col bg-background text-foreground selection:bg-primary/20">
+    <div className="flex min-h-dvh flex-col bg-background text-foreground selection:bg-primary/20 md:h-dvh">
       <AppHeader />
 
       {/* Hero — the Syriasan motto */}
