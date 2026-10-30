@@ -141,6 +141,8 @@ export function AdminControlCenter() {
                 </div>
                 <p className="mt-2 text-[10px] uppercase text-muted-foreground">{t({ ar: "عناوين مُنشأة يومياً · 30 يوماً", en: "Addresses created per day · 30 days" })}</p>
               </section>
+              <section className="grid gap-4 md:grid-cols-[1.4fr_1fr]">
+                <div className="border border-border bg-surface p-4"><h3 className="text-sm font-bold">{t({ ar: "آخر الإجراءات الإدارية", en: "Recent administrative actions" })}</h3><RowList rows={data.rows} date={date} empty={t({ ar: "لا نشاط مسجل.", en: "No activity recorded." })} /></div>
                 <div className="border border-border bg-header p-4 text-header-foreground"><ShieldCheck className="size-5 text-primary"/><h3 className="mt-3 font-bold">{t({ ar: "الخصوصية أولاً", en: "Privacy first" })}</h3><p className="mt-2 text-xs leading-6 text-header-muted">{t({ ar: "التحليلات مجمّعة. السلوك السكني الفردي والبيانات الخاصة لا تظهر في هذا المركز.", en: "Analytics are aggregated. Individual residential behavior and private data never appear in this center." })}</p></div>
               </section>
             </>
