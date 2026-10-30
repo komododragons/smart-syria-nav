@@ -122,7 +122,7 @@ export function AdminControlCenter() {
                 {(() => {
                   const created = data.addressCreation;
                   if (!created) return null;
-                  const statItems: { key: keyof typeof created; label: Bilingual }[] = [
+                  const statItems: { key: "today" | "last7" | "last30"; label: Bilingual }[] = [
                     { key: "today", label: { ar: "اليوم", en: "Today" } },
                     { key: "last7", label: { ar: "آخر 7 أيام", en: "Last 7 days" } },
                     { key: "last30", label: { ar: "آخر 30 يوماً", en: "Last 30 days" } },
