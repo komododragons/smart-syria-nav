@@ -118,8 +118,29 @@ export function AdminControlCenter() {
               <section className="grid grid-cols-2 gap-2 md:grid-cols-5">
                 {Object.entries(data.metrics).map(([key, value]) => <div key={key} className="border border-border bg-surface p-3"><p className="font-mono text-2xl font-bold">{Number(value).toLocaleString("en-US")}</p><p className="mt-1 text-[10px] uppercase text-muted-foreground">{key.replace(/([A-Z])/g, " $1")}</p></div>)}
               </section>
-              <section className="grid gap-4 md:grid-cols-[1.4fr_1fr]">
-                <div className="border border-border bg-surface p-4"><h3 className="text-sm font-bold">{t({ ar: "آخر الإجراءات الإدارية", en: "Recent administrative actions" })}</h3><RowList rows={data.rows} date={date} empty={t({ ar: "لا نشاط مسجل.", en: "No activity recorded." })} /></div>
+              <section className="border border-border bg-surface p-4">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <h3 className="text-sm font-bold">{t({ ar: "العناوين المُنشأة", en: "Created addresses" })}</h3>
+                    <p className="mt-1 text-xs text-muted-foreground">{t({ ar: "إجمالي القاعدة", en: "All time" })}: {Number(data.metrics.addresses).toLocaleString("en-US")} · {t({ ar: "آخر 30 يوماً", en: "Last 30 days" })}: {data.addressCreation.last30}</p>
+                  </div>
+                  <dl className="flex gap-6 text-end">
+                    {[["today", { ar: "اليوم", en: "Today" }], ["last7", { ar: "آخر 7 أيام", en: "Last 7 days" }], ["last30", { ar: "آخر 30 يوماً", en: "Last 30 days" }]].map(([key, label]) => (
+                      <div key={key}>
+                        <dd className="font-mono text-2xl font-bold">{(data.addressCreation as any)[key]}</dd>
+                        <dt className="mt-1 text-[10px] uppercase text-muted-foreground">{t(label as Bilingual)}</dt>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+                <div role="img" aria-label={t({ ar: "العناوين المُنشأة يومياً خلال 30 يوماً", en: "Addresses created per day over the last 30 days" })} className="mt-4 flex h-16 items-end gap-[2px]">
+                  {data.addressCreation.series.map(({ day, count }) => {
+                    const max = Math.max(...data.addressCreation.series.map((point: { count: number }) => point.count), 1);
+                    return <div key={day} title={`${day}: ${count}`} className={`flex-1 min-w-[3px] ${count > 0 ? "bg-primary" : "bg-muted"}`} style={{ height: count > 0 ? `${Math.max(Math.round((count / max) * 100), 8)}%` : "2px" }} />;
+                  })}
+                </div>
+                <p className="mt-2 text-[10px] uppercase text-muted-foreground">{t({ ar: "عناوين مُنشأة يومياً · 30 يوماً", en: "Addresses created per day · 30 days" })}</p>
+              </section>
                 <div className="border border-border bg-header p-4 text-header-foreground"><ShieldCheck className="size-5 text-primary"/><h3 className="mt-3 font-bold">{t({ ar: "الخصوصية أولاً", en: "Privacy first" })}</h3><p className="mt-2 text-xs leading-6 text-header-muted">{t({ ar: "التحليلات مجمّعة. السلوك السكني الفردي والبيانات الخاصة لا تظهر في هذا المركز.", en: "Analytics are aggregated. Individual residential behavior and private data never appear in this center." })}</p></div>
               </section>
             </>
