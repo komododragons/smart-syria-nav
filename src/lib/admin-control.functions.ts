@@ -172,21 +172,24 @@ export const adminControlCenter = createServerFn({ method: "POST" })
       }
     }
 
-    // Created-addresses statistic: counts and a 30-day daily series (UTC).
-    const dayMs = 86_400_000;
-    const createdRows = (await db.from("smart_addresses").select("created_at").gte("created_at", new Date(Date.now() - 30 * dayMs).toISOString()).limit(5000)).data ?? [];
-    const seriesMap = new Map<string, number>();
-    for (let i = 29; i >= 0; i--) seriesMap.set(new Date(Date.now() - i * dayMs).toISOString().slice(0, 10), 0);
-    for (const row of createdRows) {
-      const key = String(row.created_at).slice(0, 10);
-      if (seriesMap.has(key)) seriesMap.set(key, (seriesMap.get(key) ?? 0) + 1);
+    // Created-addresses statistic: counts and a 30-day daily series (UTC), overview only.
+    let addressCreation: { today: number; last7: number; last30: number; series: { day: string; count: number }[] } | null = null;
+    if (data.section === "overview") {
+      const dayMs = 86_400_000;
+      const createdRows = (await db.from("smart_addresses").select("created_at").gte("created_at", new Date(Date.now() - 30 * dayMs).toISOString()).limit(5000)).data ?? [];
+      const seriesMap = new Map<string, number>();
+      for (let i = 29; i >= 0; i--) seriesMap.set(new Date(Date.now() - i * dayMs).toISOString().slice(0, 10), 0);
+      for (const row of createdRows) {
+        const key = String(row.created_at).slice(0, 10);
+        if (seriesMap.has(key)) seriesMap.set(key, (seriesMap.get(key) ?? 0) + 1);
+      }
+      addressCreation = {
+        today: createdRows.filter((row: any) => row.created_at.slice(0, 10) === new Date().toISOString().slice(0, 10)).length,
+        last7: createdRows.filter((row: any) => row.created_at >= new Date(Date.now() - 7 * dayMs).toISOString()).length,
+        last30: createdRows.length,
+        series: [...seriesMap.entries()].map(([day, count]) => ({ day, count })),
+      };
     }
-    const addressCreation = {
-      today: createdRows.filter((row: any) => row.created_at.slice(0, 10) === new Date().toISOString().slice(0, 10)).length,
-      last7: createdRows.filter((row: any) => row.created_at >= new Date(Date.now() - 7 * dayMs).toISOString()).length,
-      last30: createdRows.length,
-      series: [...seriesMap.entries()].map(([day, count]) => ({ day, count })),
-    };
 
     return {
       authorized: true as const,
